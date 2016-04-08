@@ -49,11 +49,15 @@
 class GPS_Helper
 {
 public:
+	enum class OutputMode {
+		GPS = 0,    ///< normal GPS output
+		RTCM        ///< request RTCM output. This is used for (fixed position) base stations
+	};
 
 	GPS_Helper() {};
 	virtual ~GPS_Helper() {};
 
-	virtual int			configure(unsigned &baud) = 0;
+	virtual int			configure(unsigned &baud, OutputMode output_mode) = 0;
 	virtual int 			receive(unsigned timeout) = 0;
 	int 				set_baudrate(const int &fd, unsigned baud);
 	float				get_position_update_rate();

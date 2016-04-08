@@ -327,7 +327,7 @@ GPS::task_main()
 			 * MTK driver is not well tested, so we really only trust the UBX
 			 * driver for an advance publication
 			 */
-			if (_Helper->configure(_baudrate) == 0) {
+			if (_Helper->configure(_baudrate, GPS_Helper::OutputMode::GPS) == 0) {
 
 				/* reset report */
 				memset(&_report_gps_pos, 0, sizeof(_report_gps_pos));

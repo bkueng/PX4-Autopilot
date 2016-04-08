@@ -80,7 +80,7 @@ public:
 	ASHTECH(const int &fd, struct vehicle_gps_position_s *gps_position, struct satellite_info_s *satellite_info);
 	~ASHTECH();
 	int             receive(unsigned timeout);
-	int             configure(unsigned &baudrate);
+	int             configure(unsigned &baudrate, OutputMode output_mode);
 	void            decode_init(void);
 	int             handle_message(int len);
 	int             parse_char(uint8_t b);

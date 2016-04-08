@@ -663,8 +663,13 @@ const char comm[] = "$PASHS,POP,20\r\n"\
 		    "$PASHS,SPD,A,8\r\n"\
 		    "$PASHS,SPD,B,9\r\n";
 
-int ASHTECH::configure(unsigned &baudrate)
+int ASHTECH::configure(unsigned &baudrate, OutputMode output_mode)
 {
+	if (output_mode != OutputMode::GPS) {
+		PX4_WARN("ASHTECH: Unsupported Output Mode %i", (int)output_mode);
+		return 1;
+	}
+
 	/* try different baudrates */
 	const unsigned baudrates_to_try[] = {9600, 38400, 19200, 57600, 115200};
 

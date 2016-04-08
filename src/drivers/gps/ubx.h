@@ -68,6 +68,7 @@
 #define UBX_ID_NAV_VELNED	0x12
 #define UBX_ID_NAV_TIMEUTC	0x21
 #define UBX_ID_NAV_SVINFO	0x30
+#define UBX_ID_NAV_SVIN  	0x3B
 #define UBX_ID_ACK_NAK		0x00
 #define UBX_ID_ACK_ACK		0x01
 #define UBX_ID_CFG_PRT		0x00
@@ -75,6 +76,7 @@
 #define UBX_ID_CFG_RATE		0x08
 #define UBX_ID_CFG_NAV5		0x24
 #define UBX_ID_CFG_SBAS		0x16
+#define UBX_ID_CFG_TMODE3	0x71
 #define UBX_ID_MON_VER		0x04
 #define UBX_ID_MON_HW		0x09
 
@@ -86,6 +88,7 @@
 #define UBX_MSG_NAV_VELNED	((UBX_CLASS_NAV) | UBX_ID_NAV_VELNED << 8)
 #define UBX_MSG_NAV_TIMEUTC	((UBX_CLASS_NAV) | UBX_ID_NAV_TIMEUTC << 8)
 #define UBX_MSG_NAV_SVINFO	((UBX_CLASS_NAV) | UBX_ID_NAV_SVINFO << 8)
+#define UBX_MSG_NAV_SVIN	((UBX_CLASS_NAV) | UBX_ID_NAV_SVIN << 8)
 #define UBX_MSG_ACK_NAK		((UBX_CLASS_ACK) | UBX_ID_ACK_NAK << 8)
 #define UBX_MSG_ACK_ACK		((UBX_CLASS_ACK) | UBX_ID_ACK_ACK << 8)
 #define UBX_MSG_CFG_PRT		((UBX_CLASS_CFG) | UBX_ID_CFG_PRT << 8)
@@ -93,6 +96,7 @@
 #define UBX_MSG_CFG_RATE	((UBX_CLASS_CFG) | UBX_ID_CFG_RATE << 8)
 #define UBX_MSG_CFG_NAV5	((UBX_CLASS_CFG) | UBX_ID_CFG_NAV5 << 8)
 #define UBX_MSG_CFG_SBAS	((UBX_CLASS_CFG) | UBX_ID_CFG_SBAS << 8)
+#define UBX_MSG_CFG_TMODE3	((UBX_CLASS_CFG) | UBX_ID_CFG_TMODE3 << 8)
 #define UBX_MSG_MON_HW		((UBX_CLASS_MON) | UBX_ID_MON_HW << 8)
 #define UBX_MSG_MON_VER		((UBX_CLASS_MON) | UBX_ID_MON_VER << 8)
 
@@ -120,8 +124,9 @@
 #define UBX_TX_CFG_PRT_PORTID_USB	0x03		/**< USB */
 #define UBX_TX_CFG_PRT_MODE		0x000008D0	/**< 0b0000100011010000: 8N1 */
 #define UBX_TX_CFG_PRT_BAUDRATE		38400		/**< choose 38400 as GPS baudrate */
-#define UBX_TX_CFG_PRT_INPROTOMASK	0x01		/**< UBX in */
-#define UBX_TX_CFG_PRT_OUTPROTOMASK	0x01		/**< UBX out */
+#define UBX_TX_CFG_PRT_INPROTOMASK	((1<<5) | (1<<2) | 0x01)	/**< RTCM3 in and RTCM2 in and UBX in */
+#define UBX_TX_CFG_PRT_OUTPROTOMASK_GPS	(0x01)			/**< UBX out */
+#define UBX_TX_CFG_PRT_OUTPROTOMASK_RTCM	((1<<5) | 0x01)		/**< RTCM3 out and UBX out */
 
 /* TX CFG-RATE message contents */
 #define UBX_TX_CFG_RATE_MEASINTERVAL	200		/**< 200ms for 5Hz */
@@ -131,6 +136,7 @@
 /* TX CFG-NAV5 message contents */
 #define UBX_TX_CFG_NAV5_MASK		0x0005		/**< Only update dynamic model and fix mode */
 #define UBX_TX_CFG_NAV5_DYNMODEL	7		/**< 0 Portable, 2 Stationary, 3 Pedestrian, 4 Automotive, 5 Sea, 6 Airborne <1g, 7 Airborne <2g, 8 Airborne <4g */
+#define UBX_TX_CFG_NAV5_DYNMODEL_RTCM	2
 #define UBX_TX_CFG_NAV5_FIXMODE		2		/**< 1 2D only, 2 3D only, 3 Auto 2D/3D */
 
 /* TX CFG-SBAS message contents */
@@ -143,6 +149,10 @@
 #define UBX_TX_CFG_MSG_RATE1_1HZ	0x05		/**< {0x00, 0x05, 0x00, 0x00, 0x00, 0x00} the second entry is for UART1 */
 #define UBX_TX_CFG_MSG_RATE1_05HZ	10
 
+/* TX CFG-TMODE3 message contents */
+#define UBX_TX_CFG_TMODE3_FLAGS     	1 	    	/**< start survey-in */
+#define UBX_TX_CFG_TMODE3_SVINMINDUR    (2*60)		/**< survey-in: minimum duration [s] (higher=higher precision) */
+#define UBX_TX_CFG_TMODE3_SVINACCLIMIT  (10000)	/**< survey-in: position accuracy limit 0.1[mm] */
 
 /*** u-blox protocol binary message and payload definitions ***/
 #pragma pack(push, 1)
@@ -276,6 +286,26 @@ typedef struct {
 	int16_t		azim; 		/**< Azimuth [deg] */
 	int32_t		prRes; 		/**< Pseudo range residual [cm] */
 } ubx_payload_rx_nav_svinfo_part2_t;
+
+/* Rx NAV-SVIN (survey-in info) */
+typedef struct {
+	uint8_t     version;
+	uint8_t     reserved1[3];
+	uint32_t	iTOW;
+	uint32_t    dur;
+	int32_t     meanX;
+	int32_t     meanY;
+	int32_t     meanZ;
+	int8_t      meanXHP;
+	int8_t      meanYHP;
+	int8_t      meanZHP;
+	int8_t      reserved2;
+	uint32_t    meanAcc;
+	uint32_t    obs;
+	uint8_t     valid;
+	uint8_t     active;
+	uint8_t     reserved3[2];
+} ubx_payload_rx_nav_svin_t;
 
 /* Rx NAV-VELNED */
 typedef struct {
@@ -426,6 +456,24 @@ typedef struct {
 	uint8_t rate;
 } ubx_payload_tx_cfg_msg_t;
 
+/* CFG-TMODE3 ublox 8 (protocol version >= 20) */
+typedef struct {
+	uint8_t     version;
+	uint8_t     reserved1;
+	uint16_t    flags;
+	int32_t     ecefXOrLat;
+	int32_t     ecefYOrLon;
+	int32_t     ecefZOrAlt;
+	int8_t      ecefXOrLatHP;
+	int8_t      ecefYOrLonHP;
+	int8_t      ecefZOrAltHP;
+	uint8_t     reserved2;
+	uint32_t    fixedPosAcc;
+	uint32_t    svinMinDur;
+	uint32_t    svinAccLimit;
+	uint8_t     reserved3[8];
+} ubx_payload_tx_cfg_tmode3_t;
+
 /* General message and payload buffer union */
 typedef union {
 	ubx_payload_rx_nav_pvt_t		payload_rx_nav_pvt;
@@ -435,6 +483,7 @@ typedef union {
 	ubx_payload_rx_nav_timeutc_t		payload_rx_nav_timeutc;
 	ubx_payload_rx_nav_svinfo_part1_t	payload_rx_nav_svinfo_part1;
 	ubx_payload_rx_nav_svinfo_part2_t	payload_rx_nav_svinfo_part2;
+	ubx_payload_rx_nav_svin_t		payload_rx_nav_svin;
 	ubx_payload_rx_nav_velned_t		payload_rx_nav_velned;
 	ubx_payload_rx_mon_hw_ubx6_t		payload_rx_mon_hw_ubx6;
 	ubx_payload_rx_mon_hw_ubx7_t		payload_rx_mon_hw_ubx7;
@@ -447,6 +496,7 @@ typedef union {
 	ubx_payload_tx_cfg_nav5_t		payload_tx_cfg_nav5;
 	ubx_payload_tx_cfg_sbas_t		payload_tx_cfg_sbas;
 	ubx_payload_tx_cfg_msg_t		payload_tx_cfg_msg;
+	ubx_payload_tx_cfg_tmode3_t		payload_tx_cfg_tmode3;
 } ubx_buf_t;
 
 #pragma pack(pop)
@@ -488,7 +538,7 @@ public:
 	UBX(const int &fd, struct vehicle_gps_position_s *gps_position, struct satellite_info_s *satellite_info);
 	~UBX();
 	int			receive(const unsigned timeout);
-	int			configure(unsigned &baudrate);
+	int			configure(unsigned &baudrate, OutputMode output_mode);
 
 private:
 

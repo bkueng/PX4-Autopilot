@@ -91,7 +91,7 @@ public:
 	MTK(const int &fd, struct vehicle_gps_position_s *gps_position);
 	~MTK();
 	int				receive(unsigned timeout);
-	int				configure(unsigned &baudrate);
+	int				configure(unsigned &baudrate, OutputMode output_mode);
 
 private:
 	/**

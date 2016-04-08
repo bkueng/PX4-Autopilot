@@ -64,8 +64,13 @@ MTK::~MTK()
 }
 
 int
-MTK::configure(unsigned &baudrate)
+MTK::configure(unsigned &baudrate, OutputMode output_mode)
 {
+	if (output_mode != OutputMode::GPS) {
+		PX4_WARN("MTK: Unsupported Output Mode %i", (int)output_mode);
+		return 1;
+	}
+
 	/* set baudrate first */
 	if (GPS_Helper::set_baudrate(_fd, MTK_BAUDRATE) != 0) {
 		return -1;

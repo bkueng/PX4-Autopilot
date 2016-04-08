@@ -105,7 +105,7 @@ UBX::~UBX()
 }
 
 int
-UBX::configure(unsigned &baudrate)
+UBX::configure(unsigned &baudrate, OutputMode output_mode)
 {
 	_configured = false;
 	/* try different baudrates */
@@ -113,6 +113,15 @@ UBX::configure(unsigned &baudrate)
 
 	unsigned baud_i;
 	ubx_payload_tx_cfg_prt_t cfg_prt[2];
+	uint16_t out_proto_mask = output_mode == OutputMode::GPS ?
+				  UBX_TX_CFG_PRT_OUTPROTOMASK_GPS :
+				  UBX_TX_CFG_PRT_OUTPROTOMASK_RTCM;
+	//FIXME: RTCM3 output needs at least protocol version 20. The protocol version can be checked via the version
+	//output:
+	//WARN  VER ext "                  PROTVER=20.00"
+	//However this is a string and it is not well documented, that PROTVER is always contained. Maybe there is a
+	//better way to check the protocol version?
+
 
 	for (baud_i = 0; baud_i < sizeof(baudrates) / sizeof(baudrates[0]); baud_i++) {
 		baudrate = baudrates[baud_i];
@@ -130,12 +139,12 @@ UBX::configure(unsigned &baudrate)
 		cfg_prt[0].mode		= UBX_TX_CFG_PRT_MODE;
 		cfg_prt[0].baudRate	= baudrate;
 		cfg_prt[0].inProtoMask	= UBX_TX_CFG_PRT_INPROTOMASK;
-		cfg_prt[0].outProtoMask	= UBX_TX_CFG_PRT_OUTPROTOMASK;
+		cfg_prt[0].outProtoMask	= out_proto_mask;
 		cfg_prt[1].portID		= UBX_TX_CFG_PRT_PORTID_USB;
 		cfg_prt[1].mode		= UBX_TX_CFG_PRT_MODE;
 		cfg_prt[1].baudRate	= baudrate;
 		cfg_prt[1].inProtoMask	= UBX_TX_CFG_PRT_INPROTOMASK;
-		cfg_prt[1].outProtoMask	= UBX_TX_CFG_PRT_OUTPROTOMASK;
+		cfg_prt[1].outProtoMask	= out_proto_mask;
 
 		if (!send_message(UBX_MSG_CFG_PRT, (uint8_t *)cfg_prt, 2 * sizeof(ubx_payload_tx_cfg_prt_t))) {
 			continue;
@@ -152,12 +161,12 @@ UBX::configure(unsigned &baudrate)
 		cfg_prt[0].mode		= UBX_TX_CFG_PRT_MODE;
 		cfg_prt[0].baudRate	= UBX_TX_CFG_PRT_BAUDRATE;
 		cfg_prt[0].inProtoMask	= UBX_TX_CFG_PRT_INPROTOMASK;
-		cfg_prt[0].outProtoMask	= UBX_TX_CFG_PRT_OUTPROTOMASK;
+		cfg_prt[0].outProtoMask	= out_proto_mask;
 		cfg_prt[1].portID		= UBX_TX_CFG_PRT_PORTID_USB;
 		cfg_prt[1].mode		= UBX_TX_CFG_PRT_MODE;
 		cfg_prt[1].baudRate	= UBX_TX_CFG_PRT_BAUDRATE;
 		cfg_prt[1].inProtoMask	= UBX_TX_CFG_PRT_INPROTOMASK;
-		cfg_prt[1].outProtoMask	= UBX_TX_CFG_PRT_OUTPROTOMASK;
+		cfg_prt[1].outProtoMask	= out_proto_mask;
 
 		if (!send_message(UBX_MSG_CFG_PRT, (uint8_t *)cfg_prt, 2 * sizeof(ubx_payload_tx_cfg_prt_t))) {
 			continue;
@@ -196,7 +205,9 @@ UBX::configure(unsigned &baudrate)
 	/* send a NAV5 message to set the options for the internal filter */
 	memset(&_buf.payload_tx_cfg_nav5, 0, sizeof(_buf.payload_tx_cfg_nav5));
 	_buf.payload_tx_cfg_nav5.mask		= UBX_TX_CFG_NAV5_MASK;
-	_buf.payload_tx_cfg_nav5.dynModel	= UBX_TX_CFG_NAV5_DYNMODEL;
+	_buf.payload_tx_cfg_nav5.dynModel	= output_mode == OutputMode::GPS ?
+			UBX_TX_CFG_NAV5_DYNMODEL :
+			UBX_TX_CFG_NAV5_DYNMODEL_RTCM;
 	_buf.payload_tx_cfg_nav5.fixMode	= UBX_TX_CFG_NAV5_FIXMODE;
 
 	if (!send_message(UBX_MSG_CFG_NAV5, (uint8_t *)&_buf, sizeof(_buf.payload_tx_cfg_nav5))) {
@@ -301,6 +312,34 @@ UBX::configure(unsigned &baudrate)
 	/* request module version information by sending an empty MON-VER message */
 	if (!send_message(UBX_MSG_MON_VER, nullptr, 0)) {
 		return 1;
+	}
+
+	if (output_mode == OutputMode::RTCM) {
+		UBX_DEBUG("Starting Survey-in");
+
+		memset(&_buf.payload_tx_cfg_tmode3, 0, sizeof(_buf.payload_tx_cfg_tmode3));
+		_buf.payload_tx_cfg_tmode3.version      = 0;
+		_buf.payload_tx_cfg_tmode3.flags        = UBX_TX_CFG_TMODE3_FLAGS;
+		_buf.payload_tx_cfg_tmode3.svinMinDur   = UBX_TX_CFG_TMODE3_SVINMINDUR;
+		_buf.payload_tx_cfg_tmode3.svinAccLimit = UBX_TX_CFG_TMODE3_SVINACCLIMIT;
+
+		if (!send_message(UBX_MSG_CFG_TMODE3, (uint8_t *)&_buf, sizeof(_buf.payload_tx_cfg_tmode3))) {
+			return 1;
+		}
+
+		if (wait_for_ack(UBX_MSG_CFG_TMODE3, UBX_CONFIG_TIMEOUT, true) < 0) {
+			return 1;
+		}
+
+		/* enable status output of survey-in */
+		if (!configure_message_rate(UBX_MSG_NAV_SVIN, 1)) {
+			return 1;
+		}
+
+		if (wait_for_ack(UBX_MSG_CFG_MSG, UBX_CONFIG_TIMEOUT, true) < 0) {
+			return 1;
+		}
+
 	}
 
 	_configured = true;
@@ -601,6 +640,17 @@ UBX::payload_rx_init()
 
 		} else {
 			memset(_satellite_info, 0, sizeof(*_satellite_info));        // initialize sat info
+		}
+
+		break;
+
+	case UBX_MSG_NAV_SVIN:
+		if (_rx_payload_length != sizeof(ubx_payload_rx_nav_svin_t)) {
+			_rx_state = UBX_RXMSG_ERROR_LENGTH;
+
+		} else if (!_configured) {
+			_rx_state = UBX_RXMSG_IGNORE;        // ignore if not _configured
+
 		}
 
 		break;
@@ -1012,6 +1062,17 @@ UBX::payload_rx_done(void)
 		_satellite_info->timestamp = hrt_absolute_time();
 
 		ret = 2;
+		break;
+
+	case UBX_MSG_NAV_SVIN:
+		UBX_TRACE_RXMSG("Rx NAV-SVIN");
+		{
+			ubx_payload_rx_nav_svin_t &svin = _buf.payload_rx_nav_svin;
+			UBX_WARN(" status: %is cur accuracy: %imm nr obs: %i valid: %i active: %i",
+				 svin.dur, svin.meanAcc / 10, svin.obs, (int)svin.valid, (int)svin.active);
+		}
+
+		ret = 1;
 		break;
 
 	case UBX_MSG_NAV_VELNED:
