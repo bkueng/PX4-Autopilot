@@ -47,6 +47,7 @@
 #include <px4_defines.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <algorithm>
 #include <stdio.h>
 #include <math.h>
 #include <stdbool.h>
@@ -128,6 +129,7 @@ MavlinkReceiver::MavlinkReceiver(Mavlink *parent) :
 	_land_detector_pub(nullptr),
 	_time_offset_pub(nullptr),
 	_follow_target_pub(nullptr),
+	_gps_inject_data_pub(nullptr),
 	_control_mode_sub(orb_subscribe(ORB_ID(vehicle_control_mode))),
 	_hil_frames(0),
 	_old_timestamp(0),
@@ -230,6 +232,9 @@ MavlinkReceiver::handle_message(mavlink_message_t *msg)
 		break;
 	case MAVLINK_MSG_ID_FOLLOW_TARGET:
 		handle_message_follow_target(msg);
+		break;
+	case MAVLINK_MSG_ID_GPS_INJECT_DATA:
+		handle_message_gps_inject_data(msg);
 		break;
 	default:
 		break;
@@ -1644,6 +1649,25 @@ void MavlinkReceiver::handle_message_follow_target(mavlink_message_t *msg)
 	} else {
 		orb_publish(ORB_ID(follow_target), _follow_target_pub, &follow_target_topic);
 	}
+}
+
+void MavlinkReceiver::handle_message_gps_inject_data(mavlink_message_t *msg)
+{
+	mavlink_gps_inject_data_t gps_inject_data_msg;
+	gps_inject_data_s gps_inject_data_topic;
+
+	mavlink_msg_gps_inject_data_decode(msg, &gps_inject_data_msg);
+
+	gps_inject_data_topic.len = gps_inject_data_msg.len;
+	memcpy(gps_inject_data_topic.data, gps_inject_data_msg.data,
+			sizeof(uint8_t) * std::min((uint8_t)110, gps_inject_data_msg.len));
+
+	if (_gps_inject_data_pub == nullptr) {
+		_gps_inject_data_pub = orb_advertise(ORB_ID(gps_inject_data), &gps_inject_data_topic);
+	} else {
+		orb_publish(ORB_ID(gps_inject_data), _gps_inject_data_pub, &gps_inject_data_topic);
+	}
+
 }
 
 void
