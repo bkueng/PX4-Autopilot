@@ -510,7 +510,7 @@ GPS::print_info()
 		 _report_gps_pos.jamming_indicator == 255 ? "YES" : "NO");
 
 	if (_report_gps_pos.timestamp_position != 0) {
-		PX4_WARN("position lock: %dD, satellites: %d, last update: %8.4fms ago", (int)_report_gps_pos.fix_type,
+		PX4_WARN("position lock: %d, satellites: %d, last update: %8.4fms ago", (int)_report_gps_pos.fix_type,
 			 _report_gps_pos.satellites_used, (double)(hrt_absolute_time() - _report_gps_pos.timestamp_position) / 1000.0);
 		PX4_WARN("lat: %d, lon: %d, alt: %d", _report_gps_pos.lat, _report_gps_pos.lon, _report_gps_pos.alt);
 		PX4_WARN("vel: %.2fm/s, %.2fm/s, %.2fm/s", (double)_report_gps_pos.vel_n_m_s,
@@ -547,7 +547,8 @@ void
 start(const char *uart_path, bool fake_gps, bool enable_sat_info)
 {
 	if (g_dev != nullptr) {
-		errx(1, "already started");
+		PX4_WARN("gps already started");
+		return;
 	}
 
 	/* create the driver */
