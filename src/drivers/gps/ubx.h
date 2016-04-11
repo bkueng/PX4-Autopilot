@@ -597,6 +597,12 @@ private:
 	int			wait_for_ack(const uint16_t msg, const unsigned timeout, const bool report);
 
 	/**
+	 * combines the configure_message_rate & wait_for_ack calls
+	 * @return true on success
+	 */
+	inline bool configure_message_rate_and_ack(uint16_t msg, uint8_t rate, bool report_ack_error = false);
+
+	/**
 	 * Calculate FNV1 hash
 	 */
 	uint32_t		fnv1_32_str(uint8_t *str, uint32_t hval);

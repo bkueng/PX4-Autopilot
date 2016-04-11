@@ -252,60 +252,32 @@ UBX::configure(unsigned &baudrate, OutputMode output_mode)
 	UBX_DEBUG("%susing NAV-PVT", _use_nav_pvt ? "" : "not ");
 
 	if (!_use_nav_pvt) {
-		if (!configure_message_rate(UBX_MSG_NAV_TIMEUTC, 5)) {
+		if (!configure_message_rate_and_ack(UBX_MSG_NAV_TIMEUTC, 5, true)) {
 			return 1;
 		}
 
-		if (wait_for_ack(UBX_MSG_CFG_MSG, UBX_CONFIG_TIMEOUT, true) < 0) {
+		if (!configure_message_rate_and_ack(UBX_MSG_NAV_POSLLH, 1, true)) {
 			return 1;
 		}
 
-		if (!configure_message_rate(UBX_MSG_NAV_POSLLH, 1)) {
+		if (!configure_message_rate_and_ack(UBX_MSG_NAV_SOL, 1, true)) {
 			return 1;
 		}
 
-		if (wait_for_ack(UBX_MSG_CFG_MSG, UBX_CONFIG_TIMEOUT, true) < 0) {
-			return 1;
-		}
-
-		if (!configure_message_rate(UBX_MSG_NAV_SOL, 1)) {
-			return 1;
-		}
-
-		if (wait_for_ack(UBX_MSG_CFG_MSG, UBX_CONFIG_TIMEOUT, true) < 0) {
-			return 1;
-		}
-
-		if (!configure_message_rate(UBX_MSG_NAV_VELNED, 1)) {
-			return 1;
-		}
-
-		if (wait_for_ack(UBX_MSG_CFG_MSG, UBX_CONFIG_TIMEOUT, true) < 0) {
+		if (!configure_message_rate_and_ack(UBX_MSG_NAV_VELNED, 1, true)) {
 			return 1;
 		}
 	}
 
-	if (!configure_message_rate(UBX_MSG_NAV_DOP, 1)) {
+	if (!configure_message_rate_and_ack(UBX_MSG_NAV_DOP, 1, true)) {
 		return 1;
 	}
 
-	if (wait_for_ack(UBX_MSG_CFG_MSG, UBX_CONFIG_TIMEOUT, true) < 0) {
+	if (!configure_message_rate_and_ack(UBX_MSG_NAV_SVINFO, (_satellite_info != nullptr) ? 5 : 0, true)) {
 		return 1;
 	}
 
-	if (!configure_message_rate(UBX_MSG_NAV_SVINFO, (_satellite_info != nullptr) ? 5 : 0)) {
-		return 1;
-	}
-
-	if (wait_for_ack(UBX_MSG_CFG_MSG, UBX_CONFIG_TIMEOUT, true) < 0) {
-		return 1;
-	}
-
-	if (!configure_message_rate(UBX_MSG_MON_HW, 1)) {
-		return 1;
-	}
-
-	if (wait_for_ack(UBX_MSG_CFG_MSG, UBX_CONFIG_TIMEOUT, true) < 0) {
+	if (!configure_message_rate_and_ack(UBX_MSG_MON_HW, 1, true)) {
 		return 1;
 	}
 
@@ -1184,6 +1156,16 @@ UBX::configure_message_rate(const uint16_t msg, const uint8_t rate)
 	cfg_msg.rate	= rate;
 
 	return send_message(UBX_MSG_CFG_MSG, (uint8_t *)&cfg_msg, sizeof(cfg_msg));
+}
+
+bool
+UBX::configure_message_rate_and_ack(uint16_t msg, uint8_t rate, bool report_ack_error)
+{
+	if (!configure_message_rate(msg, rate)) {
+		return false;
+	}
+
+	return wait_for_ack(UBX_MSG_CFG_MSG, UBX_CONFIG_TIMEOUT, report_ack_error) >= 0;
 }
 
 bool
