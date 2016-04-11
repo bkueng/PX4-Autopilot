@@ -936,9 +936,7 @@ UBX::payload_rx_done(void)
 				ts.tv_sec = epoch;
 				ts.tv_nsec = _buf.payload_rx_nav_pvt.nano;
 
-				if (px4_clock_settime(CLOCK_REALTIME, &ts)) {
-					warn("failed setting clock");
-				}
+				px4_clock_settime(CLOCK_REALTIME, &ts);
 
 				_gps_position->time_utc_usec = static_cast<uint64_t>(epoch) * 1000000ULL;
 				_gps_position->time_utc_usec += _buf.payload_rx_nav_timeutc.nano / 1000;
@@ -1034,9 +1032,7 @@ UBX::payload_rx_done(void)
 				ts.tv_sec = epoch;
 				ts.tv_nsec = _buf.payload_rx_nav_timeutc.nano;
 
-				if (px4_clock_settime(CLOCK_REALTIME, &ts)) {
-					warn("failed setting clock");
-				}
+				px4_clock_settime(CLOCK_REALTIME, &ts);
 
 				_gps_position->time_utc_usec = static_cast<uint64_t>(epoch) * 1000000ULL;
 				_gps_position->time_utc_usec += _buf.payload_rx_nav_timeutc.nano / 1000;
