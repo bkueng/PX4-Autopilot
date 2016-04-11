@@ -242,7 +242,7 @@ void
 GPS::task_main()
 {
 	/* open the serial port */
-	_serial_fd = ::open(_port, O_RDWR);
+	_serial_fd = ::open(_port, O_RDWR | O_NOCTTY);
 
 	if (_serial_fd < 0) {
 		PX4_ERR("GPS: failed to open serial port: %s err: %d", _port, errno);
