@@ -85,7 +85,7 @@
 #define UBX_DEBUG(s, ...)		{/*PX4_WARN(s, ## __VA_ARGS__);*/}
 
 UBX::UBX(const int &fd, struct vehicle_gps_position_s *gps_position, struct satellite_info_s *satellite_info) :
-	_fd(fd),
+	GPS_Helper(fd, true),
 	_gps_position(gps_position),
 	_satellite_info(satellite_info),
 	_configured(false),

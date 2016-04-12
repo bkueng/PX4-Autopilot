@@ -56,7 +56,6 @@ class ASHTECH : public GPS_Helper
 		NME_DECODE_GOT_FIRST_CS_BYTE
 	};
 
-	int                    _fd;
 	struct satellite_info_s *_satellite_info;
 	struct vehicle_gps_position_s *_gps_position;
 	int ashtechlog_fd;
@@ -78,7 +77,7 @@ class ASHTECH : public GPS_Helper
 
 public:
 	ASHTECH(const int &fd, struct vehicle_gps_position_s *gps_position, struct satellite_info_s *satellite_info);
-	~ASHTECH();
+	virtual ~ASHTECH();
 	int             receive(unsigned timeout);
 	int             configure(unsigned &baudrate, OutputMode output_mode);
 	void            decode_init(void);

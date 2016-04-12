@@ -89,7 +89,7 @@ class MTK : public GPS_Helper
 {
 public:
 	MTK(const int &fd, struct vehicle_gps_position_s *gps_position);
-	~MTK();
+	virtual ~MTK();
 	int				receive(unsigned timeout);
 	int				configure(unsigned &baudrate, OutputMode output_mode);
 
@@ -114,7 +114,6 @@ private:
 	 */
 	void				add_byte_to_checksum(uint8_t);
 
-	int					_fd;
 	struct vehicle_gps_position_s *_gps_position;
 	mtk_decode_state_t	_decode_state;
 	uint8_t				_mtk_revision;

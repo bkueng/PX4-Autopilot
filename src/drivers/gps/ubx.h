@@ -536,7 +536,7 @@ class UBX : public GPS_Helper
 {
 public:
 	UBX(const int &fd, struct vehicle_gps_position_s *gps_position, struct satellite_info_s *satellite_info);
-	~UBX();
+	virtual ~UBX();
 	int			receive(const unsigned timeout);
 	int			configure(unsigned &baudrate, OutputMode output_mode);
 
@@ -607,7 +607,6 @@ private:
 	 */
 	uint32_t		fnv1_32_str(uint8_t *str, uint32_t hval);
 
-	int			_fd;
 	struct vehicle_gps_position_s *_gps_position;
 	struct satellite_info_s *_satellite_info;
 	bool			_configured;

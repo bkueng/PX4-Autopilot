@@ -55,6 +55,14 @@
 
 #define GPS_WAIT_BEFORE_READ	20		// ms, wait before reading to save read() calls
 
+GPS_Helper::GPS_Helper(int fd, bool support_inject_data)
+	: _fd(fd)
+{
+}
+
+GPS_Helper::~GPS_Helper()
+{
+}
 
 float
 GPS_Helper::get_position_update_rate()

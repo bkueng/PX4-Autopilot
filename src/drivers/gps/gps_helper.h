@@ -54,8 +54,8 @@ public:
 		RTCM        ///< request RTCM output. This is used for (fixed position) base stations
 	};
 
-	GPS_Helper() {};
-	virtual ~GPS_Helper() {};
+	GPS_Helper(int fd, bool support_inject_data = false);
+	virtual ~GPS_Helper();
 
 	virtual int			configure(unsigned &baud, OutputMode output_mode) = 0;
 	virtual int 			receive(unsigned timeout) = 0;
@@ -65,7 +65,9 @@ public:
 	void				reset_update_rates();
 	void				store_update_rates();
 
-	/* This is an abstraction for the poll on serial used. The
+
+	/**
+	 * This is an abstraction for the poll on serial used. The
 	 * implementation is different for QURT than for POSIX and
 	 * NuttX.
 	 *
@@ -80,6 +82,8 @@ public:
 	int poll_or_read(int fd, uint8_t *buf, size_t buf_length, uint64_t timeout);
 
 protected:
+	int _fd; ///< open file descriptor
+
 	uint8_t _rate_count_lat_lon;
 	uint8_t _rate_count_vel;
 

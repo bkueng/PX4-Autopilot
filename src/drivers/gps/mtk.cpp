@@ -52,7 +52,7 @@
 
 
 MTK::MTK(const int &fd, struct vehicle_gps_position_s *gps_position) :
-	_fd(fd),
+	GPS_Helper(fd),
 	_gps_position(gps_position),
 	_mtk_revision(0)
 {
