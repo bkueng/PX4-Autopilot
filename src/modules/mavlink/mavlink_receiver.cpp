@@ -47,7 +47,6 @@
 #include <px4_defines.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <algorithm>
 #include <stdio.h>
 #include <math.h>
 #include <stdbool.h>
@@ -1737,7 +1736,7 @@ void MavlinkReceiver::handle_message_gps_inject_data(mavlink_message_t *msg)
 
 	gps_inject_data_topic.len = gps_inject_data_msg.len;
 	memcpy(gps_inject_data_topic.data, gps_inject_data_msg.data,
-	       sizeof(uint8_t) * std::min((uint8_t)110, gps_inject_data_msg.len));
+	       sizeof(uint8_t) * math::min((uint8_t)110, gps_inject_data_msg.len));
 
 	if (_gps_inject_data_pub == nullptr) {
 		_gps_inject_data_pub = orb_advertise(ORB_ID(gps_inject_data), &gps_inject_data_topic);
