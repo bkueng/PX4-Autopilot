@@ -40,6 +40,7 @@
  * @author Thomas Gubler <thomasgubler@student.ethz.ch>
  * @author Julian Oes <joes@student.ethz.ch>
  * @author Anton Babushkin <anton.babushkin@me.com>
+ * @author Beat Kueng <beat-kueng@gmx.net>
  *
  * @author Hannes Delago
  *   (rework, add ubx7+ compatibility)
@@ -102,12 +103,14 @@ UBX::UBX(const int &fd, struct vehicle_gps_position_s *gps_position, struct sate
 
 UBX::~UBX()
 {
+	if (_rtcm_message) { delete(_rtcm_message); }
 }
 
 int
 UBX::configure(unsigned &baudrate, OutputMode output_mode)
 {
 	_configured = false;
+	_output_mode = output_mode;
 	/* try different baudrates */
 	const unsigned baudrates[] = {9600, 38400, 19200, 57600, 115200};
 
@@ -304,14 +307,9 @@ UBX::configure(unsigned &baudrate, OutputMode output_mode)
 		}
 
 		/* enable status output of survey-in */
-		if (!configure_message_rate(UBX_MSG_NAV_SVIN, 1)) {
+		if (!configure_message_rate_and_ack(UBX_MSG_NAV_SVIN, 5, true)) {
 			return 1;
 		}
-
-		if (wait_for_ack(UBX_MSG_CFG_MSG, UBX_CONFIG_TIMEOUT, true) < 0) {
-			return 1;
-		}
-
 	}
 
 	_configured = true;
@@ -407,6 +405,11 @@ UBX::parse_char(const uint8_t b)
 		if (b == UBX_SYNC1) {	// Sync1 found --> expecting Sync2
 			UBX_TRACE_PARSER("A");
 			_decode_state = UBX_DECODE_SYNC2;
+
+		} else if (b == RTCM3_PREAMBLE && _rtcm_message) {
+			UBX_TRACE_PARSER("RTCM");
+			_decode_state = UBX_DECODE_RTCM3;
+			_rtcm_message->buffer[_rtcm_message->pos++] = b;
 		}
 
 		break;
@@ -519,6 +522,28 @@ UBX::parse_char(const uint8_t b)
 		}
 
 		decode_init();
+		break;
+
+	case UBX_DECODE_RTCM3:
+		if (_rtcm_message->pos < RTCM_BUFFER_LENGTH) {
+			_rtcm_message->buffer[_rtcm_message->pos++] = b;
+
+			if (_rtcm_message->pos == 3) {
+				_rtcm_message->message_length = (((uint16_t)_rtcm_message->buffer[1] & 3) << 8) | (_rtcm_message->buffer[2]);
+				UBX_DEBUG("got RTCM message with length %i", (int)_rtcm_message->message_length);
+			}
+
+			if (_rtcm_message->message_length + 6 == _rtcm_message->pos) {
+				//we are done... TODO: send out message (copy it immediately)
+
+				decode_init();
+			}
+
+		} else {
+			UBX_WARN("RTCM message too long!");
+			decode_init();
+		}
+
 		break;
 
 	default:
@@ -1036,8 +1061,26 @@ UBX::payload_rx_done(void)
 		UBX_TRACE_RXMSG("Rx NAV-SVIN");
 		{
 			ubx_payload_rx_nav_svin_t &svin = _buf.payload_rx_nav_svin;
-			UBX_WARN(" status: %is cur accuracy: %imm nr obs: %i valid: %i active: %i",
+
+			UBX_WARN("Survey-in status: %is cur accuracy: %imm nr obs: %i valid: %i active: %i",
 				 svin.dur, svin.meanAcc / 10, svin.obs, (int)svin.valid, (int)svin.active);
+
+			if (svin.valid == 1 && svin.active == 0) {
+				configure_message_rate(UBX_MSG_NAV_SVIN, 0);
+
+				/* enable RTCM3 messages */
+				if (!configure_message_rate(UBX_MSG_RTCM3_1005, 1)) {
+					return -1;
+				}
+
+				if (!configure_message_rate(UBX_MSG_RTCM3_1077, 1)) {
+					return -1;
+				}
+
+				if (!configure_message_rate(UBX_MSG_RTCM3_1087, 1)) {
+					return -1;
+				}
+			}
 		}
 
 		ret = 1;
@@ -1129,6 +1172,15 @@ UBX::decode_init(void)
 	_rx_ck_b = 0;
 	_rx_payload_length = 0;
 	_rx_payload_index = 0;
+
+	if (_output_mode == OutputMode::RTCM) {
+		if (!_rtcm_message) {
+			_rtcm_message = new rtcm_message_t;
+		}
+
+		_rtcm_message->pos = 0;
+		_rtcm_message->message_length = RTCM_BUFFER_LENGTH;
+	}
 }
 
 void

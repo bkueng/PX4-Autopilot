@@ -59,6 +59,7 @@
 #define UBX_CLASS_ACK		0x05
 #define UBX_CLASS_CFG		0x06
 #define UBX_CLASS_MON		0x0A
+#define UBX_CLASS_RTCM3	0xF5 /**< This is undocumented (?) */
 
 /* Message IDs */
 #define UBX_ID_NAV_POSLLH	0x02
@@ -68,7 +69,9 @@
 #define UBX_ID_NAV_VELNED	0x12
 #define UBX_ID_NAV_TIMEUTC	0x21
 #define UBX_ID_NAV_SVINFO	0x30
+#define UBX_ID_NAV_SAT		0x35
 #define UBX_ID_NAV_SVIN  	0x3B
+#define UBX_ID_NAV_RELPOSNED  	0x3C
 #define UBX_ID_ACK_NAK		0x00
 #define UBX_ID_ACK_ACK		0x01
 #define UBX_ID_CFG_PRT		0x00
@@ -79,6 +82,9 @@
 #define UBX_ID_CFG_TMODE3	0x71
 #define UBX_ID_MON_VER		0x04
 #define UBX_ID_MON_HW		0x09
+#define UBX_ID_RTCM3_1005	0x05
+#define UBX_ID_RTCM3_1077	0x4D
+#define UBX_ID_RTCM3_1087	0x57
 
 /* Message Classes & IDs */
 #define UBX_MSG_NAV_POSLLH	((UBX_CLASS_NAV) | UBX_ID_NAV_POSLLH << 8)
@@ -88,7 +94,9 @@
 #define UBX_MSG_NAV_VELNED	((UBX_CLASS_NAV) | UBX_ID_NAV_VELNED << 8)
 #define UBX_MSG_NAV_TIMEUTC	((UBX_CLASS_NAV) | UBX_ID_NAV_TIMEUTC << 8)
 #define UBX_MSG_NAV_SVINFO	((UBX_CLASS_NAV) | UBX_ID_NAV_SVINFO << 8)
+#define UBX_MSG_NAV_SAT	((UBX_CLASS_NAV) | UBX_ID_NAV_SAT << 8)
 #define UBX_MSG_NAV_SVIN	((UBX_CLASS_NAV) | UBX_ID_NAV_SVIN << 8)
+#define UBX_MSG_NAV_RELPOSNED	((UBX_CLASS_NAV) | UBX_ID_NAV_RELPOSNED << 8)
 #define UBX_MSG_ACK_NAK		((UBX_CLASS_ACK) | UBX_ID_ACK_NAK << 8)
 #define UBX_MSG_ACK_ACK		((UBX_CLASS_ACK) | UBX_ID_ACK_ACK << 8)
 #define UBX_MSG_CFG_PRT		((UBX_CLASS_CFG) | UBX_ID_CFG_PRT << 8)
@@ -99,6 +107,9 @@
 #define UBX_MSG_CFG_TMODE3	((UBX_CLASS_CFG) | UBX_ID_CFG_TMODE3 << 8)
 #define UBX_MSG_MON_HW		((UBX_CLASS_MON) | UBX_ID_MON_HW << 8)
 #define UBX_MSG_MON_VER		((UBX_CLASS_MON) | UBX_ID_MON_VER << 8)
+#define UBX_MSG_RTCM3_1005	((UBX_CLASS_RTCM3) | UBX_ID_RTCM3_1005 << 8)
+#define UBX_MSG_RTCM3_1077	((UBX_CLASS_RTCM3) | UBX_ID_RTCM3_1077 << 8)
+#define UBX_MSG_RTCM3_1087	((UBX_CLASS_RTCM3) | UBX_ID_RTCM3_1087 << 8)
 
 /* RX NAV-PVT message content details */
 /*   Bitfield "valid" masks */
@@ -153,6 +164,17 @@
 #define UBX_TX_CFG_TMODE3_FLAGS     	1 	    	/**< start survey-in */
 #define UBX_TX_CFG_TMODE3_SVINMINDUR    (2*60)		/**< survey-in: minimum duration [s] (higher=higher precision) */
 #define UBX_TX_CFG_TMODE3_SVINACCLIMIT  (10000)	/**< survey-in: position accuracy limit 0.1[mm] */
+
+/* RTCM3 */
+#define RTCM3_PREAMBLE					0xD3
+#define RTCM_BUFFER_LENGTH				110		/**< maximum message length of an RTCM message */
+
+typedef struct {
+	uint8_t			buffer[RTCM_BUFFER_LENGTH];
+	uint16_t		pos;						///< next position in buffer
+	uint16_t		message_length;					///< message length without header & CRC (both 3 bytes)
+} rtcm_message_t;
+
 
 /*** u-blox protocol binary message and payload definitions ***/
 #pragma pack(push, 1)
@@ -512,7 +534,9 @@ typedef enum {
 	UBX_DECODE_LENGTH2,
 	UBX_DECODE_PAYLOAD,
 	UBX_DECODE_CHKSUM1,
-	UBX_DECODE_CHKSUM2
+	UBX_DECODE_CHKSUM2,
+
+	UBX_DECODE_RTCM3
 } ubx_decode_state_t;
 
 /* Rx message state */
@@ -625,6 +649,9 @@ private:
 	ubx_buf_t		_buf;
 	uint32_t		_ubx_version;
 	bool			_use_nav_pvt;
+	OutputMode		_output_mode = OutputMode::GPS;
+
+	rtcm_message_t	*_rtcm_message = nullptr;
 };
 
 #endif /* UBX_H_ */
