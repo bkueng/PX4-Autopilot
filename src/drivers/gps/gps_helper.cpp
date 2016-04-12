@@ -43,6 +43,7 @@
 #include <errno.h>
 #include <systemlib/err.h>
 #include <drivers/drv_hrt.h>
+#include <uORB/topics/gps_inject_data.h>
 
 #include "gps_helper.h"
 
@@ -58,10 +59,21 @@
 GPS_Helper::GPS_Helper(int fd, bool support_inject_data)
 	: _fd(fd)
 {
+	if (support_inject_data) {
+		_orb_inject_data_fd = orb_subscribe(ORB_ID(gps_inject_data));
+	}
 }
 
 GPS_Helper::~GPS_Helper()
 {
+	if (_orb_inject_data_fd != -1) {
+		orb_unsubscribe(_orb_inject_data_fd);
+	}
+}
+
+bool GPS_Helper::injectData(uint8_t *data, size_t len)
+{
+	return ::write(_fd, data, len) == len;
 }
 
 float
@@ -207,6 +219,10 @@ GPS_Helper::set_baudrate(const int &fd, unsigned baud)
 int
 GPS_Helper::poll_or_read(int fd, uint8_t *buf, size_t buf_length, uint64_t timeout)
 {
+	/* check for new messages. Note that we assume poll_or_read is called with a higher frequency
+	 * than we get new injection messages.
+	 */
+	handleInjectDataTopic();
 
 #ifndef __PX4_QURT
 
@@ -245,4 +261,20 @@ GPS_Helper::poll_or_read(int fd, uint8_t *buf, size_t buf_length, uint64_t timeo
 	usleep(10000);
 	return ::read(fd, buf, buf_length);
 #endif
+}
+
+void GPS_Helper::handleInjectDataTopic()
+{
+	if (_orb_inject_data_fd == -1) {
+		return;
+	}
+
+	bool updated = false;
+	orb_check(_orb_inject_data_fd, &updated);
+
+	if (updated) {
+		struct gps_inject_data_s msg;
+		orb_copy(ORB_ID(gps_inject_data), _orb_inject_data_fd, &msg);
+		injectData(msg.data, msg.len);
+	}
 }

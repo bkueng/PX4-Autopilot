@@ -91,6 +91,21 @@ protected:
 	float _rate_vel = 0.0f;
 
 	uint64_t _interval_rate_start;
+
+private:
+	/**
+	 * check for new messages on the inject data topic & handle them
+	 */
+	void handleInjectDataTopic();
+
+	/**
+	 * send data to the device, such as an RTCM stream
+	 * @param data
+	 * @param len
+	 */
+	inline bool injectData(uint8_t *data, size_t len);
+
+	int _orb_inject_data_fd = -1;
 };
 
 #endif /* GPS_HELPER_H */
