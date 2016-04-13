@@ -881,6 +881,10 @@ UBX::payload_rx_done(void)
 		//Check if position fix flag is good
 		if ((_buf.payload_rx_nav_pvt.flags & UBX_RX_NAV_PVT_FLAGS_GNSSFIXOK) == 1) {
 			_gps_position->fix_type		 = _buf.payload_rx_nav_pvt.fixType;
+
+			if (_buf.payload_rx_nav_pvt.flags & UBX_RX_NAV_PVT_FLAGS_DIFFSOLN) {
+				_gps_position->fix_type = 6; //RTK (we just assume it's fixed-type RTK)
+			}
 			_gps_position->vel_ned_valid = true;
 
 		} else {
