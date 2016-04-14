@@ -292,5 +292,12 @@ ORB_DEFINE(follow_target, struct follow_target_s);
 #include "topics/commander_state.h"
 ORB_DEFINE(commander_state, struct commander_state_s);
 
-#include "topics/gps_inject_data.h"
-ORB_DEFINE(gps_inject_data, struct gps_inject_data_s);
+//yes it's ugly, but until ORB supports queuing, we do it the manual way...
+#include "topics/gps_inject_data_0.h"
+ORB_DEFINE(gps_inject_data_0, struct gps_inject_data_0_s);
+#include "topics/gps_inject_data_1.h"
+ORB_DEFINE(gps_inject_data_1, struct gps_inject_data_1_s);
+#include "topics/gps_inject_data_2.h"
+ORB_DEFINE(gps_inject_data_2, struct gps_inject_data_2_s);
+#include "topics/gps_inject_data_3.h"
+ORB_DEFINE(gps_inject_data_3, struct gps_inject_data_3_s);

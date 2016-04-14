@@ -42,6 +42,7 @@
 
 #include <uORB/uORB.h>
 #include <uORB/topics/vehicle_gps_position.h>
+#include <array>
 
 // TODO: this number seems wrong
 #define GPS_EPOCH_SECS 1234567890ULL
@@ -105,7 +106,8 @@ private:
 	 */
 	inline bool injectData(uint8_t *data, size_t len);
 
-	int _orb_inject_data_fd = -1;
+	std::array<int, 4> _orb_inject_data_fd;
+	int _orb_inject_data_next = 0;
 };
 
 #endif /* GPS_HELPER_H */

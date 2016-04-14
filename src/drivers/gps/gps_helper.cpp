@@ -43,7 +43,10 @@
 #include <errno.h>
 #include <systemlib/err.h>
 #include <drivers/drv_hrt.h>
-#include <uORB/topics/gps_inject_data.h>
+#include <uORB/topics/gps_inject_data_0.h>
+#include <uORB/topics/gps_inject_data_1.h>
+#include <uORB/topics/gps_inject_data_2.h>
+#include <uORB/topics/gps_inject_data_3.h>
 
 #include "gps_helper.h"
 
@@ -59,15 +62,22 @@
 GPS_Helper::GPS_Helper(int fd, bool support_inject_data)
 	: _fd(fd)
 {
+	_orb_inject_data_fd.fill(-1);
+
 	if (support_inject_data) {
-		_orb_inject_data_fd = orb_subscribe(ORB_ID(gps_inject_data));
+		_orb_inject_data_fd[0] = orb_subscribe(ORB_ID(gps_inject_data_0));
+		_orb_inject_data_fd[1] = orb_subscribe(ORB_ID(gps_inject_data_1));
+		_orb_inject_data_fd[2] = orb_subscribe(ORB_ID(gps_inject_data_2));
+		_orb_inject_data_fd[3] = orb_subscribe(ORB_ID(gps_inject_data_3));
 	}
 }
 
 GPS_Helper::~GPS_Helper()
 {
-	if (_orb_inject_data_fd != -1) {
-		orb_unsubscribe(_orb_inject_data_fd);
+	if (_orb_inject_data_fd[0] != -1) {
+		for (size_t i = 0; i < _orb_inject_data_fd.size(); ++i) {
+			orb_unsubscribe(_orb_inject_data_fd[i]);
+		}
 	}
 }
 
@@ -265,16 +275,37 @@ GPS_Helper::poll_or_read(int fd, uint8_t *buf, size_t buf_length, uint64_t timeo
 
 void GPS_Helper::handleInjectDataTopic()
 {
-	if (_orb_inject_data_fd == -1) {
+	if (_orb_inject_data_fd[0] == -1) {
 		return;
 	}
 
 	bool updated = false;
-	orb_check(_orb_inject_data_fd, &updated);
+	int orb_inject_data_cur_fd = _orb_inject_data_fd[_orb_inject_data_next];
+	orb_check(orb_inject_data_cur_fd, &updated);
 
 	if (updated) {
-		struct gps_inject_data_s msg;
-		orb_copy(ORB_ID(gps_inject_data), _orb_inject_data_fd, &msg);
+		struct gps_inject_data_0_s msg;
+
+		switch (_orb_inject_data_next) {
+		case 0:
+			orb_copy(ORB_ID(gps_inject_data_0), orb_inject_data_cur_fd, &msg);
+			break;
+
+		case 1:
+			orb_copy(ORB_ID(gps_inject_data_1), orb_inject_data_cur_fd, &msg);
+			break;
+
+		case 2:
+			orb_copy(ORB_ID(gps_inject_data_2), orb_inject_data_cur_fd, &msg);
+			break;
+
+		case 3:
+			orb_copy(ORB_ID(gps_inject_data_3), orb_inject_data_cur_fd, &msg);
+			break;
+		}
+
 		injectData(msg.data, msg.len);
+		_orb_inject_data_next = (_orb_inject_data_next + 1) % _orb_inject_data_fd.size();
+
 	}
 }

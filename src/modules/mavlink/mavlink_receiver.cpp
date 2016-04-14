@@ -81,13 +81,9 @@
 #include <commander/px4_custom_mode.h>
 #include <geo/geo.h>
 
-__BEGIN_DECLS
-
 #include "mavlink_bridge_header.h"
 #include "mavlink_receiver.h"
 #include "mavlink_main.h"
-
-__END_DECLS
 
 static const float mg2ms2 = CONSTANTS_ONE_G / 1000.0f;
 
@@ -128,7 +124,7 @@ MavlinkReceiver::MavlinkReceiver(Mavlink *parent) :
 	_land_detector_pub(nullptr),
 	_time_offset_pub(nullptr),
 	_follow_target_pub(nullptr),
-	_gps_inject_data_pub(nullptr),
+	_gps_inject_data_pub(),
 	_control_mode_sub(orb_subscribe(ORB_ID(vehicle_control_mode))),
 	_hil_frames(0),
 	_old_timestamp(0),
@@ -147,7 +143,7 @@ MavlinkReceiver::MavlinkReceiver(Mavlink *parent) :
 	_mom_switch_pos{},
 	_mom_switch_state(0)
 {
-
+	_gps_inject_data_pub.fill(nullptr);
 }
 
 MavlinkReceiver::~MavlinkReceiver()
@@ -1730,7 +1726,7 @@ void MavlinkReceiver::handle_message_follow_target(mavlink_message_t *msg)
 void MavlinkReceiver::handle_message_gps_inject_data(mavlink_message_t *msg)
 {
 	mavlink_gps_inject_data_t gps_inject_data_msg;
-	gps_inject_data_s gps_inject_data_topic;
+	gps_inject_data_0_s gps_inject_data_topic;
 
 	mavlink_msg_gps_inject_data_decode(msg, &gps_inject_data_msg);
 
@@ -1738,12 +1734,35 @@ void MavlinkReceiver::handle_message_gps_inject_data(mavlink_message_t *msg)
 	memcpy(gps_inject_data_topic.data, gps_inject_data_msg.data,
 	       sizeof(uint8_t) * math::min((uint8_t)110, gps_inject_data_msg.len));
 
-	if (_gps_inject_data_pub == nullptr) {
-		_gps_inject_data_pub = orb_advertise(ORB_ID(gps_inject_data), &gps_inject_data_topic);
+	orb_advert_t &pub = _gps_inject_data_pub[_gps_inject_data_next_idx];
+
+	if (pub == nullptr) {
+		_gps_inject_data_pub[0] = orb_advertise(ORB_ID(gps_inject_data_0), &gps_inject_data_topic);
+		_gps_inject_data_pub[1] = orb_advertise(ORB_ID(gps_inject_data_1), &gps_inject_data_topic);
+		_gps_inject_data_pub[2] = orb_advertise(ORB_ID(gps_inject_data_2), &gps_inject_data_topic);
+		_gps_inject_data_pub[3] = orb_advertise(ORB_ID(gps_inject_data_3), &gps_inject_data_topic);
 
 	} else {
-		orb_publish(ORB_ID(gps_inject_data), _gps_inject_data_pub, &gps_inject_data_topic);
+		switch (_gps_inject_data_next_idx) {
+		case 0:
+			orb_publish(ORB_ID(gps_inject_data_0), pub, &gps_inject_data_topic);
+			break;
+
+		case 1:
+			orb_publish(ORB_ID(gps_inject_data_1), pub, &gps_inject_data_topic);
+			break;
+
+		case 2:
+			orb_publish(ORB_ID(gps_inject_data_2), pub, &gps_inject_data_topic);
+			break;
+
+		case 3:
+			orb_publish(ORB_ID(gps_inject_data_3), pub, &gps_inject_data_topic);
+			break;
+		}
 	}
+
+	_gps_inject_data_next_idx = (_gps_inject_data_next_idx + 1) % _gps_inject_data_pub.size();
 
 }
 

@@ -75,7 +75,12 @@
 #include <uORB/topics/time_offset.h>
 #include <uORB/topics/distance_sensor.h>
 #include <uORB/topics/follow_target.h>
-#include <uORB/topics/gps_inject_data.h>
+#include <uORB/topics/gps_inject_data_0.h>
+#include <uORB/topics/gps_inject_data_1.h>
+#include <uORB/topics/gps_inject_data_2.h>
+#include <uORB/topics/gps_inject_data_3.h>
+
+#include <array>
 
 #include "mavlink_ftp.h"
 
@@ -202,7 +207,8 @@ private:
 	orb_advert_t _land_detector_pub;
 	orb_advert_t _time_offset_pub;
 	orb_advert_t _follow_target_pub;
-	orb_advert_t _gps_inject_data_pub;
+	std::array<orb_advert_t, 4> _gps_inject_data_pub;
+	int _gps_inject_data_next_idx = 0;
 	int _control_mode_sub;
 	int _hil_frames;
 	uint64_t _old_timestamp;
