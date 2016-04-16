@@ -43,10 +43,7 @@
 #include <errno.h>
 #include <systemlib/err.h>
 #include <drivers/drv_hrt.h>
-#include <uORB/topics/gps_inject_data_0.h>
-#include <uORB/topics/gps_inject_data_1.h>
-#include <uORB/topics/gps_inject_data_2.h>
-#include <uORB/topics/gps_inject_data_3.h>
+#include <uORB/topics/gps_inject_data.h>
 
 #include "gps_helper.h"
 
@@ -65,10 +62,9 @@ GPS_Helper::GPS_Helper(int fd, bool support_inject_data)
 	_orb_inject_data_fd.fill(-1);
 
 	if (support_inject_data) {
-		_orb_inject_data_fd[0] = orb_subscribe(ORB_ID(gps_inject_data_0));
-		_orb_inject_data_fd[1] = orb_subscribe(ORB_ID(gps_inject_data_1));
-		_orb_inject_data_fd[2] = orb_subscribe(ORB_ID(gps_inject_data_2));
-		_orb_inject_data_fd[3] = orb_subscribe(ORB_ID(gps_inject_data_3));
+		for (int i = 0; i < _orb_inject_data_fd.size(); ++i) {
+			_orb_inject_data_fd[i] = orb_subscribe_multi(ORB_ID(gps_inject_data), i);
+		}
 	}
 }
 
@@ -284,26 +280,8 @@ void GPS_Helper::handleInjectDataTopic()
 	orb_check(orb_inject_data_cur_fd, &updated);
 
 	if (updated) {
-		struct gps_inject_data_0_s msg;
-
-		switch (_orb_inject_data_next) {
-		case 0:
-			orb_copy(ORB_ID(gps_inject_data_0), orb_inject_data_cur_fd, &msg);
-			break;
-
-		case 1:
-			orb_copy(ORB_ID(gps_inject_data_1), orb_inject_data_cur_fd, &msg);
-			break;
-
-		case 2:
-			orb_copy(ORB_ID(gps_inject_data_2), orb_inject_data_cur_fd, &msg);
-			break;
-
-		case 3:
-			orb_copy(ORB_ID(gps_inject_data_3), orb_inject_data_cur_fd, &msg);
-			break;
-		}
-
+		struct gps_inject_data_s msg;
+		orb_copy(ORB_ID(gps_inject_data), orb_inject_data_cur_fd, &msg);
 		injectData(msg.data, msg.len);
 		_orb_inject_data_next = (_orb_inject_data_next + 1) % _orb_inject_data_fd.size();
 

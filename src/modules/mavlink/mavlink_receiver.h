@@ -75,10 +75,7 @@
 #include <uORB/topics/time_offset.h>
 #include <uORB/topics/distance_sensor.h>
 #include <uORB/topics/follow_target.h>
-#include <uORB/topics/gps_inject_data_0.h>
-#include <uORB/topics/gps_inject_data_1.h>
-#include <uORB/topics/gps_inject_data_2.h>
-#include <uORB/topics/gps_inject_data_3.h>
+#include <uORB/topics/gps_inject_data.h>
 
 #include <array>
 
