@@ -647,7 +647,7 @@ private:
 	uint16_t		_rx_payload_index;
 	uint8_t			_rx_ck_a;
 	uint8_t			_rx_ck_b;
-	hrt_abstime		_disable_cmd_last;
+	gps_abstime		_disable_cmd_last;
 	uint16_t		_ack_waiting_msg;
 	ubx_buf_t		_buf;
 	uint32_t		_ubx_version;

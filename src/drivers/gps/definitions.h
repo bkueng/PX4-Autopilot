@@ -45,3 +45,13 @@
 #define GPS_WARN(...) PX4_WARN(__VA_ARGS__)
 #define GPS_ERR(...) PX4_ERR(__VA_ARGS__)
 
+
+#include <drivers/drv_hrt.h>
+
+/**
+ * Get the current time in us. Function signature:
+ * uint64_t hrt_absolute_time()
+ */
+#define gps_absolute_time hrt_absolute_time
+typedef hrt_abstime gps_abstime;
+

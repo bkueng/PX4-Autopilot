@@ -48,7 +48,6 @@
 #include <string.h>
 #include <assert.h>
 #include <systemlib/err.h>
-#include <drivers/drv_hrt.h>
 
 
 
@@ -122,7 +121,7 @@ GPSDriverMTK::receive(unsigned timeout)
 	gps_mtk_packet_t packet;
 
 	/* timeout additional to poll */
-	uint64_t time_started = hrt_absolute_time();
+	gps_abstime time_started = gps_absolute_time();
 
 	int j = 0;
 
@@ -152,7 +151,7 @@ GPSDriverMTK::receive(unsigned timeout)
 		}
 
 		/* in case we keep trying but only get crap from GPS */
-		if (time_started + timeout * 1000 < hrt_absolute_time()) {
+		if (time_started + timeout * 1000 < gps_absolute_time()) {
 			return -1;
 		}
 	}
@@ -295,7 +294,7 @@ GPSDriverMTK::handleMessage(gps_mtk_packet_t &packet)
 	_gps_position->time_utc_usec = 0;
 #endif
 
-	_gps_position->timestamp_position = _gps_position->timestamp_time = hrt_absolute_time();
+	_gps_position->timestamp_position = _gps_position->timestamp_time = gps_absolute_time();
 
 	// Position and velocity update always at the same time
 	_rate_count_vel++;

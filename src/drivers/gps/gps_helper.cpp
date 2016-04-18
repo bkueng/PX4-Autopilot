@@ -42,7 +42,6 @@
 #include <unistd.h>
 #include <errno.h>
 #include <systemlib/err.h>
-#include <drivers/drv_hrt.h>
 #include <uORB/topics/gps_inject_data.h>
 
 #include "definitions.h"
@@ -100,14 +99,14 @@ GPSHelper::resetUpdateRates()
 {
 	_rate_count_vel = 0;
 	_rate_count_lat_lon = 0;
-	_interval_rate_start = hrt_absolute_time();
+	_interval_rate_start = gps_absolute_time();
 }
 
 void
 GPSHelper::storeUpdateRates()
 {
-	_rate_vel = _rate_count_vel / (((float)(hrt_absolute_time() - _interval_rate_start)) / 1000000.0f);
-	_rate_lat_lon = _rate_count_lat_lon / (((float)(hrt_absolute_time() - _interval_rate_start)) / 1000000.0f);
+	_rate_vel = _rate_count_vel / (((float)(gps_absolute_time() - _interval_rate_start)) / 1000000.0f);
+	_rate_lat_lon = _rate_count_lat_lon / (((float)(gps_absolute_time() - _interval_rate_start)) / 1000000.0f);
 }
 
 int

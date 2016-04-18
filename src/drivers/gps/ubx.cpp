@@ -60,7 +60,6 @@
 #include <uORB/uORB.h>
 #include <uORB/topics/vehicle_gps_position.h>
 #include <uORB/topics/satellite_info.h>
-#include <drivers/drv_hrt.h>
 #include <px4_defines.h>
 
 #include "ubx.h"
@@ -348,9 +347,9 @@ GPSDriverUBX::waitForAck(const uint16_t msg, const unsigned timeout, const bool 
 	_ack_state = UBX_ACK_WAITING;
 	_ack_waiting_msg = msg;	// memorize sent msg class&ID for ACK check
 
-	hrt_abstime time_started = hrt_absolute_time();
+	gps_abstime time_started = gps_absolute_time();
 
-	while ((_ack_state == UBX_ACK_WAITING) && (hrt_absolute_time() < time_started + timeout * 1000)) {
+	while ((_ack_state == UBX_ACK_WAITING) && (gps_absolute_time() < time_started + timeout * 1000)) {
 		receive(timeout);
 	}
 
@@ -376,7 +375,7 @@ GPSDriverUBX::receive(const unsigned timeout)
 	uint8_t buf[128];
 
 	/* timeout additional to poll */
-	uint64_t time_started = hrt_absolute_time();
+	gps_abstime time_started = gps_absolute_time();
 
 	int handled = 0;
 
@@ -410,7 +409,7 @@ GPSDriverUBX::receive(const unsigned timeout)
 		}
 
 		/* abort after timeout if no useful packets received */
-		if (time_started + timeout * 1000 < hrt_absolute_time()) {
+		if (time_started + timeout * 1000 < gps_absolute_time()) {
 			UBX_DEBUG("timed out, returning");
 			return -1;
 		}
@@ -738,7 +737,7 @@ GPSDriverUBX::payloadRxInit()
 		UBX_DEBUG("ubx msg 0x%04x len %u unexpected", SWAP16((unsigned)_rx_msg), (unsigned)_rx_payload_length);
 
 		{
-			hrt_abstime t = hrt_absolute_time();
+			gps_abstime t = gps_absolute_time();
 
 			if (t > _disable_cmd_last + DISABLE_MSG_INTERVAL) {
 				/* don't attempt for every message to disable, some might not be disabled */
@@ -975,10 +974,10 @@ GPSDriverUBX::payloadRxDone(void)
 #endif
 		}
 
-		_gps_position->timestamp_time		= hrt_absolute_time();
-		_gps_position->timestamp_velocity 	= hrt_absolute_time();
-		_gps_position->timestamp_variance 	= hrt_absolute_time();
-		_gps_position->timestamp_position	= hrt_absolute_time();
+		_gps_position->timestamp_time		= gps_absolute_time();
+		_gps_position->timestamp_velocity 	= gps_absolute_time();
+		_gps_position->timestamp_variance 	= gps_absolute_time();
+		_gps_position->timestamp_position	= gps_absolute_time();
 
 		_rate_count_vel++;
 		_rate_count_lat_lon++;
@@ -999,7 +998,7 @@ GPSDriverUBX::payloadRxDone(void)
 		_gps_position->epv	= (float)_buf.payload_rx_nav_posllh.vAcc * 1e-3f; // from mm to m
 		_gps_position->alt_ellipsoid = _buf.payload_rx_nav_posllh.height;
 
-		_gps_position->timestamp_position = hrt_absolute_time();
+		_gps_position->timestamp_position = gps_absolute_time();
 
 		_rate_count_lat_lon++;
 		_got_posllh = true;
@@ -1014,7 +1013,7 @@ GPSDriverUBX::payloadRxDone(void)
 		_gps_position->s_variance_m_s	= (float)_buf.payload_rx_nav_sol.sAcc * 1e-2f;	// from cm to m
 		_gps_position->satellites_used	= _buf.payload_rx_nav_sol.numSV;
 
-		_gps_position->timestamp_variance = hrt_absolute_time();
+		_gps_position->timestamp_variance = gps_absolute_time();
 
 		ret = 1;
 		break;
@@ -1025,7 +1024,7 @@ GPSDriverUBX::payloadRxDone(void)
 		_gps_position->hdop		= _buf.payload_rx_nav_dop.hDOP * 0.01f;	// from cm to m
 		_gps_position->vdop		= _buf.payload_rx_nav_dop.vDOP * 0.01f;	// from cm to m
 
-		_gps_position->timestamp_variance = hrt_absolute_time();
+		_gps_position->timestamp_variance = gps_absolute_time();
 
 		ret = 1;
 		break;
@@ -1071,7 +1070,7 @@ GPSDriverUBX::payloadRxDone(void)
 #endif
 		}
 
-		_gps_position->timestamp_time = hrt_absolute_time();
+		_gps_position->timestamp_time = gps_absolute_time();
 
 		ret = 1;
 		break;
@@ -1080,7 +1079,7 @@ GPSDriverUBX::payloadRxDone(void)
 		UBX_TRACE_RXMSG("Rx NAV-SVINFO");
 
 		// _satellite_info already populated by payload_rx_add_svinfo(), just add a timestamp
-		_satellite_info->timestamp = hrt_absolute_time();
+		_satellite_info->timestamp = gps_absolute_time();
 
 		ret = 2;
 		break;
@@ -1125,7 +1124,7 @@ GPSDriverUBX::payloadRxDone(void)
 		_gps_position->c_variance_rad	= (float)_buf.payload_rx_nav_velned.cAcc * M_DEG_TO_RAD_F * 1e-5f;
 		_gps_position->vel_ned_valid	= true;
 
-		_gps_position->timestamp_velocity = hrt_absolute_time();
+		_gps_position->timestamp_velocity = gps_absolute_time();
 
 		_rate_count_vel++;
 		_got_velned = true;

@@ -9,7 +9,6 @@
 #include <uORB/uORB.h>
 #include <uORB/topics/vehicle_gps_position.h>
 #include <uORB/topics/satellite_info.h>
-#include <drivers/drv_hrt.h>
 #include <px4_time.h>
 #include <px4_defines.h>
 #include "ashtech.h"
@@ -132,7 +131,7 @@ int GPSDriverAshtech::handleMessage(int len)
 		_gps_position->time_utc_usec = 0;
 #endif
 
-		_gps_position->timestamp_time = hrt_absolute_time();
+		_gps_position->timestamp_time = gps_absolute_time();
 	}
 
 	else if ((memcmp(_rx_buffer + 3, "GGA,", 3) == 0) && (uiCalcComma == 14)) {
@@ -226,7 +225,7 @@ int GPSDriverAshtech::handleMessage(int len)
 			_gps_position->fix_type = 3 + fix_quality - 1;
 		}
 
-		_gps_position->timestamp_position = hrt_absolute_time();
+		_gps_position->timestamp_position = gps_absolute_time();
 
 		_gps_position->vel_m_s = 0;                                  /**< GPS ground speed (m/s) */
 		_gps_position->vel_n_m_s = 0;                                /**< GPS ground speed in m/s */
@@ -236,7 +235,7 @@ int GPSDriverAshtech::handleMessage(int len)
 			0;                                  /**< Course over ground (NOT heading, but direction of movement) in rad, -PI..PI */
 		_gps_position->vel_ned_valid = true;                         /**< Flag to indicate if NED speed is valid */
 		_gps_position->c_variance_rad = 0.1f;
-		_gps_position->timestamp_velocity = hrt_absolute_time();
+		_gps_position->timestamp_velocity = gps_absolute_time();
 		return 1;
 
 	} else if ((memcmp(_rx_buffer, "$PASHR,POS,", 11) == 0) && (uiCalcComma == 18)) {
@@ -358,7 +357,7 @@ int GPSDriverAshtech::handleMessage(int len)
 			_gps_position->fix_type = 3 + fix_quality;
 		}
 
-		_gps_position->timestamp_position = hrt_absolute_time();
+		_gps_position->timestamp_position = gps_absolute_time();
 
 		float track_rad = static_cast<float>(track_true) * M_PI_F / 180.0f;
 
@@ -374,7 +373,7 @@ int GPSDriverAshtech::handleMessage(int len)
 			track_rad;				/** Course over ground (NOT heading, but direction of movement) in rad, -PI..PI */
 		_gps_position->vel_ned_valid = true;				/** Flag to indicate if NED speed is valid */
 		_gps_position->c_variance_rad = 0.1f;
-		_gps_position->timestamp_velocity = hrt_absolute_time();
+		_gps_position->timestamp_velocity = gps_absolute_time();
 		return 1;
 
 	} else if ((memcmp(_rx_buffer + 3, "GST,", 3) == 0) && (uiCalcComma == 8)) {
@@ -427,7 +426,7 @@ int GPSDriverAshtech::handleMessage(int len)
 		_gps_position->epv = static_cast<float>(alt_err);
 
 		_gps_position->s_variance_m_s = 0;
-		_gps_position->timestamp_variance = hrt_absolute_time();
+		_gps_position->timestamp_variance = gps_absolute_time();
 
 	} else if ((memcmp(_rx_buffer + 3, "GSV,", 3) == 0)) {
 		/*
@@ -498,7 +497,7 @@ int GPSDriverAshtech::handleMessage(int len)
 
 			if (_satellite_info) {
 				_satellite_info->count = satellite_info_s::SAT_INFO_MAX_SATELLITES;
-				_satellite_info->timestamp = hrt_absolute_time();
+				_satellite_info->timestamp = gps_absolute_time();
 			}
 		}
 
@@ -532,7 +531,7 @@ int GPSDriverAshtech::receive(unsigned timeout)
 		uint8_t buf[32];
 
 		/* timeout additional to poll */
-		uint64_t time_started = hrt_absolute_time();
+		uint64_t time_started = gps_absolute_time();
 
 		int j = 0;
 		ssize_t bytes_count = 0;
@@ -574,7 +573,7 @@ int GPSDriverAshtech::receive(unsigned timeout)
 			}
 
 			/* in case we get crap from GPS or time out */
-			if (time_started + timeout * 1000 * 2 < hrt_absolute_time()) {
+			if (time_started + timeout * 1000 * 2 < gps_absolute_time()) {
 				return -1;
 			}
 		}
