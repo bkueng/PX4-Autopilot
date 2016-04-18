@@ -68,7 +68,7 @@ int
 GPSDriverMTK::configure(unsigned &baudrate, OutputMode output_mode)
 {
 	if (output_mode != OutputMode::GPS) {
-		PX4_WARN("MTK: Unsupported Output Mode %i", (int)output_mode);
+		GPS_WARN("MTK: Unsupported Output Mode %i", (int)output_mode);
 		return -1;
 	}
 
@@ -111,7 +111,7 @@ GPSDriverMTK::configure(unsigned &baudrate, OutputMode output_mode)
 	return 0;
 
 errout:
-	warnx("mtk: config write failed");
+	GPS_WARN("mtk: config write failed");
 	return -1;
 }
 
@@ -231,7 +231,7 @@ GPSDriverMTK::handleMessage(gps_mtk_packet_t &packet)
 		_gps_position->lon = packet.longitude; // both degrees*1e7
 
 	} else {
-		warnx("mtk: unknown revision");
+		GPS_WARN("mtk: unknown revision");
 		_gps_position->lat = 0;
 		_gps_position->lon = 0;
 
@@ -282,9 +282,7 @@ GPSDriverMTK::handleMessage(gps_mtk_packet_t &packet)
 		ts.tv_sec = epoch;
 		ts.tv_nsec = timeinfo_conversion_temp * 1000000ULL;
 
-		if (px4_clock_settime(CLOCK_REALTIME, &ts)) {
-			warn("failed setting clock");
-		}
+		px4_clock_settime(CLOCK_REALTIME, &ts);
 
 		_gps_position->time_utc_usec = static_cast<uint64_t>(epoch) * 1000000ULL;
 		_gps_position->time_utc_usec += timeinfo_conversion_temp * 1000ULL;

@@ -50,6 +50,7 @@
 #define UBX_H_
 
 #include "gps_helper.h"
+#include "definitions.h"
 
 #define UBX_SYNC1 0xB5
 #define UBX_SYNC2 0x62

@@ -119,9 +119,7 @@ int GPSDriverAshtech::handleMessage(int len)
 			ts.tv_sec = epoch;
 			ts.tv_nsec = usecs * 1000;
 
-			if (px4_clock_settime(CLOCK_REALTIME, &ts)) {
-				warn("failed setting clock");
-			}
+			px4_clock_settime(CLOCK_REALTIME, &ts);
 
 			_gps_position->time_utc_usec = static_cast<uint64_t>(epoch) * 1000000ULL;
 			_gps_position->time_utc_usec += usecs;
@@ -666,7 +664,7 @@ const char comm[] = "$PASHS,POP,20\r\n"\
 int GPSDriverAshtech::configure(unsigned &baudrate, OutputMode output_mode)
 {
 	if (output_mode != OutputMode::GPS) {
-		PX4_WARN("ASHTECH: Unsupported Output Mode %i", (int)output_mode);
+		GPS_WARN("ASHTECH: Unsupported Output Mode %i", (int)output_mode);
 		return -1;
 	}
 

@@ -45,6 +45,7 @@
 #include <drivers/drv_hrt.h>
 #include <uORB/topics/gps_inject_data.h>
 
+#include "definitions.h"
 #include "gps_helper.h"
 
 /**
@@ -204,17 +205,17 @@ GPSHelper::setBaudrate(const int &fd, unsigned baud)
 
 	/* set baud rate */
 	if ((termios_state = cfsetispeed(&uart_config, speed)) < 0) {
-		warnx("ERR: %d (cfsetispeed)\n", termios_state);
+		GPS_ERR("ERR: %d (cfsetispeed)", termios_state);
 		return -1;
 	}
 
 	if ((termios_state = cfsetospeed(&uart_config, speed)) < 0) {
-		warnx("ERR: %d (cfsetospeed)\n", termios_state);
+		GPS_ERR("ERR: %d (cfsetospeed)", termios_state);
 		return -1;
 	}
 
 	if ((termios_state = tcsetattr(fd, TCSANOW, &uart_config)) < 0) {
-		warnx("ERR: %d (tcsetattr)\n", termios_state);
+		GPS_ERR("ERR: %d (tcsetattr)", termios_state);
 		return -1;
 	}
 

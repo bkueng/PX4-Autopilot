@@ -1,8 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (C) 2013. All rights reserved.
- *   Author: Boriskin Aleksey <a.d.boriskin@gmail.com>
- *           Kistanov Alexander <akistanov@gramant.ru>
+ *   Copyright (c) 2016 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,55 +31,17 @@
  *
  ****************************************************************************/
 
-/* @file ASHTECH protocol definitions */
+/**
+ * @file definitions.h
+ * common definitions & abstractions for gps
+ * @author Beat Küng <beat-kueng@gmx.net>
+ */
 
 #pragma once
 
-#include "gps_helper.h"
-#include "definitions.h"
+#include <px4_defines.h>
 
-#define ASHTECH_RECV_BUFFER_SIZE 512
-
-#include <uORB/topics/satellite_info.h>
-
-
-class GPSDriverAshtech : public GPSHelper
-{
-public:
-	GPSDriverAshtech(const int &fd, struct vehicle_gps_position_s *gps_position,
-			struct satellite_info_s *satellite_info);
-	virtual ~GPSDriverAshtech();
-	int receive(unsigned timeout);
-	int configure(unsigned &baudrate, OutputMode output_mode);
-
-
-private:
-	void decodeInit(void);
-	int handleMessage(int len);
-	int parseChar(uint8_t b);
-
-	/** Read int ASHTECH parameter */
-	int32_t read_int();
-	/** Read float ASHTECH parameter */
-	double read_float();
-	/** Read char ASHTECH parameter */
-	char read_char();
-
-	enum ashtech_decode_state_t {
-		NME_DECODE_UNINIT,
-		NME_DECODE_GOT_SYNC1,
-		NME_DECODE_GOT_ASTERIKS,
-		NME_DECODE_GOT_FIRST_CS_BYTE
-	};
-
-	struct satellite_info_s *_satellite_info;
-	struct vehicle_gps_position_s *_gps_position;
-	int _ashtechlog_fd;
-
-	ashtech_decode_state_t _decode_state;
-	uint8_t _rx_buffer[ASHTECH_RECV_BUFFER_SIZE];
-	uint16_t _rx_buffer_bytes;
-	bool _parse_error; /** parse error flag */
-	char *_parse_pos; /** parse position */
-};
+#define GPS_INFO(...) PX4_INFO(__VA_ARGS__)
+#define GPS_WARN(...) PX4_WARN(__VA_ARGS__)
+#define GPS_ERR(...) PX4_ERR(__VA_ARGS__)
 

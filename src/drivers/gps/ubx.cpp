@@ -77,13 +77,13 @@
 
 
 /**** Trace macros, disable for production builds */
-#define UBX_TRACE_PARSER(s, ...)	{/*PX4_INFO(s, ## __VA_ARGS__);*/}	/* decoding progress in parse_char() */
-#define UBX_TRACE_RXMSG(s, ...)		{/*PX4_INFO(s, ## __VA_ARGS__);*/}	/* Rx msgs in payload_rx_done() */
-#define UBX_TRACE_SVINFO(s, ...)	{/*PX4_INFO(s, ## __VA_ARGS__);*/}	/* NAV-SVINFO processing (debug use only, will cause rx buffer overflows) */
+#define UBX_TRACE_PARSER(s, ...)	{/*GPS_INFO(s, ## __VA_ARGS__);*/}	/* decoding progress in parse_char() */
+#define UBX_TRACE_RXMSG(s, ...)		{/*GPS_INFO(s, ## __VA_ARGS__);*/}	/* Rx msgs in payload_rx_done() */
+#define UBX_TRACE_SVINFO(s, ...)	{/*GPS_INFO(s, ## __VA_ARGS__);*/}	/* NAV-SVINFO processing (debug use only, will cause rx buffer overflows) */
 
 /**** Warning macros, disable to save memory */
-#define UBX_WARN(s, ...)		{PX4_WARN(s, ## __VA_ARGS__);}
-#define UBX_DEBUG(s, ...)		{/*PX4_WARN(s, ## __VA_ARGS__);*/}
+#define UBX_WARN(s, ...)		{GPS_WARN(s, ## __VA_ARGS__);}
+#define UBX_DEBUG(s, ...)		{/*GPS_WARN(s, ## __VA_ARGS__);*/}
 
 GPSDriverUBX::GPSDriverUBX(const int &fd, struct vehicle_gps_position_s *gps_position,
 		struct satellite_info_s *satellite_info) :
@@ -318,7 +318,7 @@ int GPSDriverUBX::restartSurveyIn()
 		return -1;
 	}
 
-	PX4_WARN("Starting Survey-in");
+	UBX_DEBUG("Starting Survey-in");
 
 	memset(&_buf.payload_tx_cfg_tmode3, 0, sizeof(_buf.payload_tx_cfg_tmode3));
 	_buf.payload_tx_cfg_tmode3.flags        = UBX_TX_CFG_TMODE3_FLAGS;
@@ -1090,7 +1090,7 @@ GPSDriverUBX::payloadRxDone(void)
 		{
 			ubx_payload_rx_nav_svin_t &svin = _buf.payload_rx_nav_svin;
 
-			UBX_WARN("Survey-in status: %is cur accuracy: %imm nr obs: %i valid: %i active: %i",
+			UBX_DEBUG("Survey-in status: %is cur accuracy: %imm nr obs: %i valid: %i active: %i",
 				 svin.dur, svin.meanAcc / 10, svin.obs, (int)svin.valid, (int)svin.active);
 
 			if (svin.valid == 1 && svin.active == 0) {
