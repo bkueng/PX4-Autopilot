@@ -363,8 +363,6 @@ GPS::task_main()
 				int helper_ret;
 
 				while ((helper_ret = _helper->receive(TIMEOUT_5HZ)) > 0 && !_task_should_exit) {
-					//				lock();
-					/* opportunistic publishing - else invalid data would end up on the bus */
 
 					if (helper_ret & 1) {
 						if (_report_gps_pos_pub != nullptr) {

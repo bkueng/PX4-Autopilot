@@ -69,7 +69,7 @@ GPSDriverMTK::configure(unsigned &baudrate, OutputMode output_mode)
 {
 	if (output_mode != OutputMode::GPS) {
 		PX4_WARN("MTK: Unsupported Output Mode %i", (int)output_mode);
-		return 1;
+		return -1;
 	}
 
 	/* set baudrate first */

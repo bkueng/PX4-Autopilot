@@ -667,7 +667,7 @@ int GPSDriverAshtech::configure(unsigned &baudrate, OutputMode output_mode)
 {
 	if (output_mode != OutputMode::GPS) {
 		PX4_WARN("ASHTECH: Unsupported Output Mode %i", (int)output_mode);
-		return 1;
+		return -1;
 	}
 
 	/* try different baudrates */
@@ -679,10 +679,9 @@ int GPSDriverAshtech::configure(unsigned &baudrate, OutputMode output_mode)
 		setBaudrate(_fd, baudrate);
 
 		if (write(_fd, comm, sizeof(comm)) != sizeof(comm)) {
-			return 1;
+			return -1;
 		}
 	}
 
-	setBaudrate(_fd, 115200);
-	return 0;
+	return setBaudrate(_fd, 115200);
 }

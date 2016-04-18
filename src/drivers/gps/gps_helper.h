@@ -57,9 +57,28 @@ public:
 	GPSHelper(int fd, bool support_inject_data = false);
 	virtual ~GPSHelper();
 
+	/**
+	 * configure the device
+	 * @param baud will be set to the baudrate (output parameter)
+	 * @return 0 on success, <0 otherwise
+	 */
 	virtual int configure(unsigned &baud, OutputMode output_mode) = 0;
+
+	/**
+	 * receive & handle new data from the device
+	 * @param timeout
+	 * @return <0 on error, otherwise a bitset:
+	 *         bit 0 set: got gps position update
+	 *         bit 1 set: got satellite info update
+	 */
 	virtual int receive(unsigned timeout) = 0;
 
+	/**
+	 * set the Baudrate
+	 * @param fd
+	 * @param baud
+	 * @return 0 on success, <0 on error
+	 */
 	int setBaudrate(const int &fd, unsigned baud);
 
 	float getPositionUpdateRate();
@@ -76,9 +95,7 @@ public:
 
 
 	/**
-	 * This is an abstraction for the poll on serial used. The
-	 * implementation is different for QURT than for POSIX and
-	 * NuttX.
+	 * This is an abstraction for the poll on serial used.
 	 *
 	 * @param fd: serial file descriptor
 	 * @param buf: pointer to read buffer

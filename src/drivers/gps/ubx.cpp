@@ -189,7 +189,7 @@ GPSDriverUBX::configure(unsigned &baudrate, OutputMode output_mode)
 	}
 
 	if (baud_i >= sizeof(baudrates) / sizeof(baudrates[0])) {
-		return 1;	// connection and/or baudrate detection failed
+		return -1;	// connection and/or baudrate detection failed
 	}
 
 	/* Send a CFG-RATE message to define update rate */
@@ -199,11 +199,11 @@ GPSDriverUBX::configure(unsigned &baudrate, OutputMode output_mode)
 	_buf.payload_tx_cfg_rate.timeRef	= UBX_TX_CFG_RATE_TIMEREF;
 
 	if (!sendMessage(UBX_MSG_CFG_RATE, (uint8_t *)&_buf, sizeof(_buf.payload_tx_cfg_rate))) {
-		return 1;
+		return -1;
 	}
 
 	if (waitForAck(UBX_MSG_CFG_RATE, UBX_CONFIG_TIMEOUT, true) < 0) {
-		return 1;
+		return -1;
 	}
 
 	/* send a NAV5 message to set the options for the internal filter */
@@ -215,11 +215,11 @@ GPSDriverUBX::configure(unsigned &baudrate, OutputMode output_mode)
 	_buf.payload_tx_cfg_nav5.fixMode	= UBX_TX_CFG_NAV5_FIXMODE;
 
 	if (!sendMessage(UBX_MSG_CFG_NAV5, (uint8_t *)&_buf, sizeof(_buf.payload_tx_cfg_nav5))) {
-		return 1;
+		return -1;
 	}
 
 	if (waitForAck(UBX_MSG_CFG_NAV5, UBX_CONFIG_TIMEOUT, true) < 0) {
-		return 1;
+		return -1;
 	}
 
 #ifdef UBX_CONFIGURE_SBAS
@@ -228,11 +228,11 @@ GPSDriverUBX::configure(unsigned &baudrate, OutputMode output_mode)
 	_buf.payload_tx_cfg_sbas.mode		= UBX_TX_CFG_SBAS_MODE;
 
 	if (!sendMessage(UBX_MSG_CFG_SBAS, (uint8_t *)&_buf, sizeof(_buf.payload_tx_cfg_sbas))) {
-		return 1;
+		return -1;
 	}
 
 	if (waitForAck(UBX_MSG_CFG_SBAS, UBX_CONFIG_TIMEOUT, true) < 0) {
-		return 1;
+		return -1;
 	}
 
 #endif
@@ -243,7 +243,7 @@ GPSDriverUBX::configure(unsigned &baudrate, OutputMode output_mode)
 	/* try to set rate for NAV-PVT */
 	/* (implemented for ubx7+ modules only, use NAV-SOL, NAV-POSLLH, NAV-VELNED and NAV-TIMEUTC for ubx6) */
 	if (!configureMessageRate(UBX_MSG_NAV_PVT, 1)) {
-		return 1;
+		return -1;
 	}
 
 	if (waitForAck(UBX_MSG_CFG_MSG, UBX_CONFIG_TIMEOUT, true) < 0) {
@@ -257,42 +257,42 @@ GPSDriverUBX::configure(unsigned &baudrate, OutputMode output_mode)
 
 	if (!_use_nav_pvt) {
 		if (!configureMessageRateAndAck(UBX_MSG_NAV_TIMEUTC, 5, true)) {
-			return 1;
+			return -1;
 		}
 
 		if (!configureMessageRateAndAck(UBX_MSG_NAV_POSLLH, 1, true)) {
-			return 1;
+			return -1;
 		}
 
 		if (!configureMessageRateAndAck(UBX_MSG_NAV_SOL, 1, true)) {
-			return 1;
+			return -1;
 		}
 
 		if (!configureMessageRateAndAck(UBX_MSG_NAV_VELNED, 1, true)) {
-			return 1;
+			return -1;
 		}
 	}
 
 	if (!configureMessageRateAndAck(UBX_MSG_NAV_DOP, 1, true)) {
-		return 1;
+		return -1;
 	}
 
 	if (!configureMessageRateAndAck(UBX_MSG_NAV_SVINFO, (_satellite_info != nullptr) ? 5 : 0, true)) {
-		return 1;
+		return -1;
 	}
 
 	if (!configureMessageRateAndAck(UBX_MSG_MON_HW, 1, true)) {
-		return 1;
+		return -1;
 	}
 
 	/* request module version information by sending an empty MON-VER message */
 	if (!sendMessage(UBX_MSG_MON_VER, nullptr, 0)) {
-		return 1;
+		return -1;
 	}
 
 	if (output_mode == OutputMode::RTCM) {
 		if (restartSurveyIn() < 0) {
-			return 1;
+			return -1;
 		}
 	}
 
