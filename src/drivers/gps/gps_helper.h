@@ -66,6 +66,13 @@ public:
 	void				reset_update_rates();
 	void				store_update_rates();
 
+	/**
+	 * Start or restart the survey-in procees. This is only used in RTCM ouput mode.
+	 * It will be called automatically after configuring.
+	 * @return 0 on success, <0 on error
+	 */
+	virtual int restartSurveyIn() { return 0; }
+
 
 	/**
 	 * This is an abstraction for the poll on serial used. The

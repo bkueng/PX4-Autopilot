@@ -290,29 +290,52 @@ UBX::configure(unsigned &baudrate, OutputMode output_mode)
 	}
 
 	if (output_mode == OutputMode::RTCM) {
-		UBX_DEBUG("Starting Survey-in");
-
-		memset(&_buf.payload_tx_cfg_tmode3, 0, sizeof(_buf.payload_tx_cfg_tmode3));
-		_buf.payload_tx_cfg_tmode3.version      = 0;
-		_buf.payload_tx_cfg_tmode3.flags        = UBX_TX_CFG_TMODE3_FLAGS;
-		_buf.payload_tx_cfg_tmode3.svinMinDur   = UBX_TX_CFG_TMODE3_SVINMINDUR;
-		_buf.payload_tx_cfg_tmode3.svinAccLimit = UBX_TX_CFG_TMODE3_SVINACCLIMIT;
-
-		if (!send_message(UBX_MSG_CFG_TMODE3, (uint8_t *)&_buf, sizeof(_buf.payload_tx_cfg_tmode3))) {
-			return 1;
-		}
-
-		if (wait_for_ack(UBX_MSG_CFG_TMODE3, UBX_CONFIG_TIMEOUT, true) < 0) {
-			return 1;
-		}
-
-		/* enable status output of survey-in */
-		if (!configure_message_rate_and_ack(UBX_MSG_NAV_SVIN, 5, true)) {
+		if (restartSurveyIn() < 0) {
 			return 1;
 		}
 	}
 
 	_configured = true;
+	return 0;
+}
+
+int UBX::restartSurveyIn()
+{
+	if (_output_mode != OutputMode::RTCM) {
+		return -1;
+	}
+	//stop it first
+	//FIXME: stopping the survey-in process does not seem to work
+	memset(&_buf.payload_tx_cfg_tmode3, 0, sizeof(_buf.payload_tx_cfg_tmode3));
+	_buf.payload_tx_cfg_tmode3.flags        = 0; /* disable time mode */
+
+	if (!send_message(UBX_MSG_CFG_TMODE3, (uint8_t *)&_buf, sizeof(_buf.payload_tx_cfg_tmode3))) {
+		return -1;
+	}
+
+	if (wait_for_ack(UBX_MSG_CFG_TMODE3, UBX_CONFIG_TIMEOUT, true) < 0) {
+		return -1;
+	}
+
+	PX4_WARN("Starting Survey-in");
+
+	memset(&_buf.payload_tx_cfg_tmode3, 0, sizeof(_buf.payload_tx_cfg_tmode3));
+	_buf.payload_tx_cfg_tmode3.flags        = UBX_TX_CFG_TMODE3_FLAGS;
+	_buf.payload_tx_cfg_tmode3.svinMinDur   = UBX_TX_CFG_TMODE3_SVINMINDUR;
+	_buf.payload_tx_cfg_tmode3.svinAccLimit = UBX_TX_CFG_TMODE3_SVINACCLIMIT;
+
+	if (!send_message(UBX_MSG_CFG_TMODE3, (uint8_t *)&_buf, sizeof(_buf.payload_tx_cfg_tmode3))) {
+		return -1;
+	}
+
+	if (wait_for_ack(UBX_MSG_CFG_TMODE3, UBX_CONFIG_TIMEOUT, true) < 0) {
+		return -1;
+	}
+
+	/* enable status output of survey-in */
+	if (!configure_message_rate_and_ack(UBX_MSG_NAV_SVIN, 5, true)) {
+		return -1;
+	}
 	return 0;
 }
 

@@ -564,6 +564,7 @@ public:
 	int			receive(const unsigned timeout);
 	int			configure(unsigned &baudrate, OutputMode output_mode);
 
+	int restartSurveyIn();
 private:
 
 	/**
