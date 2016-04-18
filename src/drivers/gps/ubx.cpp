@@ -53,7 +53,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
+#include <ctime>
 #include <unistd.h>
 
 #include <systemlib/err.h>
@@ -84,9 +84,9 @@
 #define UBX_WARN(s, ...)		{GPS_WARN(s, ## __VA_ARGS__);}
 #define UBX_DEBUG(s, ...)		{/*GPS_WARN(s, ## __VA_ARGS__);*/}
 
-GPSDriverUBX::GPSDriverUBX(const int &fd, struct vehicle_gps_position_s *gps_position,
-		struct satellite_info_s *satellite_info) :
-	GPSHelper(fd, true),
+GPSDriverUBX::GPSDriverUBX(GPSCallbackPtr callback, void *callback_user, struct vehicle_gps_position_s *gps_position,
+			   struct satellite_info_s *satellite_info) :
+	GPSHelper(callback, callback_user),
 	_gps_position(gps_position),
 	_satellite_info(satellite_info),
 	_configured(false),
@@ -128,7 +128,7 @@ GPSDriverUBX::configure(unsigned &baudrate, OutputMode output_mode)
 
 	for (baud_i = 0; baud_i < sizeof(baudrates) / sizeof(baudrates[0]); baud_i++) {
 		baudrate = baudrates[baud_i];
-		setBaudrate(_fd, baudrate);
+		setBaudrate(baudrate);
 
 		/* flush input and wait for at least 20 ms silence */
 		decodeInit();
@@ -179,7 +179,7 @@ GPSDriverUBX::configure(unsigned &baudrate, OutputMode output_mode)
 		waitForAck(UBX_MSG_CFG_PRT, UBX_CONFIG_TIMEOUT, false);
 
 		if (UBX_TX_CFG_PRT_BAUDRATE != baudrate) {
-			setBaudrate(_fd, UBX_TX_CFG_PRT_BAUDRATE);
+			setBaudrate(UBX_TX_CFG_PRT_BAUDRATE);
 			baudrate = UBX_TX_CFG_PRT_BAUDRATE;
 		}
 
@@ -304,6 +304,7 @@ int GPSDriverUBX::restartSurveyIn()
 	if (_output_mode != OutputMode::RTCM) {
 		return -1;
 	}
+
 	//stop it first
 	//FIXME: stopping the survey-in process does not seem to work
 	memset(&_buf.payload_tx_cfg_tmode3, 0, sizeof(_buf.payload_tx_cfg_tmode3));
@@ -336,6 +337,7 @@ int GPSDriverUBX::restartSurveyIn()
 	if (!configureMessageRateAndAck(UBX_MSG_NAV_SVIN, 5, true)) {
 		return -1;
 	}
+
 	return 0;
 }
 
@@ -383,7 +385,7 @@ GPSDriverUBX::receive(const unsigned timeout)
 		bool ready_to_return = _configured ? (_got_posllh && _got_velned) : handled;
 
 		/* Wait for only UBX_PACKET_TIMEOUT if something already received. */
-		int ret = pollOrRead(_fd, buf, sizeof(buf), ready_to_return ? UBX_PACKET_TIMEOUT : timeout);
+		int ret = read(buf, sizeof(buf), ready_to_return ? UBX_PACKET_TIMEOUT : timeout);
 
 		if (ret < 0) {
 			/* something went wrong when polling or reading */
@@ -557,8 +559,7 @@ GPSDriverUBX::parseChar(const uint8_t b)
 			}
 
 			if (_rtcm_message->message_length + 6 == _rtcm_message->pos) {
-				//we are done... TODO: send out message (copy it immediately)
-
+				gotRTCMMessage(_rtcm_message->buffer, _rtcm_message->pos);
 				decodeInit();
 			}
 
@@ -908,6 +909,7 @@ GPSDriverUBX::payloadRxDone(void)
 			if (_buf.payload_rx_nav_pvt.flags & UBX_RX_NAV_PVT_FLAGS_DIFFSOLN) {
 				_gps_position->fix_type = 6; //RTK (we just assume it's fixed-type RTK)
 			}
+
 			_gps_position->vel_ned_valid = true;
 
 		} else {
@@ -947,8 +949,7 @@ GPSDriverUBX::payloadRxDone(void)
 			timeinfo.tm_min		= _buf.payload_rx_nav_pvt.min;
 			timeinfo.tm_sec		= _buf.payload_rx_nav_pvt.sec;
 
-			// TODO: this functionality is not available on the Snapdragon yet
-#ifndef __PX4_QURT
+#ifndef NO_MKTIME
 			time_t epoch = mktime(&timeinfo);
 
 			if (epoch > GPS_EPOCH_SECS) {
@@ -960,7 +961,7 @@ GPSDriverUBX::payloadRxDone(void)
 				ts.tv_sec = epoch;
 				ts.tv_nsec = _buf.payload_rx_nav_pvt.nano;
 
-				px4_clock_settime(CLOCK_REALTIME, &ts);
+				setClock(ts);
 
 				_gps_position->time_utc_usec = static_cast<uint64_t>(epoch) * 1000000ULL;
 				_gps_position->time_utc_usec += _buf.payload_rx_nav_timeutc.nano / 1000;
@@ -1041,8 +1042,7 @@ GPSDriverUBX::payloadRxDone(void)
 			timeinfo.tm_hour	= _buf.payload_rx_nav_timeutc.hour;
 			timeinfo.tm_min		= _buf.payload_rx_nav_timeutc.min;
 			timeinfo.tm_sec		= _buf.payload_rx_nav_timeutc.sec;
-			// TODO: this functionality is not available on the Snapdragon yet
-#ifndef __PX4_QURT
+#ifndef NO_MKTIME
 			time_t epoch = mktime(&timeinfo);
 
 			// only set the time if it makes sense
@@ -1056,7 +1056,7 @@ GPSDriverUBX::payloadRxDone(void)
 				ts.tv_sec = epoch;
 				ts.tv_nsec = _buf.payload_rx_nav_timeutc.nano;
 
-				px4_clock_settime(CLOCK_REALTIME, &ts);
+				setClock(ts);
 
 				_gps_position->time_utc_usec = static_cast<uint64_t>(epoch) * 1000000ULL;
 				_gps_position->time_utc_usec += _buf.payload_rx_nav_timeutc.nano / 1000;
@@ -1090,7 +1090,13 @@ GPSDriverUBX::payloadRxDone(void)
 			ubx_payload_rx_nav_svin_t &svin = _buf.payload_rx_nav_svin;
 
 			UBX_DEBUG("Survey-in status: %is cur accuracy: %imm nr obs: %i valid: %i active: %i",
-				 svin.dur, svin.meanAcc / 10, svin.obs, (int)svin.valid, (int)svin.active);
+				  svin.dur, svin.meanAcc / 10, svin.obs, (int)svin.valid, (int)svin.active);
+
+			SurveyInStatus status;
+			status.duration = svin.dur;
+			status.mean_accuracy = svin.meanAcc;
+			status.flags = (svin.valid & 1) | ((svin.active & 1) << 1);
+			surveyInStatus(status);
 
 			if (svin.valid == 1 && svin.active == 0) {
 				configureMessageRate(UBX_MSG_NAV_SVIN, 0);
@@ -1265,15 +1271,15 @@ GPSDriverUBX::sendMessage(const uint16_t msg, const uint8_t *payload, const uint
 	}
 
 	// Send message
-	if (write(_fd, (const void *)&header, sizeof(header)) != sizeof(header)) {
+	if (write((void *)&header, sizeof(header)) != sizeof(header)) {
 		return false;
 	}
 
-	if (payload && write(_fd, (const void *)payload, length) != length) {
+	if (payload && write((void *)payload, length) != length) {
 		return false;
 	}
 
-	if (write(_fd, (const void *)&checksum, sizeof(checksum)) != sizeof(checksum)) {
+	if (write((void *)&checksum, sizeof(checksum)) != sizeof(checksum)) {
 		return false;
 	}
 

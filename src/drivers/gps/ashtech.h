@@ -48,8 +48,8 @@
 class GPSDriverAshtech : public GPSHelper
 {
 public:
-	GPSDriverAshtech(const int &fd, struct vehicle_gps_position_s *gps_position,
-			struct satellite_info_s *satellite_info);
+	GPSDriverAshtech(GPSCallbackPtr callback, void *callback_user, struct vehicle_gps_position_s *gps_position,
+			 struct satellite_info_s *satellite_info);
 	virtual ~GPSDriverAshtech();
 	int receive(unsigned timeout);
 	int configure(unsigned &baudrate, OutputMode output_mode);

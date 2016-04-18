@@ -39,9 +39,72 @@
 
 #pragma once
 
-#include <uORB/uORB.h>
-#include <uORB/topics/vehicle_gps_position.h>
-#include <array>
+#include <cstdint>
+#include "definitions.h"
+
+enum class GPSCallbackType {
+	/**
+	 * Read data from device. This is a blocking operation with a timeout.
+	 * data1: points to a buffer to be written to. The first sizeof(int) bytes contain the
+	 *        timeout in ms when calling the method.
+	 * data2: buffer length in bytes. Less bytes than this can be read.
+	 * return: num read bytes
+	 */
+	readDeviceData = 0,
+
+	/**
+	 * Write data to device
+	 * data1: data to be written
+	 * data2: number of bytes to write
+	 * return: num written bytes
+	 */
+	writeDeviceData,
+
+	/**
+	 * set Baudrate
+	 * data1: ignored
+	 * data2: baudrate
+	 * return: 0 on success
+	 */
+	setBaudrate,
+
+	/**
+	 * Got an RTCM message from the device.
+	 * data1: pointer to the message
+	 * data2: message length
+	 * return: ignored
+	 */
+	gotRTCMMessage,
+
+	/**
+	 * message about current survey-in status
+	 * data1: points to a SurveyInStatus struct
+	 * data2: ignored
+	 * return: ignored
+	 */
+	surveyInStatus,
+
+	/**
+	 * can be used to set the current clock accurately
+	 * data1: pointer to a timespec struct
+	 * data2: ignored
+	 * return: ignored
+	 */
+	setClock,
+};
+
+/** Callback function for platform-specific stuff.
+ * data1 and data2 depend on type and user is the custom user-supplied argument.
+ * @return <0 on error, >=0 on success (depending on type)
+ */
+typedef int (*GPSCallbackPtr)(GPSCallbackType type, void *data1, int data2, void *user);
+
+
+struct SurveyInStatus {
+	uint32_t mean_accuracy;       /**< [mm] */
+	uint32_t duration;            /**< [s] */
+	uint8_t flags;                /**< bit 0: valid, bit 1: active */
+};
 
 // TODO: this number seems wrong
 #define GPS_EPOCH_SECS 1234567890ULL
@@ -54,7 +117,7 @@ public:
 		RTCM        ///< request RTCM output. This is used for (fixed position) base stations
 	};
 
-	GPSHelper(int fd, bool support_inject_data = false);
+	GPSHelper(GPSCallbackPtr callback, void *callback_user);
 	virtual ~GPSHelper();
 
 	/**
@@ -66,23 +129,15 @@ public:
 
 	/**
 	 * receive & handle new data from the device
-	 * @param timeout
+	 * @param timeout [ms]
 	 * @return <0 on error, otherwise a bitset:
 	 *         bit 0 set: got gps position update
 	 *         bit 1 set: got satellite info update
 	 */
 	virtual int receive(unsigned timeout) = 0;
 
-	/**
-	 * set the Baudrate
-	 * @param fd
-	 * @param baud
-	 * @return 0 on success, <0 on error
-	 */
-	int setBaudrate(const int &fd, unsigned baud);
-
-	float getPositionUpdateRate();
-	float getVelocityUpdateRate();
+	float getPositionUpdateRate() { return _rate_lat_lon; }
+	float getVelocityUpdateRate() { return _rate_vel; }
 	void resetUpdateRates();
 	void storeUpdateRates();
 
@@ -94,21 +149,62 @@ public:
 	virtual int restartSurveyIn() { return 0; }
 
 
+protected:
+
 	/**
-	 * This is an abstraction for the poll on serial used.
-	 *
-	 * @param fd: serial file descriptor
+	 * read from device
 	 * @param buf: pointer to read buffer
 	 * @param buf_length: size of read buffer
-	 * @param timeout: timeout time in us
+	 * @param timeout: timeout in ms
 	 * @return: 0 for nothing read, or poll timed out
 	 *	    < 0 for error
 	 *	    > 0 number of bytes read
 	 */
-	int pollOrRead(int fd, uint8_t *buf, size_t buf_length, uint64_t timeout);
+	int read(uint8_t *buf, int buf_length, int timeout)
+	{
+		*((int *)buf) = timeout;
+		return _callback(GPSCallbackType::readDeviceData, buf, buf_length, _callback_user);
+	}
 
-protected:
-	int _fd; ///< open file descriptor
+	/**
+	 * write to the device
+	 * @param buf
+	 * @param buf_length
+	 * @return num written bytes, -1 on error
+	 */
+	int write(const void *buf, int buf_length)
+	{
+		return _callback(GPSCallbackType::writeDeviceData, (void *)buf, buf_length, _callback_user);
+	}
+
+	/**
+	 * set the Baudrate
+	 * @param baudrate
+	 * @return 0 on success, <0 otherwise
+	 */
+	int setBaudrate(int baudrate)
+	{
+		return _callback(GPSCallbackType::setBaudrate, nullptr, baudrate, _callback_user);
+	}
+
+	void surveyInStatus(SurveyInStatus &status)
+	{
+		_callback(GPSCallbackType::surveyInStatus, &status, 0, _callback_user);
+	}
+
+	/** got an RTCM message from the device */
+	void gotRTCMMessage(uint8_t *buf, int buf_length)
+	{
+		_callback(GPSCallbackType::gotRTCMMessage, buf, buf_length, _callback_user);
+	}
+
+	void setClock(timespec &t)
+	{
+		_callback(GPSCallbackType::setClock, &t, 0, _callback_user);
+	}
+
+	GPSCallbackPtr _callback;
+	void *_callback_user;
 
 	uint8_t _rate_count_lat_lon;
 	uint8_t _rate_count_vel;
@@ -117,20 +213,4 @@ protected:
 	float _rate_vel = 0.0f;
 
 	uint64_t _interval_rate_start;
-
-private:
-	/**
-	 * check for new messages on the inject data topic & handle them
-	 */
-	void handleInjectDataTopic();
-
-	/**
-	 * send data to the device, such as an RTCM stream
-	 * @param data
-	 * @param len
-	 */
-	inline bool injectData(uint8_t *data, size_t len);
-
-	std::array<int, 4> _orb_inject_data_fd;
-	int _orb_inject_data_next = 0;
 };

@@ -9,6 +9,7 @@
 #include <uORB/uORB.h>
 #include <uORB/topics/vehicle_gps_position.h>
 #include <uORB/topics/satellite_info.h>
+#include <ctime>
 #include <px4_time.h>
 #include <px4_defines.h>
 #include "ashtech.h"
@@ -18,9 +19,10 @@
 
 #include <fcntl.h>
 
-GPSDriverAshtech::GPSDriverAshtech(const int &fd, struct vehicle_gps_position_s *gps_position,
-		struct satellite_info_s *satellite_info):
-	GPSHelper(fd),
+GPSDriverAshtech::GPSDriverAshtech(GPSCallbackPtr callback, void *callback_user,
+				   struct vehicle_gps_position_s *gps_position,
+				   struct satellite_info_s *satellite_info):
+	GPSHelper(callback, callback_user),
 	_satellite_info(satellite_info),
 	_gps_position(gps_position)
 {
@@ -103,8 +105,7 @@ int GPSDriverAshtech::handleMessage(int len)
 		timeinfo.tm_min = ashtech_minute;
 		timeinfo.tm_sec = int(ashtech_sec);
 
-		// TODO: this functionality is not available on the Snapdragon yet
-#ifndef __PX4_QURT
+#ifndef NO_MKTIME
 		time_t epoch = mktime(&timeinfo);
 
 		if (epoch > GPS_EPOCH_SECS) {
@@ -118,7 +119,7 @@ int GPSDriverAshtech::handleMessage(int len)
 			ts.tv_sec = epoch;
 			ts.tv_nsec = usecs * 1000;
 
-			px4_clock_settime(CLOCK_REALTIME, &ts);
+			setClock(ts);
 
 			_gps_position->time_utc_usec = static_cast<uint64_t>(epoch) * 1000000ULL;
 			_gps_position->time_utc_usec += usecs;
@@ -557,7 +558,7 @@ int GPSDriverAshtech::receive(unsigned timeout)
 			j = bytes_count = 0;
 
 			/* then poll or read for new data */
-			int ret = pollOrRead(_fd, buf, sizeof(buf), timeout * 2);
+			int ret = read(buf, sizeof(buf), timeout * 2);
 
 			if (ret < 0) {
 				/* something went wrong when polling */
@@ -673,12 +674,12 @@ int GPSDriverAshtech::configure(unsigned &baudrate, OutputMode output_mode)
 
 	for (unsigned int baud_i = 0; baud_i < sizeof(baudrates_to_try) / sizeof(baudrates_to_try[0]); baud_i++) {
 		baudrate = baudrates_to_try[baud_i];
-		setBaudrate(_fd, baudrate);
+		setBaudrate(baudrate);
 
-		if (write(_fd, comm, sizeof(comm)) != sizeof(comm)) {
+		if (write(comm, sizeof(comm)) != sizeof(comm)) {
 			return -1;
 		}
 	}
 
-	return setBaudrate(_fd, 115200);
+	return setBaudrate(115200);
 }

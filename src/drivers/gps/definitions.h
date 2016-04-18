@@ -33,7 +33,7 @@
 
 /**
  * @file definitions.h
- * common definitions & abstractions for gps
+ * common platform-specific definitions & abstractions for gps
  * @author Beat Küng <beat-kueng@gmx.net>
  */
 
@@ -45,6 +45,7 @@
 #define GPS_WARN(...) PX4_WARN(__VA_ARGS__)
 #define GPS_ERR(...) PX4_ERR(__VA_ARGS__)
 
+#include <uORB/topics/vehicle_gps_position.h>
 
 #include <drivers/drv_hrt.h>
 
@@ -55,3 +56,7 @@
 #define gps_absolute_time hrt_absolute_time
 typedef hrt_abstime gps_abstime;
 
+// TODO: this functionality is not available on the Snapdragon yet
+#ifdef __PX4_QURT
+#define NO_MKTIME
+#endif

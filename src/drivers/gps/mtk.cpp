@@ -46,13 +46,14 @@
 #include <poll.h>
 #include <math.h>
 #include <string.h>
+#include <ctime>
 #include <assert.h>
 #include <systemlib/err.h>
 
 
 
-GPSDriverMTK::GPSDriverMTK(const int &fd, struct vehicle_gps_position_s *gps_position) :
-	GPSHelper(fd),
+GPSDriverMTK::GPSDriverMTK(GPSCallbackPtr callback, void *callback_user, struct vehicle_gps_position_s *gps_position) :
+	GPSHelper(callback, callback_user),
 	_gps_position(gps_position),
 	_mtk_revision(0)
 {
@@ -72,38 +73,38 @@ GPSDriverMTK::configure(unsigned &baudrate, OutputMode output_mode)
 	}
 
 	/* set baudrate first */
-	if (GPSHelper::setBaudrate(_fd, MTK_BAUDRATE) != 0) {
+	if (GPSHelper::setBaudrate(MTK_BAUDRATE) != 0) {
 		return -1;
 	}
 
 	baudrate = MTK_BAUDRATE;
 
 	/* Write config messages, don't wait for an answer */
-	if (strlen(MTK_OUTPUT_5HZ) != write(_fd, MTK_OUTPUT_5HZ, strlen(MTK_OUTPUT_5HZ))) {
+	if (strlen(MTK_OUTPUT_5HZ) != write(MTK_OUTPUT_5HZ, strlen(MTK_OUTPUT_5HZ))) {
 		goto errout;
 	}
 
 	usleep(10000);
 
-	if (strlen(MTK_SET_BINARY) != write(_fd, MTK_SET_BINARY, strlen(MTK_SET_BINARY))) {
+	if (strlen(MTK_SET_BINARY) != write(MTK_SET_BINARY, strlen(MTK_SET_BINARY))) {
 		goto errout;
 	}
 
 	usleep(10000);
 
-	if (strlen(MTK_SBAS_ON) != write(_fd, MTK_SBAS_ON, strlen(MTK_SBAS_ON))) {
+	if (strlen(MTK_SBAS_ON) != write(MTK_SBAS_ON, strlen(MTK_SBAS_ON))) {
 		goto errout;
 	}
 
 	usleep(10000);
 
-	if (strlen(MTK_WAAS_ON) != write(_fd, MTK_WAAS_ON, strlen(MTK_WAAS_ON))) {
+	if (strlen(MTK_WAAS_ON) != write(MTK_WAAS_ON, strlen(MTK_WAAS_ON))) {
 		goto errout;
 	}
 
 	usleep(10000);
 
-	if (strlen(MTK_NAVTHRES_OFF) != write(_fd, MTK_NAVTHRES_OFF, strlen(MTK_NAVTHRES_OFF))) {
+	if (strlen(MTK_NAVTHRES_OFF) != write(MTK_NAVTHRES_OFF, strlen(MTK_NAVTHRES_OFF))) {
 		goto errout;
 	}
 
@@ -127,7 +128,7 @@ GPSDriverMTK::receive(unsigned timeout)
 
 	while (true) {
 
-		int ret = pollOrRead(_fd, buf, sizeof(buf), timeout);
+		int ret = read(buf, sizeof(buf), timeout);
 
 		if (ret > 0) {
 			/* first read whatever is left */
@@ -267,8 +268,7 @@ GPSDriverMTK::handleMessage(gps_mtk_packet_t &packet)
 	timeinfo.tm_sec = timeinfo_conversion_temp / 1000;
 	timeinfo_conversion_temp -= timeinfo.tm_sec * 1000;
 
-	// TODO: this functionality is not available on the Snapdragon yet
-#ifndef __PX4_QURT
+#ifndef NO_MKTIME
 
 	time_t epoch = mktime(&timeinfo);
 
@@ -281,7 +281,7 @@ GPSDriverMTK::handleMessage(gps_mtk_packet_t &packet)
 		ts.tv_sec = epoch;
 		ts.tv_nsec = timeinfo_conversion_temp * 1000000ULL;
 
-		px4_clock_settime(CLOCK_REALTIME, &ts);
+		setClock(ts);
 
 		_gps_position->time_utc_usec = static_cast<uint64_t>(epoch) * 1000000ULL;
 		_gps_position->time_utc_usec += timeinfo_conversion_temp * 1000ULL;
