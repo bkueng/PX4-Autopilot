@@ -46,6 +46,9 @@
 #define GPS_ERR(...) PX4_ERR(__VA_ARGS__)
 
 #include <uORB/topics/vehicle_gps_position.h>
+#include <uORB/topics/satellite_info.h>
+
+#include <unistd.h> //this is POSIX, used for usleep
 
 #include <drivers/drv_hrt.h>
 
@@ -55,6 +58,7 @@
  */
 #define gps_absolute_time hrt_absolute_time
 typedef hrt_abstime gps_abstime;
+
 
 // TODO: this functionality is not available on the Snapdragon yet
 #ifdef __PX4_QURT

@@ -56,12 +56,6 @@
 #include <ctime>
 #include <unistd.h>
 
-#include <systemlib/err.h>
-#include <uORB/uORB.h>
-#include <uORB/topics/vehicle_gps_position.h>
-#include <uORB/topics/satellite_info.h>
-#include <px4_defines.h>
-
 #include "ubx.h"
 
 #define UBX_CONFIG_TIMEOUT	200		// ms, timeout for waiting ACK

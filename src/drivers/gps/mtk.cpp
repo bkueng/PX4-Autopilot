@@ -40,15 +40,10 @@
 
 #include "mtk.h"
 
-#include <px4_defines.h>
-#include <unistd.h>
 #include <stdio.h>
-#include <poll.h>
 #include <math.h>
 #include <string.h>
 #include <ctime>
-#include <assert.h>
-#include <systemlib/err.h>
 
 
 

@@ -42,8 +42,6 @@
 
 #define ASHTECH_RECV_BUFFER_SIZE 512
 
-#include <uORB/topics/satellite_info.h>
-
 
 class GPSDriverAshtech : public GPSHelper
 {

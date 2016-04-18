@@ -69,7 +69,6 @@
 #include <px4_time.h>
 #include <arch/board/board.h>
 #include <drivers/drv_hrt.h>
-#include <drivers/device/i2c.h>
 #include <systemlib/systemlib.h>
 #include <systemlib/scheduling_priorities.h>
 #include <systemlib/err.h>
