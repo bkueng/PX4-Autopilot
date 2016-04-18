@@ -80,9 +80,9 @@
 
 #include <board_config.h>
 
-#include "ubx.h"
-#include "mtk.h"
-#include "ashtech.h"
+#include "devices/ubx.h"
+#include "devices/mtk.h"
+#include "devices/ashtech.h"
 
 
 #define TIMEOUT_5HZ 500

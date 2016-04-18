@@ -38,10 +38,10 @@ px4_add_module(
 		-Os
 	SRCS
 		gps.cpp
-		gps_helper.cpp
-		mtk.cpp
-		ashtech.cpp
-		ubx.cpp
+		devices/gps_helper.cpp
+		devices/mtk.cpp
+		devices/ashtech.cpp
+		devices/ubx.cpp
 	DEPENDS
 		platforms__common
 	)
