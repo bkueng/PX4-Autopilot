@@ -35,20 +35,37 @@
 
 /* @file ASHTECH protocol definitions */
 
-#ifndef ASHTECH_H_
-#define ASHTECH_H_
+#pragma once
 
 #include "gps_helper.h"
 
-#ifndef RECV_BUFFER_SIZE
-#define RECV_BUFFER_SIZE 512
-#endif
+#define ASHTECH_RECV_BUFFER_SIZE 512
 
 #include <uORB/topics/satellite_info.h>
 
 
-class ASHTECH : public GPS_Helper
+class GPSDriverAshtech : public GPSHelper
 {
+public:
+	GPSDriverAshtech(const int &fd, struct vehicle_gps_position_s *gps_position,
+			struct satellite_info_s *satellite_info);
+	virtual ~GPSDriverAshtech();
+	int receive(unsigned timeout);
+	int configure(unsigned &baudrate, OutputMode output_mode);
+
+
+private:
+	void decodeInit(void);
+	int handleMessage(int len);
+	int parseChar(uint8_t b);
+
+	/** Read int ASHTECH parameter */
+	int32_t read_int();
+	/** Read float ASHTECH parameter */
+	double read_float();
+	/** Read char ASHTECH parameter */
+	char read_char();
+
 	enum ashtech_decode_state_t {
 		NME_DECODE_UNINIT,
 		NME_DECODE_GOT_SYNC1,
@@ -58,38 +75,12 @@ class ASHTECH : public GPS_Helper
 
 	struct satellite_info_s *_satellite_info;
 	struct vehicle_gps_position_s *_gps_position;
-	int ashtechlog_fd;
+	int _ashtechlog_fd;
 
-	ashtech_decode_state_t   _decode_state;
-	uint8_t               _rx_buffer[RECV_BUFFER_SIZE];
-	uint16_t              _rx_buffer_bytes;
-	bool                  _parse_error; 		/** parse error flag */
-	char                 *_parse_pos; 		/** parse position */
-
-	bool	_gsv_in_progress;			/**< Indicates that gsv data parsing is in progress */
-	/* int     _satellites_count; 			**< Number of satellites info parsed. */
-	uint8_t count;					/**< Number of satellites in satellite info */
-	uint8_t svid[satellite_info_s::SAT_INFO_MAX_SATELLITES]; 		/**< Space vehicle ID [1..255], see scheme below  */
-	uint8_t used[satellite_info_s::SAT_INFO_MAX_SATELLITES];		/**< 0: Satellite not used, 1: used for navigation */
-	uint8_t elevation[satellite_info_s::SAT_INFO_MAX_SATELLITES];	/**< Elevation (0: right on top of receiver, 90: on the horizon) of satellite */
-	uint8_t azimuth[satellite_info_s::SAT_INFO_MAX_SATELLITES];	/**< Direction of satellite, 0: 0 deg, 255: 360 deg. */
-	uint8_t snr[satellite_info_s::SAT_INFO_MAX_SATELLITES];		/**< dBHz, Signal to noise ratio of satellite C/N0, range 0..99, zero when not tracking this satellite. */
-
-public:
-	ASHTECH(const int &fd, struct vehicle_gps_position_s *gps_position, struct satellite_info_s *satellite_info);
-	virtual ~ASHTECH();
-	int             receive(unsigned timeout);
-	int             configure(unsigned &baudrate, OutputMode output_mode);
-	void            decode_init(void);
-	int             handle_message(int len);
-	int             parse_char(uint8_t b);
-	/** Read int ASHTECH parameter */
-	int32_t         read_int();
-	/** Read float ASHTECH parameter */
-	double       read_float();
-	/** Read char ASHTECH parameter */
-	char            read_char();
-
+	ashtech_decode_state_t _decode_state;
+	uint8_t _rx_buffer[ASHTECH_RECV_BUFFER_SIZE];
+	uint16_t _rx_buffer_bytes;
+	bool _parse_error; /** parse error flag */
+	char *_parse_pos; /** parse position */
 };
 
-#endif /* ASHTECH_H_ */

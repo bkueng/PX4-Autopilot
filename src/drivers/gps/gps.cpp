@@ -110,8 +110,8 @@ private:
 	bool				_baudrate_changed;				///< flag to signal that the baudrate with the GPS has changed
 	bool				_mode_changed;					///< flag that the GPS mode has changed
 	gps_driver_mode_t		_mode;						///< current mode
-	GPS_Helper			*_Helper;					///< instance of GPS parser
-	GPS_Sat_Info			*_Sat_Info;					///< instance of GPS sat info data object
+	GPSHelper			*_helper;					///< instance of GPS parser
+	GPS_Sat_Info			*_sat_info;					///< instance of GPS sat info data object
 	struct vehicle_gps_position_s	_report_gps_pos;				///< uORB topic for gps position
 	orb_advert_t			_report_gps_pos_pub;				///< uORB pub for gps position
 	struct satellite_info_s		*_p_report_sat_info;				///< pointer to uORB topic for satellite info
@@ -123,28 +123,27 @@ private:
 	/**
 	 * Try to configure the GPS, handle outgoing communication to the GPS
 	 */
-	void			 	config();
+	void config();
 
 	/**
 	 * Trampoline to the worker task
 	 */
-	static void			task_main_trampoline(void *arg);
-
+	static void task_main_trampoline(void *arg);
 
 	/**
 	 * Worker task: main GPS thread that configures the GPS and parses incoming data, always running
 	 */
-	void				task_main(void);
+	void task_main(void);
 
 	/**
 	 * Set the baudrate of the UART to the GPS
 	 */
-	int				set_baudrate(unsigned baud);
+	int set_baudrate(unsigned baud);
 
 	/**
 	 * Send a reset command to the GPS
 	 */
-	void				cmd_reset();
+	void cmd_reset();
 
 };
 
@@ -167,8 +166,8 @@ GPS::GPS(const char *uart_path, bool fake_gps, bool enable_sat_info) :
 	_healthy(false),
 	_mode_changed(false),
 	_mode(GPS_DRIVER_MODE_UBX),
-	_Helper(nullptr),
-	_Sat_Info(nullptr),
+	_helper(nullptr),
+	_sat_info(nullptr),
 	_report_gps_pos_pub(nullptr),
 	_p_report_sat_info(nullptr),
 	_report_sat_info_pub(nullptr),
@@ -186,8 +185,8 @@ GPS::GPS(const char *uart_path, bool fake_gps, bool enable_sat_info) :
 
 	/* create satellite info data object if requested */
 	if (enable_sat_info) {
-		_Sat_Info = new GPS_Sat_Info();
-		_p_report_sat_info = &_Sat_Info->_data;
+		_sat_info = new GPS_Sat_Info();
+		_p_report_sat_info = &_sat_info->_data;
 		memset(_p_report_sat_info, 0, sizeof(*_p_report_sat_info));
 	}
 }
@@ -208,8 +207,8 @@ GPS::~GPS()
 		px4_task_delete(_task);
 	}
 
-	if (_Sat_Info) {
-		delete(_Sat_Info);
+	if (_sat_info) {
+		delete(_sat_info);
 	}
 
 	g_dev = nullptr;
@@ -299,23 +298,23 @@ GPS::task_main()
 
 		} else {
 
-			if (_Helper != nullptr) {
-				delete(_Helper);
+			if (_helper != nullptr) {
+				delete(_helper);
 				/* set to zero to ensure parser is not used while not instantiated */
-				_Helper = nullptr;
+				_helper = nullptr;
 			}
 
 			switch (_mode) {
 			case GPS_DRIVER_MODE_UBX:
-				_Helper = new UBX(_serial_fd, &_report_gps_pos, _p_report_sat_info);
+				_helper = new GPSDriverUBX(_serial_fd, &_report_gps_pos, _p_report_sat_info);
 				break;
 
 			case GPS_DRIVER_MODE_MTK:
-				_Helper = new MTK(_serial_fd, &_report_gps_pos);
+				_helper = new GPSDriverMTK(_serial_fd, &_report_gps_pos);
 				break;
 
 			case GPS_DRIVER_MODE_ASHTECH:
-				_Helper = new ASHTECH(_serial_fd, &_report_gps_pos, _p_report_sat_info);
+				_helper = new GPSDriverAshtech(_serial_fd, &_report_gps_pos, _p_report_sat_info);
 				break;
 
 			default:
@@ -327,7 +326,7 @@ GPS::task_main()
 			 * MTK driver is not well tested, so we really only trust the UBX
 			 * driver for an advance publication
 			 */
-			if (_Helper->configure(_baudrate, GPS_Helper::OutputMode::GPS) == 0) {
+			if (_helper->configure(_baudrate, GPSHelper::OutputMode::GPS) == 0) {
 
 				/* reset report */
 				memset(&_report_gps_pos, 0, sizeof(_report_gps_pos));
@@ -358,12 +357,12 @@ GPS::task_main()
 					}
 
 					/* GPS is obviously detected successfully, reset statistics */
-					_Helper->reset_update_rates();
+					_helper->resetUpdateRates();
 				}
 
 				int helper_ret;
 
-				while ((helper_ret = _Helper->receive(TIMEOUT_5HZ)) > 0 && !_task_should_exit) {
+				while ((helper_ret = _helper->receive(TIMEOUT_5HZ)) > 0 && !_task_should_exit) {
 					//				lock();
 					/* opportunistic publishing - else invalid data would end up on the bus */
 
@@ -394,8 +393,8 @@ GPS::task_main()
 						_rate = last_rate_count / ((float)((hrt_absolute_time() - last_rate_measurement)) / 1000000.0f);
 						last_rate_measurement = hrt_absolute_time();
 						last_rate_count = 0;
-						_Helper->store_update_rates();
-						_Helper->reset_update_rates();
+						_helper->storeUpdateRates();
+						_helper->resetUpdateRates();
 					}
 
 					if (!_healthy) {
@@ -425,7 +424,7 @@ GPS::task_main()
 				}
 
 				if (_healthy) {
-					PX4_WARN("module lost");
+					PX4_WARN("GPS module lost");
 					_healthy = false;
 					_rate = 0.0f;
 				}
@@ -517,8 +516,8 @@ GPS::print_info()
 			 (double)_report_gps_pos.vel_e_m_s, (double)_report_gps_pos.vel_d_m_s);
 		PX4_WARN("hdop: %.2f, vdop: %.2f", (double)_report_gps_pos.hdop, (double)_report_gps_pos.vdop);
 		PX4_WARN("eph: %.2fm, epv: %.2fm", (double)_report_gps_pos.eph, (double)_report_gps_pos.epv);
-		PX4_WARN("rate position: \t%6.2f Hz", (double)_Helper->get_position_update_rate());
-		PX4_WARN("rate velocity: \t%6.2f Hz", (double)_Helper->get_velocity_update_rate());
+		PX4_WARN("rate position: \t%6.2f Hz", (double)_helper->getPositionUpdateRate());
+		PX4_WARN("rate velocity: \t%6.2f Hz", (double)_helper->getVelocityUpdateRate());
 		PX4_WARN("rate publication:\t%6.2f Hz", (double)_rate);
 
 	}

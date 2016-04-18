@@ -37,8 +37,7 @@
  * @author Julian Oes <joes@student.ethz.ch>
  */
 
-#ifndef GPS_HELPER_H
-#define GPS_HELPER_H
+#pragma once
 
 #include <uORB/uORB.h>
 #include <uORB/topics/vehicle_gps_position.h>
@@ -47,7 +46,7 @@
 // TODO: this number seems wrong
 #define GPS_EPOCH_SECS 1234567890ULL
 
-class GPS_Helper
+class GPSHelper
 {
 public:
 	enum class OutputMode {
@@ -55,16 +54,18 @@ public:
 		RTCM        ///< request RTCM output. This is used for (fixed position) base stations
 	};
 
-	GPS_Helper(int fd, bool support_inject_data = false);
-	virtual ~GPS_Helper();
+	GPSHelper(int fd, bool support_inject_data = false);
+	virtual ~GPSHelper();
 
-	virtual int			configure(unsigned &baud, OutputMode output_mode) = 0;
-	virtual int 			receive(unsigned timeout) = 0;
-	int 				set_baudrate(const int &fd, unsigned baud);
-	float				get_position_update_rate();
-	float				get_velocity_update_rate();
-	void				reset_update_rates();
-	void				store_update_rates();
+	virtual int configure(unsigned &baud, OutputMode output_mode) = 0;
+	virtual int receive(unsigned timeout) = 0;
+
+	int setBaudrate(const int &fd, unsigned baud);
+
+	float getPositionUpdateRate();
+	float getVelocityUpdateRate();
+	void resetUpdateRates();
+	void storeUpdateRates();
 
 	/**
 	 * Start or restart the survey-in procees. This is only used in RTCM ouput mode.
@@ -87,7 +88,7 @@ public:
 	 *	    < 0 for error
 	 *	    > 0 number of bytes read
 	 */
-	int poll_or_read(int fd, uint8_t *buf, size_t buf_length, uint64_t timeout);
+	int pollOrRead(int fd, uint8_t *buf, size_t buf_length, uint64_t timeout);
 
 protected:
 	int _fd; ///< open file descriptor
@@ -116,5 +117,3 @@ private:
 	std::array<int, 4> _orb_inject_data_fd;
 	int _orb_inject_data_next = 0;
 };
-
-#endif /* GPS_HELPER_H */

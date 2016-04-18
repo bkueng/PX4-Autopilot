@@ -56,7 +56,7 @@
 
 #define GPS_WAIT_BEFORE_READ	20		// ms, wait before reading to save read() calls
 
-GPS_Helper::GPS_Helper(int fd, bool support_inject_data)
+GPSHelper::GPSHelper(int fd, bool support_inject_data)
 	: _fd(fd)
 {
 	_orb_inject_data_fd.fill(-1);
@@ -68,7 +68,7 @@ GPS_Helper::GPS_Helper(int fd, bool support_inject_data)
 	}
 }
 
-GPS_Helper::~GPS_Helper()
+GPSHelper::~GPSHelper()
 {
 	if (_orb_inject_data_fd[0] != -1) {
 		for (size_t i = 0; i < _orb_inject_data_fd.size(); ++i) {
@@ -77,25 +77,25 @@ GPS_Helper::~GPS_Helper()
 	}
 }
 
-bool GPS_Helper::injectData(uint8_t *data, size_t len)
+bool GPSHelper::injectData(uint8_t *data, size_t len)
 {
 	return ::write(_fd, data, len) == len;
 }
 
 float
-GPS_Helper::get_position_update_rate()
+GPSHelper::getPositionUpdateRate()
 {
 	return _rate_lat_lon;
 }
 
 float
-GPS_Helper::get_velocity_update_rate()
+GPSHelper::getVelocityUpdateRate()
 {
 	return _rate_vel;
 }
 
 void
-GPS_Helper::reset_update_rates()
+GPSHelper::resetUpdateRates()
 {
 	_rate_count_vel = 0;
 	_rate_count_lat_lon = 0;
@@ -103,14 +103,14 @@ GPS_Helper::reset_update_rates()
 }
 
 void
-GPS_Helper::store_update_rates()
+GPSHelper::storeUpdateRates()
 {
 	_rate_vel = _rate_count_vel / (((float)(hrt_absolute_time() - _interval_rate_start)) / 1000000.0f);
 	_rate_lat_lon = _rate_count_lat_lon / (((float)(hrt_absolute_time() - _interval_rate_start)) / 1000000.0f);
 }
 
 int
-GPS_Helper::set_baudrate(const int &fd, unsigned baud)
+GPSHelper::setBaudrate(const int &fd, unsigned baud)
 {
 
 #if __PX4_QURT
@@ -223,7 +223,7 @@ GPS_Helper::set_baudrate(const int &fd, unsigned baud)
 }
 
 int
-GPS_Helper::poll_or_read(int fd, uint8_t *buf, size_t buf_length, uint64_t timeout)
+GPSHelper::pollOrRead(int fd, uint8_t *buf, size_t buf_length, uint64_t timeout)
 {
 	/* check for new messages. Note that we assume poll_or_read is called with a higher frequency
 	 * than we get new injection messages.
@@ -269,7 +269,7 @@ GPS_Helper::poll_or_read(int fd, uint8_t *buf, size_t buf_length, uint64_t timeo
 #endif
 }
 
-void GPS_Helper::handleInjectDataTopic()
+void GPSHelper::handleInjectDataTopic()
 {
 	if (_orb_inject_data_fd[0] == -1) {
 		return;

@@ -38,6 +38,8 @@
  * @author Julian Oes <joes@student.ethz.ch>
  */
 
+#include "mtk.h"
+
 #include <px4_defines.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -48,23 +50,22 @@
 #include <systemlib/err.h>
 #include <drivers/drv_hrt.h>
 
-#include "mtk.h"
 
 
-MTK::MTK(const int &fd, struct vehicle_gps_position_s *gps_position) :
-	GPS_Helper(fd),
+GPSDriverMTK::GPSDriverMTK(const int &fd, struct vehicle_gps_position_s *gps_position) :
+	GPSHelper(fd),
 	_gps_position(gps_position),
 	_mtk_revision(0)
 {
-	decode_init();
+	decodeInit();
 }
 
-MTK::~MTK()
+GPSDriverMTK::~GPSDriverMTK()
 {
 }
 
 int
-MTK::configure(unsigned &baudrate, OutputMode output_mode)
+GPSDriverMTK::configure(unsigned &baudrate, OutputMode output_mode)
 {
 	if (output_mode != OutputMode::GPS) {
 		PX4_WARN("MTK: Unsupported Output Mode %i", (int)output_mode);
@@ -72,7 +73,7 @@ MTK::configure(unsigned &baudrate, OutputMode output_mode)
 	}
 
 	/* set baudrate first */
-	if (GPS_Helper::set_baudrate(_fd, MTK_BAUDRATE) != 0) {
+	if (GPSHelper::setBaudrate(_fd, MTK_BAUDRATE) != 0) {
 		return -1;
 	}
 
@@ -91,13 +92,13 @@ MTK::configure(unsigned &baudrate, OutputMode output_mode)
 
 	usleep(10000);
 
-	if (strlen(SBAS_ON) != write(_fd, SBAS_ON, strlen(SBAS_ON))) {
+	if (strlen(MTK_SBAS_ON) != write(_fd, MTK_SBAS_ON, strlen(MTK_SBAS_ON))) {
 		goto errout;
 	}
 
 	usleep(10000);
 
-	if (strlen(WAAS_ON) != write(_fd, WAAS_ON, strlen(WAAS_ON))) {
+	if (strlen(MTK_WAAS_ON) != write(_fd, MTK_WAAS_ON, strlen(MTK_WAAS_ON))) {
 		goto errout;
 	}
 
@@ -115,7 +116,7 @@ errout:
 }
 
 int
-MTK::receive(unsigned timeout)
+GPSDriverMTK::receive(unsigned timeout)
 {
 	uint8_t buf[32];
 	gps_mtk_packet_t packet;
@@ -127,15 +128,15 @@ MTK::receive(unsigned timeout)
 
 	while (true) {
 
-		int ret = poll_or_read(_fd, buf, sizeof(buf), timeout);
+		int ret = pollOrRead(_fd, buf, sizeof(buf), timeout);
 
 		if (ret > 0) {
 			/* first read whatever is left */
 			if (j < ret) {
 				/* pass received bytes to the packet decoder */
 				while (j < ret) {
-					if (parse_char(buf[j], packet) > 0) {
-						handle_message(packet);
+					if (parseChar(buf[j], packet) > 0) {
+						handleMessage(packet);
 						return 1;
 					}
 
@@ -158,7 +159,7 @@ MTK::receive(unsigned timeout)
 }
 
 void
-MTK::decode_init(void)
+GPSDriverMTK::decodeInit(void)
 {
 	_rx_ck_a = 0;
 	_rx_ck_b = 0;
@@ -166,7 +167,7 @@ MTK::decode_init(void)
 	_decode_state = MTK_DECODE_UNINIT;
 }
 int
-MTK::parse_char(uint8_t b, gps_mtk_packet_t &packet)
+GPSDriverMTK::parseChar(uint8_t b, gps_mtk_packet_t &packet)
 {
 	int ret = 0;
 
@@ -187,13 +188,13 @@ MTK::parse_char(uint8_t b, gps_mtk_packet_t &packet)
 
 		} else {
 			// Second start symbol was wrong, reset state machine
-			decode_init();
+			decodeInit();
 		}
 
 	} else if (_decode_state == MTK_DECODE_GOT_CK_B) {
 		// Add to checksum
 		if (_rx_count < 33) {
-			add_byte_to_checksum(b);
+			addByteToChecksum(b);
 		}
 
 		// Fill packet buffer
@@ -211,7 +212,7 @@ MTK::parse_char(uint8_t b, gps_mtk_packet_t &packet)
 			}
 
 			// Reset state machine to decode next packet
-			decode_init();
+			decodeInit();
 		}
 	}
 
@@ -219,7 +220,7 @@ MTK::parse_char(uint8_t b, gps_mtk_packet_t &packet)
 }
 
 void
-MTK::handle_message(gps_mtk_packet_t &packet)
+GPSDriverMTK::handleMessage(gps_mtk_packet_t &packet)
 {
 	if (_mtk_revision == 16) {
 		_gps_position->lat = packet.latitude * 10; // from degrees*1e6 to degrees*1e7
@@ -306,7 +307,7 @@ MTK::handle_message(gps_mtk_packet_t &packet)
 }
 
 void
-MTK::add_byte_to_checksum(uint8_t b)
+GPSDriverMTK::addByteToChecksum(uint8_t b)
 {
 	_rx_ck_a = _rx_ck_a + b;
 	_rx_ck_b = _rx_ck_b + _rx_ck_a;

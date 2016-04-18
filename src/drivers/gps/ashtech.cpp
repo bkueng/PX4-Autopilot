@@ -1,5 +1,3 @@
-#include "ashtech.h"
-
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -14,23 +12,25 @@
 #include <drivers/drv_hrt.h>
 #include <px4_time.h>
 #include <px4_defines.h>
+#include "ashtech.h"
 #ifdef __PX4_QURT
 #include <dspal_time.h>
 #endif
 
 #include <fcntl.h>
 
-ASHTECH::ASHTECH(const int &fd, struct vehicle_gps_position_s *gps_position, struct satellite_info_s *satellite_info):
-	GPS_Helper(fd),
+GPSDriverAshtech::GPSDriverAshtech(const int &fd, struct vehicle_gps_position_s *gps_position,
+		struct satellite_info_s *satellite_info):
+	GPSHelper(fd),
 	_satellite_info(satellite_info),
 	_gps_position(gps_position)
 {
-	decode_init();
+	decodeInit();
 	_decode_state = NME_DECODE_UNINIT;
 	_rx_buffer_bytes = 0;
 }
 
-ASHTECH::~ASHTECH()
+GPSDriverAshtech::~GPSDriverAshtech()
 {
 }
 
@@ -39,7 +39,7 @@ ASHTECH::~ASHTECH()
  * http://www.trimble.com/OEM_ReceiverHelp/V4.44/en/NMEA-0183messages_MessageOverview.html
  */
 
-int ASHTECH::handle_message(int len)
+int GPSDriverAshtech::handleMessage(int len)
 {
 	char *endp;
 
@@ -527,7 +527,7 @@ int ASHTECH::handle_message(int len)
 }
 
 
-int ASHTECH::receive(unsigned timeout)
+int GPSDriverAshtech::receive(unsigned timeout)
 {
 	{
 
@@ -545,10 +545,10 @@ int ASHTECH::receive(unsigned timeout)
 			while (j < bytes_count) {
 				int l = 0;
 
-				if ((l = parse_char(buf[j])) > 0) {
+				if ((l = parseChar(buf[j])) > 0) {
 					/* return to configure during configuration or to the gps driver during normal work
 					 * if a packet has arrived */
-					if (handle_message(l) > 0) {
+					if (handleMessage(l) > 0) {
 						return 1;
 					}
 				}
@@ -560,7 +560,7 @@ int ASHTECH::receive(unsigned timeout)
 			j = bytes_count = 0;
 
 			/* then poll or read for new data */
-			int ret = poll_or_read(_fd, buf, sizeof(buf), timeout * 2);
+			int ret = pollOrRead(_fd, buf, sizeof(buf), timeout * 2);
 
 			if (ret < 0) {
 				/* something went wrong when polling */
@@ -585,7 +585,7 @@ int ASHTECH::receive(unsigned timeout)
 }
 #define HEXDIGIT_CHAR(d) ((char)((d) + (((d) < 0xA) ? '0' : 'A'-0xA)))
 
-int ASHTECH::parse_char(uint8_t b)
+int GPSDriverAshtech::parseChar(uint8_t b)
 {
 	int iRet = 0;
 
@@ -645,7 +645,7 @@ int ASHTECH::parse_char(uint8_t b)
 	return iRet;
 }
 
-void ASHTECH::decode_init(void)
+void GPSDriverAshtech::decodeInit(void)
 {
 
 }
@@ -663,7 +663,7 @@ const char comm[] = "$PASHS,POP,20\r\n"\
 		    "$PASHS,SPD,A,8\r\n"\
 		    "$PASHS,SPD,B,9\r\n";
 
-int ASHTECH::configure(unsigned &baudrate, OutputMode output_mode)
+int GPSDriverAshtech::configure(unsigned &baudrate, OutputMode output_mode)
 {
 	if (output_mode != OutputMode::GPS) {
 		PX4_WARN("ASHTECH: Unsupported Output Mode %i", (int)output_mode);
@@ -676,13 +676,13 @@ int ASHTECH::configure(unsigned &baudrate, OutputMode output_mode)
 
 	for (unsigned int baud_i = 0; baud_i < sizeof(baudrates_to_try) / sizeof(baudrates_to_try[0]); baud_i++) {
 		baudrate = baudrates_to_try[baud_i];
-		set_baudrate(_fd, baudrate);
+		setBaudrate(_fd, baudrate);
 
 		if (write(_fd, comm, sizeof(comm)) != sizeof(comm)) {
 			return 1;
 		}
 	}
 
-	set_baudrate(_fd, 115200);
+	setBaudrate(_fd, 115200);
 	return 0;
 }

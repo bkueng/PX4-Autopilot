@@ -32,14 +32,13 @@
  ****************************************************************************/
 
 /**
- * @file mtk.cpp
+ * @file mtk.h
  *
  * @author Thomas Gubler <thomasgubler@student.ethz.ch>
  * @author Julian Oes <julian@oes.ch>
  */
 
-#ifndef MTK_H_
-#define MTK_H_
+#pragma once
 
 #include "gps_helper.h"
 
@@ -49,8 +48,8 @@
 
 #define MTK_OUTPUT_5HZ		"$PMTK220,200*2C\r\n"
 #define MTK_SET_BINARY		"$PGCMD,16,0,0,0,0,0*6A\r\n"
-#define SBAS_ON	        	"$PMTK313,1*2E\r\n"
-#define WAAS_ON				"$PMTK301,2*2E\r\n"
+#define MTK_SBAS_ON	       	"$PMTK313,1*2E\r\n"
+#define MTK_WAAS_ON		"$PMTK301,2*2E\r\n"
 #define MTK_NAVTHRES_OFF 	"$PMTK397,0*23\r\n"
 
 #define MTK_TIMEOUT_5HZ 400
@@ -85,41 +84,39 @@ typedef struct {
 
 #define MTK_RECV_BUFFER_SIZE 40
 
-class MTK : public GPS_Helper
+class GPSDriverMTK : public GPSHelper
 {
 public:
-	MTK(const int &fd, struct vehicle_gps_position_s *gps_position);
-	virtual ~MTK();
-	int				receive(unsigned timeout);
-	int				configure(unsigned &baudrate, OutputMode output_mode);
+	GPSDriverMTK(const int &fd, struct vehicle_gps_position_s *gps_position);
+	virtual ~GPSDriverMTK();
+	int receive(unsigned timeout);
+	int configure(unsigned &baudrate, OutputMode output_mode);
 
 private:
 	/**
 	 * Parse the binary MTK packet
 	 */
-	int				parse_char(uint8_t b, gps_mtk_packet_t &packet);
+	int parseChar(uint8_t b, gps_mtk_packet_t &packet);
 
 	/**
 	 * Handle the package once it has arrived
 	 */
-	void				handle_message(gps_mtk_packet_t &packet);
+	void handleMessage(gps_mtk_packet_t &packet);
 
 	/**
 	 * Reset the parse state machine for a fresh start
 	 */
-	void				decode_init(void);
+	void decodeInit();
 
 	/**
 	 * While parsing add every byte (except the sync bytes) to the checksum
 	 */
-	void				add_byte_to_checksum(uint8_t);
+	void addByteToChecksum(uint8_t);
 
 	struct vehicle_gps_position_s *_gps_position;
-	mtk_decode_state_t	_decode_state;
-	uint8_t				_mtk_revision;
-	unsigned			_rx_count;
-	uint8_t 			_rx_ck_a;
-	uint8_t				_rx_ck_b;
+	mtk_decode_state_t _decode_state;
+	uint8_t _mtk_revision;
+	unsigned _rx_count;
+	uint8_t _rx_ck_a;
+	uint8_t _rx_ck_b;
 };
-
-#endif /* MTK_H_ */

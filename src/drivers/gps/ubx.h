@@ -556,13 +556,14 @@ typedef enum {
 } ubx_ack_state_t;
 
 
-class UBX : public GPS_Helper
+class GPSDriverUBX : public GPSHelper
 {
 public:
-	UBX(const int &fd, struct vehicle_gps_position_s *gps_position, struct satellite_info_s *satellite_info);
-	virtual ~UBX();
-	int			receive(const unsigned timeout);
-	int			configure(unsigned &baudrate, OutputMode output_mode);
+	GPSDriverUBX(const int &fd, struct vehicle_gps_position_s *gps_position,
+			struct satellite_info_s *satellite_info);
+	virtual ~GPSDriverUBX();
+	int receive(const unsigned timeout);
+	int configure(unsigned &baudrate, OutputMode output_mode);
 
 	int restartSurveyIn();
 private:
@@ -570,67 +571,67 @@ private:
 	/**
 	 * Parse the binary UBX packet
 	 */
-	int			parse_char(const uint8_t b);
+	int parseChar(const uint8_t b);
 
 	/**
 	 * Start payload rx
 	 */
-	int			payload_rx_init(void);
+	int payloadRxInit(void);
 
 	/**
 	 * Add payload rx byte
 	 */
-	int			payload_rx_add(const uint8_t b);
-	int			payload_rx_add_nav_svinfo(const uint8_t b);
-	int			payload_rx_add_mon_ver(const uint8_t b);
+	int payloadRxAdd(const uint8_t b);
+	int payloadRxAddNavSvinfo(const uint8_t b);
+	int payloadRxAddMonVer(const uint8_t b);
 
 	/**
 	 * Finish payload rx
 	 */
-	int			payload_rx_done(void);
+	int payloadRxDone(void);
 
 	/**
 	 * Reset the parse state machine for a fresh start
 	 */
-	void			decode_init(void);
+	void decodeInit(void);
 
 	/**
 	 * While parsing add every byte (except the sync bytes) to the checksum
 	 */
-	void			add_byte_to_checksum(const uint8_t);
+	void addByteToChecksum(const uint8_t);
 
 	/**
 	 * Send a message
 	 * @return true on success, false on write error (errno set)
 	 */
-	bool			send_message(const uint16_t msg, const uint8_t *payload, const uint16_t length);
+	bool sendMessage(const uint16_t msg, const uint8_t *payload, const uint16_t length);
 
 	/**
 	 * Configure message rate
 	 * @return true on success, false on write error
 	 */
-	bool			configure_message_rate(const uint16_t msg, const uint8_t rate);
+	bool configureMessageRate(const uint16_t msg, const uint8_t rate);
 
 	/**
 	 * Calculate & add checksum for given buffer
 	 */
-	void			calc_checksum(const uint8_t *buffer, const uint16_t length, ubx_checksum_t *checksum);
+	void calcChecksum(const uint8_t *buffer, const uint16_t length, ubx_checksum_t *checksum);
 
 	/**
 	 * Wait for message acknowledge
 	 */
-	int			wait_for_ack(const uint16_t msg, const unsigned timeout, const bool report);
+	int waitForAck(const uint16_t msg, const unsigned timeout, const bool report);
 
 	/**
 	 * combines the configure_message_rate & wait_for_ack calls
 	 * @return true on success
 	 */
-	inline bool configure_message_rate_and_ack(uint16_t msg, uint8_t rate, bool report_ack_error = false);
+	inline bool configureMessageRateAndAck(uint16_t msg, uint8_t rate, bool report_ack_error = false);
 
 	/**
 	 * Calculate FNV1 hash
 	 */
-	uint32_t		fnv1_32_str(uint8_t *str, uint32_t hval);
+	uint32_t fnv1_32_str(uint8_t *str, uint32_t hval);
 
 	struct vehicle_gps_position_s *_gps_position;
 	struct satellite_info_s *_satellite_info;
