@@ -107,7 +107,7 @@ struct SurveyInStatus {
 };
 
 // TODO: this number seems wrong
-#define GPS_EPOCH_SECS 1234567890ULL
+#define GPS_EPOCH_SECS ((time_t)1234567890ULL)
 
 class GPSHelper
 {
