@@ -48,7 +48,7 @@ enum class GPSCallbackType {
 	 * data1: points to a buffer to be written to. The first sizeof(int) bytes contain the
 	 *        timeout in ms when calling the method.
 	 * data2: buffer length in bytes. Less bytes than this can be read.
-	 * return: num read bytes
+	 * return: num read bytes, 0 on timeout
 	 */
 	readDeviceData = 0,
 

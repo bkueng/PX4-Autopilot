@@ -54,7 +54,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctime>
-#include <unistd.h>
 
 #include "ubx.h"
 
@@ -298,6 +297,10 @@ int GPSDriverUBX::restartSurveyIn()
 	if (_output_mode != OutputMode::RTCM) {
 		return -1;
 	}
+	//disable RTCM output
+	configureMessageRate(UBX_MSG_RTCM3_1005, 0);
+	configureMessageRate(UBX_MSG_RTCM3_1077, 0);
+	configureMessageRate(UBX_MSG_RTCM3_1087, 0);
 
 	//stop it first
 	//FIXME: stopping the survey-in process does not seem to work
@@ -557,7 +560,8 @@ GPSDriverUBX::parseChar(const uint8_t b)
 				decodeInit();
 			}
 
-		} else {
+		} else if (_rtcm_message->message_length + 6 == ++_rtcm_message->pos) {
+			//FIXME: remove this length limit
 			UBX_WARN("RTCM message too long!");
 			decodeInit();
 		}
@@ -1088,7 +1092,7 @@ GPSDriverUBX::payloadRxDone(void)
 
 			SurveyInStatus status;
 			status.duration = svin.dur;
-			status.mean_accuracy = svin.meanAcc;
+			status.mean_accuracy = svin.meanAcc / 10;
 			status.flags = (svin.valid & 1) | ((svin.active & 1) << 1);
 			surveyInStatus(status);
 
