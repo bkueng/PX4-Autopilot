@@ -639,6 +639,7 @@ GPS::task_main()
 						} else {
 							_report_gps_pos_pub = orb_advertise(ORB_ID(vehicle_gps_position), &_report_gps_pos);
 						}
+						last_rate_count++;
 					}
 
 					if (_p_report_sat_info && (helper_ret & 2)) {
@@ -648,10 +649,6 @@ GPS::task_main()
 						} else {
 							_report_sat_info_pub = orb_advertise(ORB_ID(satellite_info), _p_report_sat_info);
 						}
-					}
-
-					if (helper_ret & 1) {	// consider only pos info updates for rate calculation */
-						last_rate_count++;
 					}
 
 					/* measure update rate every 5 seconds */
