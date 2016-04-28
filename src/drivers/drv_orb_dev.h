@@ -90,4 +90,7 @@
 /** Get the priority for the topic */
 #define ORBIOCGPRIORITY		_ORBIOC(14)
 
+/** Set the queue size of the topic */
+#define ORBIOCSETQUEUESIZE	_ORBIOC(15)
+
 #endif /* _DRV_UORB_H */
