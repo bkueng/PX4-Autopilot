@@ -168,6 +168,9 @@ px4-stm32f4discovery_default:
 mindpx-v2_default:
 	$(call cmake-build,nuttx_mindpx-v2_default)
 
+luci-v1_default:
+	$(call cmake-build,nuttx_luci-v1_default)
+
 posix_sitl_default:
 	$(call cmake-build,$@)
 
