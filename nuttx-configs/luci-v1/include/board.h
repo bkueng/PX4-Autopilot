@@ -201,8 +201,8 @@
  */
 
  // USART1 not used
-#define GPIO_USART1_RX	0
-#define GPIO_USART1_TX	0
+// #define GPIO_USART1_RX	0
+// #define GPIO_USART1_TX	0
 
 // Telemetry Port
 #define GPIO_USART2_RX	GPIO_USART2_RX_2

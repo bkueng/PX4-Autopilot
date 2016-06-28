@@ -123,6 +123,7 @@ start(bool external_bus, enum Rotation rotation)
 	}
 
 	/* create the driver */
+#if !defined (CONFIG_ARCH_BOARD_LUCI_V1)
 	if (external_bus) {
 #ifdef PX4_SPI_BUS_EXT
 		*g_dev_ptr = new MPU9250(PX4_SPI_BUS_EXT, path_accel, path_gyro, path_mag, (spi_dev_e)PX4_SPIDEV_EXT_MPU, rotation);
@@ -133,6 +134,9 @@ start(bool external_bus, enum Rotation rotation)
 	} else {
 		*g_dev_ptr = new MPU9250(PX4_SPI_BUS_SENSORS, path_accel, path_gyro, path_mag, (spi_dev_e)PX4_SPIDEV_MPU, rotation);
 	}
+#else
+		*g_dev_ptr = new MPU9250(PX4_SPI_BUS_SENSORS, path_accel, path_gyro, path_mag, (spi_dev_e)PX4_SPIDEV_MPU, rotation);
+#endif
 
 	if (*g_dev_ptr == nullptr) {
 		goto fail;

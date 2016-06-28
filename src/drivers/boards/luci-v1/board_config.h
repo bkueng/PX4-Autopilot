@@ -66,7 +66,7 @@ __BEGIN_DECLS
  ****************************************************************************************************/
 
 /* SPEKTRUM */
-#define SPEKTRUM_SERIAL_DEVICE	"/dev/ttyS5"
+#define RC_SERIAL_PORT	"/dev/ttyS4"
 #define GPIO_SPEKTRUM_PWR_EN (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTD|GPIO_PIN15)
 
 #define POWER_SPEKTRUM(_s)			px4_arch_gpiowrite(GPIO_SPEKTRUM_PWR_EN, (1-_s))
@@ -147,14 +147,14 @@ __BEGIN_DECLS
 /* External bus */
 #define PX4_SPIDEV_EXT0		1
 #define PX4_SPIDEV_EXT1		2
-#define PX4_SPIDEV_EXT2		3
-#define PX4_SPIDEV_EXT3		4
+// #define PX4_SPIDEV_EXT2		3
+// #define PX4_SPIDEV_EXT3		4
 
 /* FMUv3 SPI on external bus */
-#define PX4_SPIDEV_EXT_MPU		PX4_SPIDEV_EXT0
-#define PX4_SPIDEV_EXT_BARO		PX4_SPIDEV_EXT1
-#define PX4_SPIDEV_EXT_ACCEL_MAG	PX4_SPIDEV_EXT2
-#define PX4_SPIDEV_EXT_GYRO		PX4_SPIDEV_EXT3
+// #define PX4_SPIDEV_EXT_MPU		0
+// #define PX4_SPIDEV_EXT_BARO		PX4_SPIDEV_EXT1
+// #define PX4_SPIDEV_EXT_ACCEL_MAG	PX4_SPIDEV_EXT2
+// #define PX4_SPIDEV_EXT_GYRO		PX4_SPIDEV_EXT3
 
 /* I2C busses */
 #define PX4_I2C_BUS_EXPANSION	1
