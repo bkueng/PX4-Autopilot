@@ -125,6 +125,10 @@ __EXPORT void board_peripheral_reset(int ms)
 	px4_arch_configgpio(GPIO_VDD_5V_PERIPH_EN);
 	px4_arch_gpiowrite(GPIO_VDD_5V_PERIPH_EN, 1);
 
+	bool last = px4_arch_gpioread(GPIO_SPEKTRUM_PWR_EN);
+	/* Keep Spektum on to discharge rail*/
+	px4_arch_gpiowrite(GPIO_SPEKTRUM_PWR_EN, 1);
+
 	/* wait for the peripheral rail to reach GND */
 	usleep(ms * 1000);
 	warnx("reset done, %d ms", ms);
@@ -133,6 +137,7 @@ __EXPORT void board_peripheral_reset(int ms)
 
 	/* switch the peripheral rail back on */
 	px4_arch_gpiowrite(GPIO_VDD_5V_PERIPH_EN, 0);
+	px4_arch_gpiowrite(GPIO_SPEKTRUM_PWR_EN, last);
 }
 
 /************************************************************************************
@@ -196,6 +201,17 @@ __EXPORT int nsh_archinitialize(void)
 	px4_arch_configgpio(GPIO_GPIO3_OUTPUT);
 	px4_arch_configgpio(GPIO_GPIO4_OUTPUT);
 	px4_arch_configgpio(GPIO_GPIO5_OUTPUT);
+
+	/* Configure spektrum enable pin */
+	px4_arch_configgpio(GPIO_SPEKTRUM_PWR_EN);
+
+	// FIXME - when we get SBUS
+	//px4_arch_configgpio(GPIO_SBUS_INV);
+
+	#ifdef GPIO_RC_OUT
+		px4_arch_configgpio(GPIO_RC_OUT);      /* Serial RC output pin */
+		px4_arch_gpiowrite(GPIO_RC_OUT, 1);    /* set it high to pull RC input up */
+	#endif
 
 	/* configure the high-resolution time/callout interface */
 	hrt_init();
