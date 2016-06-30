@@ -1,5 +1,5 @@
 {
-     "board_id": 9,
+     "board_id": 42,
      "magic": "LUCIFW",
      "description": "Firmware for Luci FMU",
      "image": "",
