@@ -335,7 +335,14 @@ then
 		unset HIL
 	else
 		unset HIL
-		gps start
+
+		# Luci uses ttyS2 for GPS due to USART 1 not being configured.
+		if ver hwcmp LUCI_V1
+		then
+			gps start -d /dev/ttyS2
+		else
+			gps start
+		fi
 	fi
 
 	# waypoint storage
