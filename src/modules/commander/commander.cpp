@@ -3924,7 +3924,13 @@ void *commander_low_prio_loop(void *arg)
 				}
 
 			case vehicle_command_s::VEHICLE_CMD_START_RX_PAIR:
-				/* handled in the IO driver */
+				/* Set RC_DSM_BIND to initiate the binding process */
+				if ((int)cmd.param1 == 0) {
+					param_set(param_find("RC_DSM_BIND"), &cmd.param2);
+					answer_command(cmd, vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED, command_ack_pub, command_ack);
+				} else {
+					answer_command(cmd, vehicle_command_s::VEHICLE_CMD_RESULT_FAILED, command_ack_pub, command_ack);
+				}
 				break;
 
 			default:
