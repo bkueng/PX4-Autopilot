@@ -922,6 +922,11 @@ PX4FMU::cycle()
 #ifdef GPIO_PPM_IN
 		// disable CPPM input by mapping it away from the timer capture input
 		px4_arch_unconfiggpio(GPIO_PPM_IN);
+
+	#if defined(CONFIG_ARCH_BOARD_LUCI_V1)
+		// Luci needs the UART to be reinitialized in order to read properly.
+		dsm_bind(DSM_CMD_BIND_REINIT_UART, 0);
+	#endif
 #endif
 #endif
 
