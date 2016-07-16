@@ -1588,7 +1588,7 @@ LSM303D::measure()
 
 #if defined(CONFIG_ARCH_BOARD_LUCI_V1)
 	int16_t tx = raw_accel_report.y;
-	int16_t ty = -raw_accel_report.x;
+	int16_t ty = raw_accel_report.x;
 	int16_t tz = -raw_accel_report.z;
 	raw_accel_report.x = tx;
 	raw_accel_report.y = ty;
@@ -1739,7 +1739,7 @@ LSM303D::mag_measure()
 
 #if defined(CONFIG_ARCH_BOARD_LUCI_V1)
 	int16_t tx = raw_mag_report.y;
-	int16_t ty = -raw_mag_report.x;
+	int16_t ty = raw_mag_report.x;
 	int16_t tz = -raw_mag_report.z;
 	raw_mag_report.x = tx;
 	raw_mag_report.y = ty;
