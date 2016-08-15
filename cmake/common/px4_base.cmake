@@ -491,6 +491,7 @@ function(px4_add_upload)
 			/dev/serial/by-id/usb-3D_Robotics*
 			/dev/serial/by-id/usb-The_Autopilot*
 			/dev/serial/by-id/pci-3D_Robotics*
+			/dev/serial/by-id/usb-Dronesmith_Technologies_LUCI*
 			)
 	elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
 		list(APPEND serial_ports
