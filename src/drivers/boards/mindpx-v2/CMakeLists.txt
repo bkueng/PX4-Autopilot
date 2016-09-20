@@ -32,8 +32,6 @@
 ############################################################################
 px4_add_module(
 	MODULE drivers__boards__mindpx-v2
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		../common/board_dma_alloc.c
 		../common/board_name.c

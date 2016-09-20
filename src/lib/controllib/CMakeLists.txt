@@ -32,8 +32,6 @@
 ############################################################################
 px4_add_module(
 	MODULE lib__controllib
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		blocks.cpp
 		block/Block.cpp

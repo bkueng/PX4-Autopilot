@@ -34,8 +34,6 @@
 px4_add_module(
 	MODULE drivers__bmp280
 	MAIN bmp280
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		bmp280_spi.cpp
 		bmp280.cpp

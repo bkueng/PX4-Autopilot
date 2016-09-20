@@ -33,8 +33,6 @@
 px4_add_module(
 	MODULE systemcmds__mtd
 	MAIN mtd
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		mtd.c
 		24xxxx_mtd.c

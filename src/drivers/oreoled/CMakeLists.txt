@@ -34,8 +34,6 @@ px4_add_module(
 	MODULE drivers__oreoled
 	MAIN oreoled
 	STACK_MAIN 1024
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		oreoled.cpp
 	DEPENDS

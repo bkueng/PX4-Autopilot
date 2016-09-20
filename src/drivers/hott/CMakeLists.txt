@@ -30,12 +30,9 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 ############################################################################
-set(MODULE_CFLAGS -Os)
-list(APPEND MODULE_CFLAGS -Wframe-larger-than=1100)
 px4_add_module(
 	MODULE drivers__hott
-	COMPILE_FLAGS
-		${MODULE_CFLAGS}
+	STACK_MAX 1100
 	SRCS
 		messages.cpp
 		comms.cpp

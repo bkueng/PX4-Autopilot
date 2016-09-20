@@ -32,8 +32,6 @@
 ############################################################################
 px4_add_module(
 	MODULE drivers__airspeed
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		airspeed.cpp
 	DEPENDS

@@ -33,8 +33,6 @@
 px4_add_module(
 	MODULE platforms__posix__drivers__rgbledsim
 	MAIN rgbledsim
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		rgbled.cpp
 	DEPENDS

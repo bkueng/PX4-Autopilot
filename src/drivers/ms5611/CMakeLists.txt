@@ -31,18 +31,16 @@
 #
 ############################################################################
 set(srcs
-	ms5611_spi.cpp
-	ms5611_i2c.cpp
-	ms5611.cpp
 )
 
 px4_add_module(
 	MODULE drivers__ms5611
 	MAIN ms5611
 	STACK_MAIN 1200
-	COMPILE_FLAGS
-		-Os
-	SRCS ${srcs}
+	SRCS
+		ms5611_spi.cpp
+		ms5611_i2c.cpp
+		ms5611.cpp
 	DEPENDS
 		platforms__common
 	)

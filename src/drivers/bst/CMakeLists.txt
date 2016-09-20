@@ -34,8 +34,6 @@ px4_add_module(
 	MODULE drivers__bst
 	MAIN bst
 	STACK_MAIN 1200
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		bst.cpp
 	DEPENDS

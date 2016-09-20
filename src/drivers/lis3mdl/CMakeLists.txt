@@ -36,7 +36,6 @@ px4_add_module(
 	STACK_MAIN 1200
 	COMPILE_FLAGS
 		-Weffc++
-		-Os
 	SRCS
 		lis3mdl_i2c.cpp
 		lis3mdl_spi.cpp

@@ -34,8 +34,6 @@ px4_add_module(
 	MODULE systemcmds__top
 	MAIN top
 	STACK_MAIN 1700
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		top.c
 	DEPENDS

@@ -34,8 +34,6 @@ px4_add_module(
 	MODULE systemcmds__pwm
 	MAIN pwm
 	STACK_MAIN 2400
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		pwm.c
 	DEPENDS

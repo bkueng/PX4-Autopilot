@@ -33,7 +33,6 @@
 px4_add_module(
 	MODULE modules__local_position_estimator
 	MAIN local_position_estimator
-	COMPILE_FLAGS -Os
 	STACK_MAIN 5700
 	STACK_MAX 13000
 	SRCS

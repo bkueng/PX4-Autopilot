@@ -45,8 +45,6 @@ px4_add_module(
 	MODULE systemcmds__topic_listener
 	MAIN listener
 	STACK_MAIN 1800
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		topic_listener.cpp
 	DEPENDS

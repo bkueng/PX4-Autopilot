@@ -36,9 +36,6 @@ px4_add_module(
 	PRIORITY "SCHED_PRIORITY_MAX-30"
 	STACK_MAIN 1200
 	STACK_MAX 1600
-	COMPILE_FLAGS
-		${MODULE_CFLAGS}
-		-Os
 	SRCS
 		sdlog2.c
 		logbuffer.c

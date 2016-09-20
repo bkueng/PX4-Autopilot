@@ -58,8 +58,6 @@ px4_add_module(
 	MAIN uavcan
 	STACK_MAIN 3200
 	STACK_MAX 1500
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		# Main
 		uavcan_main.cpp

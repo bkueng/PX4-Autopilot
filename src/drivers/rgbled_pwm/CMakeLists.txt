@@ -33,8 +33,6 @@
 px4_add_module(
 	MODULE drivers__rgbled_pwm
 	MAIN rgbled
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		rgbled_pwm.cpp
 	DEPENDS

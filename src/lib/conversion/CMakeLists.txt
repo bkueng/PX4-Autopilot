@@ -32,8 +32,6 @@
 ############################################################################
 px4_add_module(
 	MODULE lib__conversion
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		rotation.cpp
 	DEPENDS

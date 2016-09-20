@@ -38,23 +38,18 @@ include_directories(
 
 link_libraries(msg_gen)
 
-set(SRCS
-	uORBUtils.cpp
-	uORB.cpp
-	uORBMain.cpp
-	Publication.cpp
-	Subscription.cpp
-	uORBManager.cpp
-	uORBDevices.cpp
-	)
-
 px4_add_module(
 	MODULE modules__uORB
 	MAIN uorb
 	STACK_MAIN 2100
-	COMPILE_FLAGS
-		-Os
-	SRCS ${SRCS}
+	SRCS
+		uORBUtils.cpp
+		uORB.cpp
+		uORBMain.cpp
+		Publication.cpp
+		Subscription.cpp
+		uORBManager.cpp
+		uORBDevices.cpp
 	DEPENDS
 		platforms__common
 	)

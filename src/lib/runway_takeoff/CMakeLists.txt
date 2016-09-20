@@ -32,8 +32,6 @@
 ############################################################################
 px4_add_module(
 	MODULE lib__runway_takeoff
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		RunwayTakeoff.cpp
 	DEPENDS

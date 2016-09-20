@@ -33,8 +33,6 @@
 ############################################################################
 px4_add_module(
 	MODULE drivers__boards__tap-v1
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		../common/board_name.c
 		tap_init.c

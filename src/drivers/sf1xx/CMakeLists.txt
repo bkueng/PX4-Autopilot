@@ -34,8 +34,6 @@ px4_add_module(
 
 	MODULE drivers__sf1xx
 	MAIN sf1xx
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		sf1xx.cpp
 	DEPENDS

@@ -41,8 +41,6 @@ px4_generate_parameters_source(OUT param_files
 
 px4_add_module(
 	MODULE modules__param
-	COMPILE_FLAGS
-		-Os
 	SRCS ${param_files}
 	DEPENDS
 		platforms__common

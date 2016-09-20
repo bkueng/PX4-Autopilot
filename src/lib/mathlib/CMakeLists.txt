@@ -32,8 +32,6 @@
 ############################################################################
 px4_add_module(
 	MODULE lib__mathlib
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		math/test/test.cpp
 		math/Limits.cpp

@@ -35,8 +35,6 @@ px4_add_module(
 	MAIN commander
 	STACK_MAIN 4096
 	STACK_MAX 2450
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		commander.cpp
 		state_machine_helper.cpp

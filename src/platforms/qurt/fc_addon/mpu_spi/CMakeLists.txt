@@ -53,7 +53,7 @@ px4_add_module(
 	MAIN mpu9x50
 	STACK_MAIN 1200
 	COMPILE_FLAGS
-		-Os -Weffc++
+		-Weffc++
 	SRCS
 		mpu9x50_main.cpp
 		mpu9x50_params.c

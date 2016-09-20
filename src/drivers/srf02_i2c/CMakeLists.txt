@@ -33,8 +33,6 @@
 px4_add_module(
 	MODULE drivers__srf02_i2c
 	MAIN srf02_i2c
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		srf02_i2c.cpp
 	DEPENDS

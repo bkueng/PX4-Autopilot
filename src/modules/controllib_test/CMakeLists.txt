@@ -33,8 +33,6 @@
 px4_add_module(
 	MODULE modules__controllib_test
 	MAIN controllib_test
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		controllib_test_main.cpp
 	DEPENDS

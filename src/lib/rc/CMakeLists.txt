@@ -33,7 +33,6 @@
 px4_add_module(
 	MODULE lib__rc
 	COMPILE_FLAGS
-		-Os
 		-Wno-unused-result
 	SRCS
 		st24.c

@@ -44,8 +44,6 @@ px4_add_module(
 	MODULE modules__uORB__uORB_tests
 	MAIN uorb_tests
 	STACK_MAIN 2048
-	COMPILE_FLAGS
-		-Os
 	SRCS ${SRCS}
 	DEPENDS
 		platforms__common

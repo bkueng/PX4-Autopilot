@@ -34,8 +34,6 @@ include_directories("../../uORB")
 
 px4_add_module(
 	MODULE modules__muorb__adsp
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		px4muorb.cpp
 		uORBFastRpcChannel.cpp

@@ -53,7 +53,7 @@ px4_add_module(
         MAIN uart_esc
 	STACK_MAIN 1200
         COMPILE_FLAGS
-                -Os -Weffc++
+                -Weffc++
         SRCS
                 uart_esc_main.cpp
 		uart_esc_params.c

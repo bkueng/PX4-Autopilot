@@ -33,8 +33,6 @@
 ############################################################################
 px4_add_module(
 	MODULE drivers__boards__asc-v1
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		../common/board_name.c
 		asc_init.c

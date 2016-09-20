@@ -32,8 +32,6 @@
 ############################################################################
 px4_add_module(
 	MODULE drivers__boards__px4fmu-v1
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		../common/board_name.c
 		px4fmu_can.c

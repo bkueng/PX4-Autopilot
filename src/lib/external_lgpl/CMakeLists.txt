@@ -32,8 +32,6 @@
 ############################################################################
 px4_add_module(
 	MODULE lib__external_lgpl
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		tecs/tecs.cpp
 	DEPENDS

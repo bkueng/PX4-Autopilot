@@ -34,8 +34,6 @@ px4_add_module(
 	MODULE systemcmds__config
 	MAIN config
 	STACK_MAIN 4096
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		config.c
 	DEPENDS

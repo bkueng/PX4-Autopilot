@@ -33,8 +33,6 @@
 px4_add_module(
 	MODULE drivers__tap_esc
 	MAIN tap_esc
-	COMPILE_FLAGS
-		-Os
 	SRCS
 		tap_esc.cpp
 	DEPENDS
