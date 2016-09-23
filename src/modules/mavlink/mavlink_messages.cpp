@@ -373,27 +373,13 @@ private:
 	MavlinkStreamStatustext(MavlinkStreamStatustext &);
 	MavlinkStreamStatustext &operator = (const MavlinkStreamStatustext &);
 
-	unsigned _write_err_count = 0;
-	static const unsigned write_err_threshold = 5;
-#ifndef __PX4_POSIX_EAGLE
-	FILE *_fp = nullptr;
-#endif
-
 protected:
 	explicit MavlinkStreamStatustext(Mavlink *mavlink) : MavlinkStream(mavlink)
 	{}
 
 	~MavlinkStreamStatustext()
 	{
-#ifndef __PX4_POSIX_EAGLE
-
-		if (_fp != nullptr) {
-			fclose(_fp);
-		}
-
-#endif
 	}
-
 
 	void send(const hrt_abstime t)
 	{
@@ -409,72 +395,6 @@ protected:
 				msg.text[sizeof(msg.text) - 1] = '\0';
 
 				mavlink_msg_statustext_send_struct(_mavlink->get_channel(), &msg);
-
-// TODO: the logging doesn't work on Snapdragon yet because of file paths.
-#ifndef __PX4_POSIX_EAGLE
-				/* write log messages in first instance to disk
-				 * timestamp each message with gps time
-				 */
-				timespec ts;
-				px4_clock_gettime(CLOCK_REALTIME, &ts);
-				time_t gps_time_sec = ts.tv_sec + (ts.tv_nsec / 1e9);
-				struct tm tt;
-				gmtime_r(&gps_time_sec, &tt);
-				char tstamp[22];
-				strftime(tstamp, sizeof(tstamp) - 1, "%Y_%m_%d_%H_%M_%S", &tt);
-
-				if (_mavlink->get_instance_id() == 0/* && _mavlink->get_logging_enabled()*/) {
-					if (_fp != nullptr) {
-						fputs(tstamp, _fp);
-						fputs(": ", _fp);
-
-						if (EOF == fputs(msg.text, _fp)) {
-							_write_err_count++;
-
-						} else {
-							_write_err_count = 0;
-						}
-
-						if (_write_err_count >= write_err_threshold) {
-							(void)fclose(_fp);
-							_fp = nullptr;
-							PX4_WARN("mavlink logging disabled");
-
-						} else {
-							(void)fputs("\n", _fp);
-#ifdef __PX4_NUTTX
-							fsync(_fp->fs_filedes);
-#endif
-						}
-
-					} else if (_write_err_count < write_err_threshold) {
-						/* string to hold the path to the log */
-						char log_file_path[128];
-
-						/* use GPS time for log file naming, e.g. /fs/microsd/2014-01-19/19_37_52.bin */
-
-						/* store the log file in the root directory */
-						snprintf(log_file_path, sizeof(log_file_path) - 1, PX4_ROOTFSDIR"/fs/microsd/msgs_%s.txt", tstamp);
-						_fp = fopen(log_file_path, "ab");
-
-						if (_fp != nullptr) {
-							/* write first message */
-							fputs(tstamp, _fp);
-							fputs(": ", _fp);
-							fputs(msg.text, _fp);
-							fputs("\n", _fp);
-#ifdef __PX4_NUTTX
-							fsync(_fp->fs_filedes);
-#endif
-
-						} else {
-							PX4_WARN("Failed to open MAVLink log: %s", log_file_path);
-							_write_err_count = write_err_threshold; //only try to open the file once
-						}
-					}
-				}
-
-#endif
 			}
 		}
 	}
@@ -612,15 +532,6 @@ protected:
 		const bool updated_status = _status_sub->update(&status);
 		const bool updated_cpuload = _cpuload_sub->update(&cpuload);
 		const bool updated_battery = _battery_status_sub->update(&battery_status);
-
-		if (updated_status) {
-			if (status.arming_state >= vehicle_status_s::ARMING_STATE_ARMED) {
-				_mavlink->set_logging_enabled(true);
-
-			} else {
-				_mavlink->set_logging_enabled(false);
-			}
-		}
 
 		if (updated_status || updated_battery || updated_cpuload) {
 			mavlink_sys_status_t msg;
