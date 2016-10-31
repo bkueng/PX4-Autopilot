@@ -54,9 +54,105 @@
 #include <termios.h>
 #include <sys/stat.h>
 
+#define UNW_LOCAL_ONLY
+#include <libunwind.h>
+#include <cxxabi.h>
+
+
 namespace px4
 {
 void init_once(void);
+}
+
+
+static pthread_key_t stack_check_key;
+pthread_mutex_t stack_print_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+extern "C" {
+	void __cyg_profile_func_enter(void *this_fn, void *call_site)
+	__attribute__((no_instrument_function));
+	void __cyg_profile_func_exit(void *this_fn, void *call_site)
+	__attribute__((no_instrument_function));
+	void print_stack_frames()
+	__attribute__((no_instrument_function));
+}
+
+void print_stack_frames()
+{
+	char name[4096];
+	char *demangled = (char *)malloc(sizeof(name));
+	size_t demangled_size;
+	char *nameptr = nullptr;
+
+	pthread_mutex_lock(&stack_print_mutex);
+
+	unw_cursor_t cursor;
+	unw_context_t uc;
+	unw_word_t ip, sp, offp;
+
+	unw_getcontext(&uc);
+	unw_init_local(&cursor, &uc);
+
+	long prev_sp = 0;
+	char thread_name[16];
+	pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name));
+	printf("%s backtrace: \\\n", thread_name);
+
+	while (unw_step(&cursor) > 0) {
+
+		unw_get_reg(&cursor, UNW_REG_SP, &sp);
+
+		if (prev_sp) {
+			printf("  0x%lx: %s, frame = %li \\\n", (long)ip, nameptr, (long) sp - prev_sp);
+		}
+
+		name[0] = '\0';
+		unw_get_proc_name(&cursor, name, sizeof(name), &offp);
+		nameptr = name;
+		int status;
+		demangled_size = sizeof(name);
+		abi::__cxa_demangle(name, demangled, &demangled_size, &status);
+
+		if (status == 0) {
+			nameptr = demangled;
+		}
+
+		unw_get_reg(&cursor, UNW_REG_IP, &ip);
+
+		prev_sp = (long)sp;
+
+		if (!ip) {
+			break;
+		}
+	}
+
+	printf("\n");
+	pthread_mutex_unlock(&stack_print_mutex);
+	free(demangled);
+}
+
+
+void __cyg_profile_func_enter(void *this_fn, void *call_site)
+{
+	struct stack_thread_storage_s {
+		int *stack_ptr;
+	};
+	int stack_location;
+	stack_thread_storage_s *ptr;
+
+	if ((ptr = (stack_thread_storage_s *)pthread_getspecific(stack_check_key)) == nullptr) {
+		ptr = new stack_thread_storage_s();
+		ptr->stack_ptr = &stack_location;
+		(void) pthread_setspecific(stack_check_key, ptr);
+	}
+
+	if (&stack_location < ptr->stack_ptr) {
+		print_stack_frames();
+		ptr->stack_ptr = &stack_location;
+	}
+}
+void __cyg_profile_func_exit(void *this_fn, void *call_site)
+{
 }
 
 using namespace std;
@@ -76,7 +172,8 @@ static bool _ExitFlag = false;
 static struct termios orig_term;
 
 extern "C" {
-	void _SigIntHandler(int sig_num);
+	void _SigIntHandler(int sig_num)
+	__attribute__((no_instrument_function));
 	void _SigIntHandler(int sig_num)
 	{
 		cout.flush();
@@ -84,7 +181,8 @@ extern "C" {
 		cout.flush();
 		_ExitFlag = true;
 	}
-	void _SigFpeHandler(int sig_num);
+	void _SigFpeHandler(int sig_num)
+	__attribute__((no_instrument_function));
 	void _SigFpeHandler(int sig_num)
 	{
 		cout.flush();
@@ -292,6 +390,8 @@ int main(int argc, char **argv)
 
 	tcgetattr(0, &orig_term);
 	atexit(restore_term);
+
+	(void) pthread_key_create(&stack_check_key, NULL);
 
 	struct sigaction sig_int;
 	memset(&sig_int, 0, sizeof(struct sigaction));

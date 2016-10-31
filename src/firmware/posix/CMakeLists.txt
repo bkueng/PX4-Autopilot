@@ -108,6 +108,7 @@ else()
 			${df_driver_libs}
 			pthread m rt
 			-Wl,--end-group
+			unwind
 			)
 	else()
 		target_link_libraries(px4

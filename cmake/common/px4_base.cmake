@@ -709,6 +709,7 @@ function(px4_add_common_flags)
 			-funsafe-math-optimizations
 			-ffunction-sections
 			-fdata-sections
+			-finstrument-functions
 			${PIC_FLAG}
 			)
 	endif()
