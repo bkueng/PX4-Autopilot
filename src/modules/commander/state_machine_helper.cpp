@@ -750,6 +750,7 @@ bool set_nav_state(struct vehicle_status_s *status,
 			// nothing to do - everything done in check_invalid_pos_nav_state
 		} else {
 			status->nav_state = vehicle_status_s::NAVIGATION_STATE_AUTO_RTL;
+			// TODO: store low-bat too?
 		}
 
 		break;
