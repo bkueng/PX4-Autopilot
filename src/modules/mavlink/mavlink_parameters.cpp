@@ -317,7 +317,14 @@ MavlinkParametersManager::send(const hrt_abstime t)
 	int max_num_to_send;
 
 	if (_mavlink->get_protocol() == SERIAL && !_mavlink->is_usb_uart()) {
-		max_num_to_send = 3;
+
+		if (_mavlink->get_flow_control_enabled()) {
+			max_num_to_send = 3;
+
+		} else {
+			// if we don't have flow control, we can only send one at a time
+			max_num_to_send = 1;
+		}
 
 	} else {
 		// speed up parameter loading via UDP, TCP or USB: try to send 15 at once
