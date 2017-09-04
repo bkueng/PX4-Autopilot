@@ -259,10 +259,10 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 	float boost = 0.0f;		// value added to demanded thrust (can also be negative)
 	float roll_pitch_scale = 1.0f;	// scale for demanded roll and pitch
 
-	if (min_out < 0.0f && max_out < 1.0f && -min_out <= 1.0f - max_out) {
+	if (min_out < 0.0f && max_out < 1.0f && max_out - min_out <= 1.0f) {
 		boost = -min_out;
 
-	} else if (max_out > 1.0f && min_out > 0.0f && min_out >= max_out - 1.0f) {
+	} else if (max_out > 1.0f && min_out > 0.0f && max_out - min_out <= 1.0f) {
 		float max_thrust_diff = thrust - thrust_decrease_factor * thrust;
 
 		if (max_thrust_diff >= max_out - 1.0f) {
@@ -273,12 +273,12 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 			roll_pitch_scale = (1 - (thrust + boost)) / (max_out - thrust);
 		}
 
-	} else if (min_out < 0.0f && max_out < 1.0f && -min_out > 1.0f - max_out) {
+	} else if (min_out < 0.0f && max_out < 1.0f && max_out - min_out > 1.0f) {
 		float max_thrust_diff = thrust * thrust_increase_factor - thrust;
 		boost = math::constrain(-min_out - (1.0f - max_out) / 2.0f, 0.0f, max_thrust_diff);
 		roll_pitch_scale = (thrust + boost) / (thrust - min_out);
 
-	} else if (max_out > 1.0f && min_out > 0.0f && min_out < max_out - 1.0f) {
+	} else if (max_out > 1.0f && min_out > 0.0f && max_out - min_out > 1.0f) {
 		float max_thrust_diff = thrust - thrust_decrease_factor * thrust;
 		boost = math::constrain(-(max_out - 1.0f - min_out) / 2.0f, -max_thrust_diff, 0.0f);
 		roll_pitch_scale = (1 - (thrust + boost)) / (max_out - thrust);
