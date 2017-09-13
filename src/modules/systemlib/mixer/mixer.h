@@ -633,6 +633,7 @@ public:
 	virtual void			set_thrust_factor(float val) {_thrust_factor = val;}
 
 private:
+	int                 _manual_sub = -1;
 	float				_roll_scale;
 	float				_pitch_scale;
 	float				_yaw_scale;
