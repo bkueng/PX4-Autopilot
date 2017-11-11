@@ -63,15 +63,15 @@ public:
 	virtual void print_status();
 
 protected:
-	virtual int update_impl(unsigned int timeout_ms, ControlData **control_data, bool already_active);
+	virtual int update_impl(unsigned int timeout_ms, control_data **control_data, bool already_active);
 	virtual int initialize();
 
 private:
-	void _read_control_data_from_position_setpoint_sub();
+	void readControlDataFromPositionSetpointSub();
 
 	int _vehicle_roi_sub = -1;
 	int _position_setpoint_triplet_sub = -1;
-	uint8_t _cur_roi_mode = vehicle_roi_s::ROI_NONE;
+	uint8_t _cur_roi_mode = vehicle_roi_s::roi_none;
 };
 
 
@@ -88,11 +88,11 @@ public:
 	virtual void print_status();
 
 protected:
-	virtual int update_impl(unsigned int timeout_ms, ControlData **control_data, bool already_active);
+	virtual int update_impl(unsigned int timeout_ms, control_data **control_data, bool already_active);
 	virtual int initialize();
 
 private:
-	void _ack_vehicle_command(vehicle_command_s *cmd);
+	void ackVehicleCommand(vehicle_command_s *cmd);
 
 	int _vehicle_command_sub = -1;
 	orb_advert_t _vehicle_command_ack_pub = nullptr;

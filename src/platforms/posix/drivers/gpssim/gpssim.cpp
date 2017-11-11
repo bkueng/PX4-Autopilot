@@ -77,7 +77,7 @@ using namespace DriverFramework;
 #define RATE_MEASUREMENT_PERIOD 5000000
 
 /* class for dynamic allocation of satellite info data */
-class GPS_Sat_Info
+class GpsSatInfo
 {
 public:
 	struct satellite_info_s 	_data;
@@ -100,7 +100,7 @@ public:
 	/**
 	 * Diagnostics - print some basic information about the driver.
 	 */
-	void				print_info();
+	void				printInfo();
 
 protected:
 	virtual void			_measure() {}
@@ -116,7 +116,7 @@ private:
 	bool				_baudrate_changed;				///< flag to signal that the baudrate with the GPS has changed
 	bool				_mode_changed;					///< flag that the GPS mode has changed
 	//gps_driver_mode_t		_mode;						///< current mode
-	GPS_Sat_Info			*_Sat_Info;					///< instance of GPS sat info data object
+	GpsSatInfo			*_Sat_Info;					///< instance of GPS sat info data object
 	struct vehicle_gps_position_s	_report_gps_pos;				///< uORB topic for gps position
 	orb_advert_t			_report_gps_pos_pub;				///< uORB pub for gps position
 	struct satellite_info_s		*_p_report_sat_info;				///< pointer to uORB topic for satellite info
@@ -138,23 +138,23 @@ private:
 	/**
 	 * Trampoline to the worker task
 	 */
-	static void			task_main_trampoline(void *arg);
+	static void			taskMainTrampoline(void *arg);
 
 
 	/**
 	 * Worker task: main GPS thread that configures the GPS and parses incoming data, always running
 	 */
-	void				task_main();
+	void				taskMain();
 
 	/**
 	 * Set the baudrate of the UART to the GPS
 	 */
-	int				set_baudrate(unsigned baud);
+	int				setBaudrate(unsigned baud);
 
 	/**
 	 * Send a reset command to the GPS
 	 */
-	void				cmd_reset();
+	void				cmdReset();
 
 	int 				receive(int timeout);
 };
@@ -202,7 +202,7 @@ GPSSIM::GPSSIM(const char *uart_path, bool fake_gps, bool enable_sat_info,
 
 	/* create satellite info data object if requested */
 	if (enable_sat_info) {
-		_Sat_Info = new (GPS_Sat_Info);
+		_Sat_Info = new (GpsSatInfo);
 		_p_report_sat_info = &_Sat_Info->_data;
 		memset(_p_report_sat_info, 0, sizeof(*_p_report_sat_info));
 	}
@@ -241,7 +241,7 @@ GPSSIM::init()
 
 	/* start the GPS driver worker task */
 	_task = px4_task_spawn_cmd("gps", SCHED_DEFAULT,
-				   SCHED_PRIORITY_DEFAULT, 1500, (px4_main_t)&GPSSIM::task_main_trampoline, nullptr);
+				   SCHED_PRIORITY_DEFAULT, 1500, (px4_main_t)&GPSSIM::taskMainTrampoline, nullptr);
 
 	if (_task < 0) {
 		PX4_ERR("task start failed: %d", errno);
@@ -277,7 +277,7 @@ GPSSIM::devIOCTL(unsigned long cmd, unsigned long arg)
 }
 
 void
-GPSSIM::task_main_trampoline(void *arg)
+GPSSIM::taskMainTrampoline(void *arg)
 {
 	g_dev->task_main();
 }
@@ -286,7 +286,7 @@ int
 GPSSIM::receive(int timeout)
 {
 	Simulator *sim = Simulator::getInstance();
-	simulator::RawGPSData gps;
+	simulator::raw_gps_data gps;
 	sim->getGPSSample((uint8_t *)&gps, sizeof(gps));
 
 	static int64_t timestamp_last = 0;
@@ -326,7 +326,7 @@ GPSSIM::receive(int timeout)
 }
 
 void
-GPSSIM::task_main()
+GPSSIM::taskMain()
 {
 
 	/* loop handling received serial bytes and also configuring in between */
@@ -415,12 +415,12 @@ GPSSIM::task_main()
 
 
 void
-GPSSIM::cmd_reset()
+GPSSIM::cmdReset()
 {
 }
 
 void
-GPSSIM::print_info()
+GPSSIM::printInfo()
 {
 	//GPS Mode
 	if (_fake_gps) {

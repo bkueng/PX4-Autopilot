@@ -42,24 +42,24 @@
 #include <map>
 #include "drivers/drv_hrt.h"
 
-namespace uORB
+namespace u_orb
 {
 class KraitFastRpcChannel;
 }
 
-class uORB::KraitFastRpcChannel : public uORBCommunicator::IChannel
+class u_orb::KraitFastRpcChannel : public u_orb_communicator::IChannel
 {
 public:
 	/**
 	 * static method to get the IChannel Implementor.
 	 */
-	static uORB::KraitFastRpcChannel *GetInstance()
+	static u_orb::KraitFastRpcChannel *getInstance()
 	{
-		if (_InstancePtr == nullptr) {
-			_InstancePtr = new uORB::KraitFastRpcChannel();
+		if (instance_ptr == nullptr) {
+			instance_ptr = new u_orb::KraitFastRpcChannel();
 		}
 
-		return _InstancePtr;
+		return instance_ptr;
 	}
 
 	/**
@@ -67,7 +67,7 @@ public:
 	 */
 	static bool isInstance()
 	{
-		return (_InstancePtr != nullptr);
+		return (instance_ptr != nullptr);
 	}
 
 	/**
@@ -81,7 +81,7 @@ public:
 	 * 		Note: This does not mean that the receiver as received it.
 	 *  otherwise = failure.
 	 */
-	virtual int16_t topic_advertised(const char *messageName);
+	virtual int16_t topic_advertised(const char *message_name);
 
 	/**
 	 * @brief Interface to notify the remote entity of a topic being unadvertised
@@ -95,7 +95,7 @@ public:
 	 * 		Note: This does not mean that the receiver as received it.
 	 *  otherwise = failure.
 	 */
-	virtual int16_t topic_unadvertised(const char *messageName);
+	virtual int16_t topicUnadvertised(const char *message_name);
 
 	/**
 	 * @brief Interface to notify the remote entity of interest of a
@@ -111,7 +111,7 @@ public:
 	 * 		Note: This does not mean that the receiver as received it.
 	 *  otherwise = failure.
 	 */
-	virtual int16_t add_subscription(const char *messageName, int32_t msgRateInHz);
+	virtual int16_t add_subscription(const char *message_name, int32_t msg_rate_in_hz);
 
 
 	/**
@@ -125,12 +125,12 @@ public:
 	 * 		Note: This does not necessarily mean that the receiver as received it.
 	 *  otherwise = failure.
 	 */
-	virtual int16_t remove_subscription(const char *messageName);
+	virtual int16_t remove_subscription(const char *message_name);
 
 	/**
 	 * Register Message Handler.  This is internal for the IChannel implementer*
 	 */
-	virtual int16_t register_handler(uORBCommunicator::IChannelRxHandler *handler);
+	virtual int16_t register_handler(u_orb_communicator::IChannelRxHandler *handler);
 
 
 	//=========================================================================
@@ -151,26 +151,26 @@ public:
 	 * 		Note: This does not mean that the receiver as received it.
 	 *  otherwise = failure.
 	 */
-	virtual int16_t send_message(const char *messageName, int32_t length, uint8_t *data);
+	virtual int16_t send_message(const char *message_name, int32_t length, uint8_t *data);
 
 
-	void Start();
-	void Stop();
+	void start();
+	void stop();
 
 private: // data members
-	static uORB::KraitFastRpcChannel *_InstancePtr;
-	uORBCommunicator::IChannelRxHandler *_RxHandler;
+	static u_orb::KraitFastRpcChannel *instance_ptr;
+	u_orb_communicator::IChannelRxHandler *_RxHandler;
 	pthread_t   _RecvThread;
 	bool _ThreadStarted;
 	bool _ThreadShouldExit;
 
-	static const int32_t _CONTROL_MSG_TYPE_ADD_SUBSCRIBER = 1;
-	static const int32_t _CONTROL_MSG_TYPE_REMOVE_SUBSCRIBER = 2;
-	static const int32_t _DATA_MSG_TYPE = 3;
-	static const int32_t _CONTROL_MSG_TYPE_ADVERTISE = 4;
-	static const int32_t _CONTROL_MSG_TYPE_UNADVERTISE = 5;
+	static const int32_t control_msg_type_add_subscriber = 1;
+	static const int32_t control_msg_type_remove_subscriber = 2;
+	static const int32_t data_msg_type = 3;
+	static const int32_t control_msg_type_advertise = 4;
+	static const int32_t control_msg_type_unadvertise = 5;
 
-	struct BulkTransferHeader {
+	struct bulk_transfer_header {
 		uint16_t _MsgType;
 		uint16_t _MsgNameLen;
 		uint16_t _DataLen;
@@ -181,15 +181,15 @@ private: // data members
 	std::map<std::string, int32_t> _AdspSubscriberCache;
 	std::map<std::string, hrt_abstime> _AdspSubscriberSampleTimestamp;
 	//hrt_abstime  _SubCacheSampleTimestamp;
-	static const hrt_abstime _SubCacheRefreshRate = 1000000; // 1 second;
+	static const hrt_abstime sub_cache_refresh_rate = 1000000; // 1 second;
 
 private://class members.
 	/// constructor.
 	KraitFastRpcChannel();
 
-	static void  *thread_start(void *handler);
+	static void  *threadStart(void *handler);
 
-	void fastrpc_recv_thread();
+	void fastrpcRecvThread();
 
 };
 

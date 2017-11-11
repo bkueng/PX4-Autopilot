@@ -47,7 +47,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-px4::AppState VCDevExample::appState;
+px4::AppState VCDevExample::app_state;
 
 using namespace device;
 
@@ -213,7 +213,7 @@ static int test_pub_block(int fd, unsigned long blocked)
 	return 0;
 }
 
-int VCDevExample::do_poll(int fd, int timeout, int iterations, int delayms_after_poll)
+int VCDevExample::doPoll(int fd, int timeout, int iterations, int delayms_after_poll)
 {
 	int pollret, readret;
 	int loop_count = 0;
@@ -227,7 +227,7 @@ int VCDevExample::do_poll(int fd, int timeout, int iterations, int delayms_after
 	bool mustblock = (timeout < 0);
 
 	// Test indefinte blocking poll
-	while ((!appState.exitRequested()) && (loop_count < iterations)) {
+	while ((!app_state.exitRequested()) && (loop_count < iterations)) {
 		pollret = px4_poll(fds, 1, timeout);
 
 		if (pollret < 0) {
@@ -268,7 +268,7 @@ fail:
 }
 int VCDevExample::main()
 {
-	appState.setRunning(true);
+	app_state.setRunning(true);
 
 	_node = new VCDevNode();
 

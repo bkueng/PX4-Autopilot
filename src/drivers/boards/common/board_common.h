@@ -405,7 +405,7 @@ typedef uint8_t px4_guid_t[PX4_GUID_BYTE_LENGTH];
 #if defined(GPIO_OTGFS_VBUS)
 #  define board_read_VBUS_state() (px4_arch_gpioread(GPIO_OTGFS_VBUS) ? 0 : 1)
 #else
-int board_read_VBUS_state(void);
+int board_read_vbus_state();
 #endif
 
 /************************************************************************************
@@ -866,7 +866,7 @@ int board_shutdown(void);
 
 #else
 static inline int board_register_power_state_notification_cb(power_button_state_notification_t cb) { return 0; }
-static inline int board_shutdown(void) { return -EINVAL; }
+static inline int board_shutdown() { return -EINVAL; }
 #endif
 
 #include "board_internal_common.h"

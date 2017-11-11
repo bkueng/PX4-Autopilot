@@ -69,14 +69,14 @@ struct wqueue_s g_hrt_work;
 /****************************************************************************
  * Private Variables
  ****************************************************************************/
-px4_sem_t _hrt_work_lock;
+px4_sem_t hrt_work_lock;
 
 /****************************************************************************
  * Private Functions
  ****************************************************************************/
 static void hrt_work_process(void);
 
-static void _sighandler(int sig_num);
+static void sighandler(int sig_num);
 
 /****************************************************************************
  * Name: _sighandler
@@ -91,7 +91,7 @@ static void _sighandler(int sig_num);
  *   None
  *
  ****************************************************************************/
-static void _sighandler(int sig_num)
+static void sighandler(int sig_num)
 {
 	PX4_DEBUG("RECEIVED SIGNAL %d", sig_num);
 }
@@ -273,7 +273,7 @@ static int work_hrtthread(int argc, char *argv[])
 
 void hrt_work_queue_init(void)
 {
-	px4_sem_init(&_hrt_work_lock, 0, 1);
+	px4_sem_init(&hrt_work_lock, 0, 1);
 	memset(&g_hrt_work, 0, sizeof(g_hrt_work));
 
 	// Create high priority worker thread
@@ -288,7 +288,7 @@ void hrt_work_queue_init(void)
 #ifdef __PX4_QURT
 	signal(SIGALRM, _sighandler);
 #else
-	signal(SIGCONT, _sighandler);
+	signal(SIGCONT, sighandler);
 #endif
 }
 

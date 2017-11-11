@@ -84,22 +84,22 @@
 #include <uORB/uORB.h>
 #include <vtol_att_control/vtol_type.h>
 
-static constexpr float HDG_HOLD_DIST_NEXT =
+static constexpr float hdg_hold_dist_next =
 	3000.0f; // initial distance of waypoint in front of plane in heading hold mode
-static constexpr float HDG_HOLD_REACHED_DIST =
+static constexpr float hdg_hold_reached_dist =
 	1000.0f; // distance (plane to waypoint in front) at which waypoints are reset in heading hold mode
-static constexpr float HDG_HOLD_SET_BACK_DIST = 100.0f; // distance by which previous waypoint is set behind the plane
-static constexpr float HDG_HOLD_YAWRATE_THRESH = 0.15f;	// max yawrate at which plane locks yaw for heading hold mode
-static constexpr float HDG_HOLD_MAN_INPUT_THRESH =
+static constexpr float hdg_hold_set_back_dist = 100.0f; // distance by which previous waypoint is set behind the plane
+static constexpr float hdg_hold_yawrate_thresh = 0.15f;	// max yawrate at which plane locks yaw for heading hold mode
+static constexpr float hdg_hold_man_input_thresh =
 	0.01f; // max manual roll/yaw input from user which does not change the locked heading
 
-static constexpr hrt_abstime T_ALT_TIMEOUT = 1; // time after which we abort landing if terrain estimate is not valid
+static constexpr hrt_abstime t_alt_timeout = 1; // time after which we abort landing if terrain estimate is not valid
 
-static constexpr float THROTTLE_THRESH =
+static constexpr float throttle_thresh =
 	0.05f;	///< max throttle from user which will not lead to motors spinning up in altitude controlled modes
-static constexpr float MANUAL_THROTTLE_CLIMBOUT_THRESH =
+static constexpr float manual_throttle_climbout_thresh =
 	0.85f; ///< a throttle / pitch input above this value leads to the system switching to climbout mode
-static constexpr float ALTHOLD_EPV_RESET_THRESH = 5.0f;
+static constexpr float althold_epv_reset_thresh = 5.0f;
 
 using math::constrain;
 using math::max;
@@ -112,7 +112,7 @@ using matrix::Quatf;
 using matrix::Vector2f;
 using matrix::Vector3f;
 
-using uORB::Subscription;
+using u_orb::Subscription;
 
 using namespace launchdetection;
 using namespace runwaytakeoff;
@@ -137,7 +137,7 @@ public:
 	 *
 	 * @return	true if the mainloop is running
 	 */
-	bool		task_running() { return _task_running; }
+	bool		taskRunning() { return _task_running; }
 
 private:
 	orb_advert_t	_mavlink_log_pub{nullptr};
@@ -246,7 +246,7 @@ private:
 	uint8_t _pos_reset_counter{0};				///< captures the number of times the estimator has reset the horizontal position
 	uint8_t _alt_reset_counter{0};				///< captures the number of times the estimator has reset the altitude state
 
-	ECL_L1_Pos_Controller	_l1_control;
+	EclL1PosController	_l1_control;
 	TECS			_tecs;
 
 	enum FW_POSCTRL_MODE {
@@ -376,21 +376,21 @@ private:
 	/**
 	 * Update our local parameter cache.
 	 */
-	int		parameters_update();
+	int		parametersUpdate();
 
 	// Update subscriptions
-	void		airspeed_poll();
-	void		control_update();
-	void		manual_control_setpoint_poll();
-	void		position_setpoint_triplet_poll();
-	void		vehicle_attitude_poll();
-	void		vehicle_command_poll();
-	void		vehicle_control_mode_poll();
-	void		vehicle_land_detected_poll();
-	void		vehicle_status_poll();
+	void		airspeedPoll();
+	void		controlUpdate();
+	void		manualControlSetpointPoll();
+	void		positionSetpointTripletPoll();
+	void		vehicleAttitudePoll();
+	void		vehicleCommandPoll();
+	void		vehicleControlModePoll();
+	void		vehicleLandDetectedPoll();
+	void		vehicleStatusPoll();
 
 	// publish navigation capabilities
-	void		fw_pos_ctrl_status_publish();
+	void		fwPosCtrlStatusPublish();
 
 	/**
 	 * Get a new waypoint based on heading and distance from current position
@@ -400,25 +400,25 @@ private:
 	 * @param waypoint_prev the waypoint at the current position
 	 * @param waypoint_next the waypoint in the heading direction
 	 */
-	void		get_waypoint_heading_distance(float heading, position_setpoint_s &waypoint_prev,
+	void		getWaypointHeadingDistance(float heading, position_setpoint_s &waypoint_prev,
 			position_setpoint_s &waypoint_next, bool flag_init);
 
 	/**
 	 * Return the terrain estimate during takeoff or takeoff_alt if terrain estimate is not available
 	 */
-	float		get_terrain_altitude_takeoff(float takeoff_alt, const vehicle_global_position_s &global_pos);
+	float		getTerrainAltitudeTakeoff(float takeoff_alt, const vehicle_global_position_s &global_pos);
 
 	/**
 	 * Check if we are in a takeoff situation
 	 */
-	bool 		in_takeoff_situation();
+	bool 		inTakeoffSituation();
 
 	/**
 	 * Do takeoff help when in altitude controlled modes
 	 * @param hold_altitude altitude setpoint for controller
 	 * @param pitch_limit_min minimum pitch allowed
 	 */
-	void 		do_takeoff_help(float *hold_altitude, float *pitch_limit_min);
+	void 		doTakeoffHelp(float *hold_altitude, float *pitch_limit_min);
 
 	/**
 	 * Update desired altitude base on user pitch stick input
@@ -426,45 +426,45 @@ private:
 	 * @param dt Time step
 	 * @return true if climbout mode was requested by user (climb with max rate and min airspeed)
 	 */
-	bool		update_desired_altitude(float dt);
+	bool		updateDesiredAltitude(float dt);
 
-	bool		control_position(const math::Vector<2> &curr_pos, const math::Vector<2> &ground_speed,
+	bool		controlPosition(const math::Vector<2> &curr_pos, const math::Vector<2> &ground_speed,
 					 const position_setpoint_s &pos_sp_prev, const position_setpoint_s &pos_sp_curr);
 
-	float		get_tecs_pitch();
-	float		get_tecs_thrust();
+	float		getTecsPitch();
+	float		getTecsThrust();
 
-	float		get_demanded_airspeed();
-	float		calculate_target_airspeed(float airspeed_demand);
-	void		calculate_gndspeed_undershoot(const math::Vector<2> &curr_pos, const math::Vector<2> &ground_speed,
+	float		getDemandedAirspeed();
+	float		calculateTargetAirspeed(float airspeed_demand);
+	void		calculateGndspeedUndershoot(const math::Vector<2> &curr_pos, const math::Vector<2> &ground_speed,
 			const position_setpoint_s &pos_sp_prev, const position_setpoint_s &pos_sp_curr);
 
 	/**
 	 * Handle incoming vehicle commands
 	 */
-	void		handle_command();
+	void		handleCommand();
 
 	/**
 	 * Shim for calling task_main from task_create.
 	 */
-	static void	task_main_trampoline(int argc, char *argv[]);
+	static void	taskMainTrampoline(int argc, char *argv[]);
 
 	/**
 	 * Main sensor collection task.
 	 */
-	void		task_main();
+	void		taskMain();
 
-	void		reset_takeoff_state();
-	void		reset_landing_state();
+	void		resetTakeoffState();
+	void		resetLandingState();
 
 	/*
 	 * Call TECS : a wrapper function to call the TECS implementation
 	 */
-	void tecs_update_pitch_throttle(float alt_sp, float airspeed_sp,
+	void tecsUpdatePitchThrottle(float alt_sp, float airspeed_sp,
 					float pitch_min_rad, float pitch_max_rad,
 					float throttle_min, float throttle_max, float throttle_cruise,
 					bool climbout_mode, float climbout_pitch_min_rad,
-					uint8_t mode = tecs_status_s::TECS_MODE_NORMAL);
+					uint8_t mode = tecs_status_s::tecs_mode_normal);
 
 };
 

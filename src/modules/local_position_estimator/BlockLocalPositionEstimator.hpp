@@ -32,17 +32,17 @@
 using namespace matrix;
 using namespace control;
 
-static const float DELAY_MAX = 0.5f;	// seconds
-static const float HIST_STEP = 0.05f;	// 20 hz
-static const float BIAS_MAX = 1e-1f;
-static const size_t HIST_LEN = 10;	// DELAY_MAX / HIST_STEP;
-static const size_t N_DIST_SUBS = 4;
+static const float delay_max = 0.5f;	// seconds
+static const float hist_step = 0.05f;	// 20 hz
+static const float bias_max = 1e-1f;
+static const size_t hist_len = 10;	// DELAY_MAX / HIST_STEP;
+static const size_t n_dist_subs = 4;
 
 // for fault detection
 // chi squared distribution, false alarm probability 0.0001
 // see fault_table.py
 // note skip 0 index so we can use degree of freedom as index
-static const float BETA_TABLE[7] = {0,
+static const float beta_table[7] = {0,
 				    8.82050518214,
 				    12.094592431,
 				    13.9876612368,
@@ -236,28 +236,28 @@ private:
 	// ----------------------------
 
 	// subscriptions
-	uORB::Subscription<actuator_armed_s> _sub_armed;
-	uORB::Subscription<vehicle_land_detected_s> _sub_land;
-	uORB::Subscription<vehicle_attitude_s> _sub_att;
-	uORB::Subscription<optical_flow_s> _sub_flow;
-	uORB::Subscription<sensor_combined_s> _sub_sensor;
-	uORB::Subscription<parameter_update_s> _sub_param_update;
-	uORB::Subscription<vehicle_gps_position_s> _sub_gps;
-	uORB::Subscription<vehicle_local_position_s> _sub_vision_pos;
-	uORB::Subscription<att_pos_mocap_s> _sub_mocap;
-	uORB::Subscription<distance_sensor_s> _sub_dist0;
-	uORB::Subscription<distance_sensor_s> _sub_dist1;
-	uORB::Subscription<distance_sensor_s> _sub_dist2;
-	uORB::Subscription<distance_sensor_s> _sub_dist3;
-	uORB::Subscription<distance_sensor_s> *_dist_subs[N_DIST_SUBS];
-	uORB::Subscription<distance_sensor_s> *_sub_lidar;
-	uORB::Subscription<distance_sensor_s> *_sub_sonar;
+	u_orb::Subscription<actuator_armed_s> _sub_armed;
+	u_orb::Subscription<vehicle_land_detected_s> _sub_land;
+	u_orb::Subscription<vehicle_attitude_s> _sub_att;
+	u_orb::Subscription<optical_flow_s> _sub_flow;
+	u_orb::Subscription<sensor_combined_s> _sub_sensor;
+	u_orb::Subscription<parameter_update_s> _sub_param_update;
+	u_orb::Subscription<vehicle_gps_position_s> _sub_gps;
+	u_orb::Subscription<vehicle_local_position_s> _sub_vision_pos;
+	u_orb::Subscription<att_pos_mocap_s> _sub_mocap;
+	u_orb::Subscription<distance_sensor_s> _sub_dist0;
+	u_orb::Subscription<distance_sensor_s> _sub_dist1;
+	u_orb::Subscription<distance_sensor_s> _sub_dist2;
+	u_orb::Subscription<distance_sensor_s> _sub_dist3;
+	u_orb::Subscription<distance_sensor_s> *_dist_subs[n_dist_subs];
+	u_orb::Subscription<distance_sensor_s> *_sub_lidar;
+	u_orb::Subscription<distance_sensor_s> *_sub_sonar;
 
 	// publications
-	uORB::Publication<vehicle_local_position_s> _pub_lpos;
-	uORB::Publication<vehicle_global_position_s> _pub_gpos;
-	uORB::Publication<estimator_status_s> _pub_est_status;
-	uORB::Publication<ekf2_innovations_s> _pub_innov;
+	u_orb::Publication<vehicle_local_position_s> _pub_lpos;
+	u_orb::Publication<vehicle_global_position_s> _pub_gpos;
+	u_orb::Publication<estimator_status_s> _pub_est_status;
+	u_orb::Publication<ekf2_innovations_s> _pub_innov;
 
 	// map projection
 	struct map_projection_reference_s _map_ref;
@@ -343,8 +343,8 @@ private:
 	BlockLowPass _aglLowPass;
 
 	// delay blocks
-	BlockDelay<float, n_x, 1, HIST_LEN> _xDelay;
-	BlockDelay<uint64_t, 1, 1, HIST_LEN> _tDelay;
+	BlockDelay<float, n_x, 1, hist_len> _xDelay;
+	BlockDelay<uint64_t, 1, 1, hist_len> _tDelay;
 
 	// misc
 	px4_pollfd_struct_t _polls[3];

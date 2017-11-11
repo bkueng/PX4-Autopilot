@@ -52,7 +52,7 @@
 #include "px4_time.h"
 #include <pthread.h>
 
-extern pthread_t _shell_task_id;
+extern pthread_t shell_task_id;
 
 __BEGIN_DECLS
 
@@ -71,7 +71,7 @@ void init_once();
 
 void init_once()
 {
-	_shell_task_id = pthread_self();
+	shell_task_id = pthread_self();
 	//printf("[init] shell id: %lu\n", (unsigned long)_shell_task_id);
 	work_queues_init();
 	hrt_work_queue_init();

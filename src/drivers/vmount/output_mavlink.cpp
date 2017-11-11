@@ -79,14 +79,14 @@ int OutputMavlink::update(const ControlData *control_data)
 		//got new command
 		_set_angle_setpoints(control_data);
 
-		vehicle_command.command = vehicle_command_s::VEHICLE_CMD_DO_MOUNT_CONFIGURE;
+		vehicle_command.command = vehicle_command_s::vehicle_cmd_do_mount_configure;
 		vehicle_command.timestamp = hrt_absolute_time();
 
-		if (control_data->type == ControlData::Type::Neutral) {
-			vehicle_command.param1 = vehicle_command_s::VEHICLE_MOUNT_MODE_NEUTRAL;
+		if (control_data->type == control_data::Type::Neutral) {
+			vehicle_command.param1 = vehicle_command_s::vehicle_mount_mode_neutral;
 
 		} else {
-			vehicle_command.param1 = vehicle_command_s::VEHICLE_MOUNT_MODE_MAVLINK_TARGETING;
+			vehicle_command.param1 = vehicle_command_s::vehicle_mount_mode_mavlink_targeting;
 		}
 
 		if (_vehicle_command_pub) {
@@ -94,7 +94,7 @@ int OutputMavlink::update(const ControlData *control_data)
 
 		} else {
 			_vehicle_command_pub = orb_advertise_queue(ORB_ID(vehicle_command), &vehicle_command,
-					       vehicle_command_s::ORB_QUEUE_LENGTH);
+					       vehicle_command_s::orb_queue_length);
 		}
 
 	}
@@ -109,7 +109,7 @@ int OutputMavlink::update(const ControlData *control_data)
 	_calculate_output_angles(t);
 
 	vehicle_command.timestamp = t;
-	vehicle_command.command = vehicle_command_s::VEHICLE_CMD_DO_MOUNT_CONTROL;
+	vehicle_command.command = vehicle_command_s::vehicle_cmd_do_mount_control;
 
 	// vmount spec has roll, pitch on channels 0, 1, respectively; MAVLink spec has roll, pitch on channels 1, 0, respectively
 	// vmount uses radians, MAVLink uses degrees

@@ -59,7 +59,7 @@
  *      OK, or -1 if the function failed.
  */
 
-__EXPORT int board_adc_init(void);
+__EXPORT int board_adc_init();
 
 /************************************************************************************
  * Name: board_adc_sample
@@ -116,4 +116,4 @@ __EXPORT void board_gpio_init(const uint32_t list[], int count);
  *
  ************************************************************************************/
 
-__EXPORT int board_determine_hw_info(void);
+__EXPORT int board_determine_hw_info();

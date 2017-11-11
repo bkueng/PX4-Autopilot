@@ -51,11 +51,11 @@
 namespace sensors
 {
 
-static_assert(GYRO_COUNT_MAX == 3,
+static_assert(gyro_count_max == 3,
 	      "GYRO_COUNT_MAX must be 3 (if changed, add/remove TC_* params to match the count)");
-static_assert(ACCEL_COUNT_MAX == 3,
+static_assert(accel_count_max == 3,
 	      "ACCEL_COUNT_MAX must be 3 (if changed, add/remove TC_* params to match the count)");
-static_assert(BARO_COUNT_MAX == 3,
+static_assert(baro_count_max == 3,
 	      "BARO_COUNT_MAX must be 3 (if changed, add/remove TC_* params to match the count)");
 
 /**
@@ -67,14 +67,14 @@ class TemperatureCompensation
 public:
 
 	/** (re)load the parameters. Make sure to call this on startup as well */
-	int parameters_update();
+	int parametersUpdate();
 
 	/** supply information which device_id matches a specific uORB topic_instance
 	 *  (needed if a system has multiple sensors of the same type)
 	 *  @return index for compensation parameter entry containing matching device ID on success, <0 otherwise */
-	int set_sensor_id_gyro(uint32_t device_id, int topic_instance);
-	int set_sensor_id_accel(uint32_t device_id, int topic_instance);
-	int set_sensor_id_baro(uint32_t device_id, int topic_instance);
+	int setSensorIdGyro(uint32_t device_id, int topic_instance);
+	int setSensorIdAccel(uint32_t device_id, int topic_instance);
+	int setSensorIdBaro(uint32_t device_id, int topic_instance);
 
 
 	/**
@@ -89,17 +89,17 @@ public:
 	 *         1: corrections applied but no changes to offsets & scales,
 	 *         2: corrections applied and offsets & scales updated
 	 */
-	int apply_corrections_gyro(int topic_instance, math::Vector<3> &sensor_data, float temperature,
+	int applyCorrectionsGyro(int topic_instance, math::Vector<3> &sensor_data, float temperature,
 				   float *offsets, float *scales);
 
-	int apply_corrections_accel(int topic_instance, math::Vector<3> &sensor_data, float temperature,
+	int applyCorrectionsAccel(int topic_instance, math::Vector<3> &sensor_data, float temperature,
 				    float *offsets, float *scales);
 
-	int apply_corrections_baro(int topic_instance, float &sensor_data, float temperature,
+	int applyCorrectionsBaro(int topic_instance, float &sensor_data, float temperature,
 				   float *offsets, float *scales);
 
 	/** output current configuration status to console */
-	void print_status();
+	void printStatus();
 private:
 
 	/* Struct containing parameters used by the single axis 5th order temperature compensation algorithm
@@ -117,7 +117,7 @@ private:
 	corrected_value = (raw_value - offset) * scale
 
 	*/
-	struct SensorCalData1D {
+	struct sensor_cal_data1_d {
 		int32_t ID;
 		float x5;
 		float x4;
@@ -131,7 +131,7 @@ private:
 		float max_temp;
 	};
 
-	struct SensorCalHandles1D {
+	struct sensor_cal_handles1_d {
 		param_t ID;
 		param_t x5;
 		param_t x4;
@@ -161,7 +161,7 @@ private:
 	corrected_value = (raw_value - offset) * scale
 
 	 */
-	struct SensorCalData3D {
+	struct sensor_cal_data3_d {
 		int32_t ID;		/**< sensor device ID*/
 		float x3[3];		/**< x^3 term of polynomial */
 		float x2[3];		/**< x^2 term of polynomial */
@@ -173,7 +173,7 @@ private:
 		float max_temp;		/**< maximum temperature with valid compensation data */
 	};
 
-	struct SensorCalHandles3D {
+	struct sensor_cal_handles3_d {
 		param_t ID;
 		param_t x3[3];
 		param_t x2[3];
@@ -186,23 +186,23 @@ private:
 	};
 
 	// create a struct containing all thermal calibration parameters
-	struct Parameters {
+	struct parameters {
 		int32_t gyro_tc_enable;
-		SensorCalData3D gyro_cal_data[GYRO_COUNT_MAX];
+		sensor_cal_data3_d gyro_cal_data[gyro_count_max];
 		int32_t accel_tc_enable;
-		SensorCalData3D accel_cal_data[ACCEL_COUNT_MAX];
+		sensor_cal_data3_d accel_cal_data[accel_count_max];
 		int32_t baro_tc_enable;
-		SensorCalData1D baro_cal_data[BARO_COUNT_MAX];
+		sensor_cal_data1_d baro_cal_data[baro_count_max];
 	};
 
 	// create a struct containing the handles required to access all calibration parameters
-	struct ParameterHandles {
+	struct parameter_handles {
 		param_t gyro_tc_enable;
-		SensorCalHandles3D gyro_cal_handles[GYRO_COUNT_MAX];
+		sensor_cal_handles3_d gyro_cal_handles[gyro_count_max];
 		param_t accel_tc_enable;
-		SensorCalHandles3D accel_cal_handles[ACCEL_COUNT_MAX];
+		sensor_cal_handles3_d accel_cal_handles[accel_count_max];
 		param_t baro_tc_enable;
-		SensorCalHandles1D baro_cal_handles[BARO_COUNT_MAX];
+		sensor_cal_handles1_d baro_cal_handles[baro_count_max];
 	};
 
 
@@ -210,7 +210,7 @@ private:
 	 * initialize ParameterHandles struct
 	 * @return 0 on succes, <0 on error
 	 */
-	static int initialize_parameter_handles(ParameterHandles &parameter_handles);
+	static int initializeParameterHandles(parameter_handles &parameter_handles);
 
 
 	/**
@@ -230,7 +230,7 @@ private:
 	Boolean true if the measured temperature is inside the valid range for the compensation
 
 	*/
-	bool calc_thermal_offsets_1D(SensorCalData1D &coef, float measured_temp, float &offset);
+	bool calcThermalOffsets1D(sensor_cal_data1_d &coef, float measured_temp, float &offset);
 
 	/**
 
@@ -249,31 +249,31 @@ private:
 	Boolean true if the measured temperature is inside the valid range for the compensation
 
 	*/
-	bool calc_thermal_offsets_3D(const SensorCalData3D &coef, float measured_temp, float offset[]);
+	bool calcThermalOffsets3D(const SensorCalData3D &coef, float measured_temp, float offset[]);
 
 
-	Parameters _parameters;
+	parameters _parameters;
 
 
-	struct PerSensorData {
-		PerSensorData()
+	struct per_sensor_data {
+		per_sensor_data()
 		{
-			for (int i = 0; i < SENSOR_COUNT_MAX; ++i) { device_mapping[i] = 255; last_temperature[i] = -100.0f; }
+			for (int i = 0; i < sensor_count_max; ++i) { device_mapping[i] = 255; last_temperature[i] = -100.0f; }
 		}
-		void reset_temperature()
+		void resetTemperature()
 		{
-			for (int i = 0; i < SENSOR_COUNT_MAX; ++i) { last_temperature[i] = -100.0f; }
+			for (int i = 0; i < sensor_count_max; ++i) { last_temperature[i] = -100.0f; }
 		}
-		uint8_t device_mapping[SENSOR_COUNT_MAX]; /// map a topic instance to the parameters index
-		float last_temperature[SENSOR_COUNT_MAX];
+		uint8_t device_mapping[sensor_count_max]; /// map a topic instance to the parameters index
+		float last_temperature[sensor_count_max];
 	};
-	PerSensorData _gyro_data;
-	PerSensorData _accel_data;
-	PerSensorData _baro_data;
+	per_sensor_data _gyro_data;
+	per_sensor_data _accel_data;
+	per_sensor_data _baro_data;
 
 
 	template<typename T>
-	static inline int set_sensor_id(uint32_t device_id, int topic_instance, PerSensorData &sensor_data,
+	static inline int setSensorId(uint32_t device_id, int topic_instance, per_sensor_data &sensor_data,
 					const T *sensor_cal_data, uint8_t sensor_count_max);
 };
 

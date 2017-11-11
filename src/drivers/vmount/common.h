@@ -52,7 +52,7 @@ namespace vmount
  * Each output must support the (full) set of the commands, and an input can create all
  * or a subset of the types.
  */
-struct ControlData {
+struct control_data {
 
 	enum class Type : uint8_t {
 		Neutral = 0,      /**< move to neutral position */
@@ -64,13 +64,13 @@ struct ControlData {
 	Type type = Type::Neutral;
 
 	union TypeData {
-		struct TypeAngle {
+		struct type_angle {
 			float angles[3];              /**< attitude angles (roll, pitch, yaw) in rad, [-pi, +pi] if is_speed[i] == false */
 
 			bool is_speed[3];        /**< if true, the angle is the angular speed in rad/s */
 		} angle;
 
-		struct TypeLonLat {
+		struct type_lon_lat {
 			double lon;              /**< longitude in [deg] */
 			double lat;              /**< latitude in [deg] */
 			float altitude;          /**< altitude in [m] */

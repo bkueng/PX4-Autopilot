@@ -64,7 +64,7 @@ MissionBlock::MissionBlock(Navigator *navigator, const char *name) :
 }
 
 bool
-MissionBlock::is_mission_item_reached()
+MissionBlock::isMissionItemReached()
 {
 	/* handle non-navigation or indefinite waypoints */
 
@@ -150,8 +150,8 @@ MissionBlock::is_mission_item_reached()
 			    && (dist_xy < 2 * _navigator->get_loiter_radius())) {
 
 				/* SETPOINT_TYPE_POSITION -> SETPOINT_TYPE_LOITER */
-				if (curr_sp->type == position_setpoint_s::SETPOINT_TYPE_POSITION) {
-					curr_sp->type = position_setpoint_s::SETPOINT_TYPE_LOITER;
+				if (curr_sp->type == position_setpoint_s::setpoint_type_position) {
+					curr_sp->type = position_setpoint_s::setpoint_type_loiter;
 					curr_sp->loiter_radius = _navigator->get_loiter_radius();
 					curr_sp->loiter_direction = 1;
 					_navigator->set_position_setpoint_triplet_updated();
@@ -159,13 +159,13 @@ MissionBlock::is_mission_item_reached()
 
 			} else {
 				/* restore SETPOINT_TYPE_POSITION */
-				if (curr_sp->type == position_setpoint_s::SETPOINT_TYPE_LOITER) {
+				if (curr_sp->type == position_setpoint_s::setpoint_type_loiter) {
 					/* loiter acceptance criteria required to revert back to SETPOINT_TYPE_POSITION */
 					if ((dist >= 0.0f)
 					    && (dist_z < _navigator->get_loiter_radius())
 					    && (dist_xy <= _navigator->get_loiter_radius() * 1.2f)) {
 
-						curr_sp->type = position_setpoint_s::SETPOINT_TYPE_POSITION;
+						curr_sp->type = position_setpoint_s::setpoint_type_position;
 						_navigator->set_position_setpoint_triplet_updated();
 					}
 				}
@@ -324,7 +324,7 @@ MissionBlock::is_mission_item_reached()
 			float cog = _navigator->get_vstatus()->is_rotary_wing ? _navigator->get_global_position()->yaw : atan2f(
 					    _navigator->get_global_position()->vel_e,
 					    _navigator->get_global_position()->vel_n);
-			float yaw_err = _wrap_pi(_mission_item.yaw - cog);
+			float yaw_err = wrap_pi(_mission_item.yaw - cog);
 
 			/* accept yaw if reached or if timeout is set in which case we ignore not forced headings */
 			if (fabsf(yaw_err) < math::radians(_param_yaw_err.get())
@@ -396,7 +396,7 @@ MissionBlock::is_mission_item_reached()
 }
 
 void
-MissionBlock::reset_mission_item_reached()
+MissionBlock::resetMissionItemReached()
 {
 	_waypoint_position_reached = false;
 	_waypoint_yaw_reached = false;
@@ -405,9 +405,9 @@ MissionBlock::reset_mission_item_reached()
 }
 
 void
-MissionBlock::issue_command(const mission_item_s &item)
+MissionBlock::issueCommand(const mission_item_s &item)
 {
-	if (item_contains_position(item)) {
+	if (itemContainsPosition(item)) {
 		return;
 	}
 
@@ -456,7 +456,7 @@ MissionBlock::issue_command(const mission_item_s &item)
 }
 
 float
-MissionBlock::get_time_inside(const struct mission_item_s &item)
+MissionBlock::getTimeInside(const struct mission_item_s &item)
 {
 	if (item.nav_cmd != NAV_CMD_TAKEOFF) {
 		return item.time_inside;
@@ -466,7 +466,7 @@ MissionBlock::get_time_inside(const struct mission_item_s &item)
 }
 
 bool
-MissionBlock::item_contains_position(const mission_item_s &item)
+MissionBlock::itemContainsPosition(const mission_item_s &item)
 {
 	return item.nav_cmd == NAV_CMD_WAYPOINT ||
 	       item.nav_cmd == NAV_CMD_LOITER_UNLIMITED ||
@@ -480,10 +480,10 @@ MissionBlock::item_contains_position(const mission_item_s &item)
 }
 
 bool
-MissionBlock::mission_item_to_position_setpoint(const mission_item_s &item, position_setpoint_s *sp)
+MissionBlock::missionItemToPositionSetpoint(const mission_item_s &item, position_setpoint_s *sp)
 {
 	/* don't change the setpoint for non-position items */
-	if (!item_contains_position(item)) {
+	if (!itemContainsPosition(item)) {
 		return false;
 	}
 
@@ -502,19 +502,19 @@ MissionBlock::mission_item_to_position_setpoint(const mission_item_s &item, posi
 
 	switch (item.nav_cmd) {
 	case NAV_CMD_IDLE:
-		sp->type = position_setpoint_s::SETPOINT_TYPE_IDLE;
+		sp->type = position_setpoint_s::setpoint_type_idle;
 		break;
 
 	case NAV_CMD_TAKEOFF:
 
 		// if already flying (armed and !landed) treat TAKEOFF like regular POSITION
-		if ((_navigator->get_vstatus()->arming_state == vehicle_status_s::ARMING_STATE_ARMED)
+		if ((_navigator->get_vstatus()->arming_state == vehicle_status_s::arming_state_armed)
 		    && !_navigator->get_land_detected()->landed) {
 
-			sp->type = position_setpoint_s::SETPOINT_TYPE_POSITION;
+			sp->type = position_setpoint_s::setpoint_type_position;
 
 		} else {
-			sp->type = position_setpoint_s::SETPOINT_TYPE_TAKEOFF;
+			sp->type = position_setpoint_s::setpoint_type_takeoff;
 
 			// set pitch and ensure that the hold time is zero
 			sp->pitch_min = item.pitch_min;
@@ -523,12 +523,12 @@ MissionBlock::mission_item_to_position_setpoint(const mission_item_s &item, posi
 		break;
 
 	case NAV_CMD_VTOL_TAKEOFF:
-		sp->type = position_setpoint_s::SETPOINT_TYPE_TAKEOFF;
+		sp->type = position_setpoint_s::setpoint_type_takeoff;
 		break;
 
 	case NAV_CMD_LAND:
 	case NAV_CMD_VTOL_LAND:
-		sp->type = position_setpoint_s::SETPOINT_TYPE_LAND;
+		sp->type = position_setpoint_s::setpoint_type_land;
 		break;
 
 	case NAV_CMD_LOITER_TO_ALT:
@@ -545,11 +545,11 @@ MissionBlock::mission_item_to_position_setpoint(const mission_item_s &item, posi
 	// fall through
 	case NAV_CMD_LOITER_TIME_LIMIT:
 	case NAV_CMD_LOITER_UNLIMITED:
-		sp->type = position_setpoint_s::SETPOINT_TYPE_LOITER;
+		sp->type = position_setpoint_s::setpoint_type_loiter;
 		break;
 
 	default:
-		sp->type = position_setpoint_s::SETPOINT_TYPE_POSITION;
+		sp->type = position_setpoint_s::setpoint_type_position;
 		break;
 	}
 
@@ -559,7 +559,7 @@ MissionBlock::mission_item_to_position_setpoint(const mission_item_s &item, posi
 }
 
 void
-MissionBlock::set_previous_pos_setpoint()
+MissionBlock::setPreviousPosSetpoint()
 {
 	struct position_setpoint_triplet_s *pos_sp_triplet = _navigator->get_position_setpoint_triplet();
 
@@ -569,7 +569,7 @@ MissionBlock::set_previous_pos_setpoint()
 }
 
 void
-MissionBlock::set_loiter_item(struct mission_item_s *item, float min_clearance)
+MissionBlock::setLoiterItem(struct mission_item_s *item, float min_clearance)
 {
 	if (_navigator->get_land_detected()->landed) {
 		/* landed, don't takeoff, but switch to IDLE mode */
@@ -608,7 +608,7 @@ MissionBlock::set_loiter_item(struct mission_item_s *item, float min_clearance)
 }
 
 void
-MissionBlock::set_takeoff_item(struct mission_item_s *item, float abs_altitude, float min_pitch)
+MissionBlock::setTakeoffItem(struct mission_item_s *item, float abs_altitude, float min_pitch)
 {
 	item->nav_cmd = NAV_CMD_TAKEOFF;
 
@@ -627,14 +627,14 @@ MissionBlock::set_takeoff_item(struct mission_item_s *item, float abs_altitude, 
 }
 
 void
-MissionBlock::set_land_item(struct mission_item_s *item, bool at_current_location)
+MissionBlock::setLandItem(struct mission_item_s *item, bool at_current_location)
 {
 	/* VTOL transition to RW before landing */
 	if (_navigator->force_vtol()) {
 
 		vehicle_command_s vcmd = {};
 		vcmd.command = NAV_CMD_DO_VTOL_TRANSITION;
-		vcmd.param1 = vtol_vehicle_status_s::VEHICLE_VTOL_STATE_MC;
+		vcmd.param1 = vtol_vehicle_status_s::vehicle_vtol_state_mc;
 		_navigator->publish_vehicle_cmd(&vcmd);
 	}
 
@@ -664,7 +664,7 @@ MissionBlock::set_land_item(struct mission_item_s *item, bool at_current_locatio
 }
 
 void
-MissionBlock::set_current_position_item(struct mission_item_s *item)
+MissionBlock::setCurrentPositionItem(struct mission_item_s *item)
 {
 	item->nav_cmd = NAV_CMD_WAYPOINT;
 	item->lat = _navigator->get_global_position()->lat;
@@ -680,7 +680,7 @@ MissionBlock::set_current_position_item(struct mission_item_s *item)
 }
 
 void
-MissionBlock::set_idle_item(struct mission_item_s *item)
+MissionBlock::setIdleItem(struct mission_item_s *item)
 {
 	item->nav_cmd = NAV_CMD_IDLE;
 	item->lat = _navigator->get_home_position()->lat;
@@ -696,7 +696,7 @@ MissionBlock::set_idle_item(struct mission_item_s *item)
 }
 
 void
-MissionBlock::mission_apply_limitation(mission_item_s &item)
+MissionBlock::missionApplyLimitation(mission_item_s &item)
 {
 	/*
 	 * Limit altitude

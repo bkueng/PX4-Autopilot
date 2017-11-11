@@ -50,7 +50,7 @@
  *    @returns                multiplied matrix i.e. A*B
  */
 
-float *mat_mul(float *A, float *B, uint8_t n)
+float *mat_mul(float *a, float *b, uint8_t n)
 {
 	float *ret = new float[n * n];
 	memset(ret, 0.0f, n * n * sizeof(float));
@@ -58,7 +58,7 @@ float *mat_mul(float *A, float *B, uint8_t n)
 	for (uint8_t i = 0; i < n; i++) {
 		for (uint8_t j = 0; j < n; j++) {
 			for (uint8_t k = 0; k < n; k++) {
-				ret[i * n + j] += A[i * n + k] * B[k * n + j];
+				ret[i * n + j] += a[i * n + k] * b[k * n + j];
 			}
 		}
 	}
@@ -83,7 +83,7 @@ static inline void swap(float &a, float &b)
  *    @returns                false = matrix is Singular or non positive definite, true = matrix inversion successful
  */
 
-static void mat_pivot(float *A, float *pivot, uint8_t n)
+static void mat_pivot(float *a, float *pivot, uint8_t n)
 {
 	for (uint8_t i = 0; i < n; i++) {
 		for (uint8_t j = 0; j < n; j++) {
@@ -95,7 +95,7 @@ static void mat_pivot(float *A, float *pivot, uint8_t n)
 		uint8_t max_j = i;
 
 		for (uint8_t j = i; j < n; j++) {
-			if (fabsf(A[j * n + i]) > fabsf(A[max_j * n + i])) {
+			if (fabsf(a[j * n + i]) > fabsf(a[max_j * n + i])) {
 				max_j = j;
 			}
 		}
@@ -116,18 +116,18 @@ static void mat_pivot(float *A, float *pivot, uint8_t n)
  *    @param     n,           dimension of matrix
  */
 
-static void mat_forward_sub(float *L, float *out, uint8_t n)
+static void mat_forward_sub(float *l, float *out, uint8_t n)
 {
 	// Forward substitution solve LY = I
 	for (int i = 0; i < n; i++) {
-		out[i * n + i] = 1 / L[i * n + i];
+		out[i * n + i] = 1 / l[i * n + i];
 
 		for (int j = i + 1; j < n; j++) {
 			for (int k = i; k < j; k++) {
-				out[j * n + i] -= L[j * n + k] * out[k * n + i];
+				out[j * n + i] -= l[j * n + k] * out[k * n + i];
 			}
 
-			out[j * n + i] /= L[j * n + j];
+			out[j * n + i] /= l[j * n + j];
 		}
 	}
 }
@@ -140,18 +140,18 @@ static void mat_forward_sub(float *L, float *out, uint8_t n)
  *    @param     n,           dimension of matrix
  */
 
-static void mat_back_sub(float *U, float *out, uint8_t n)
+static void mat_back_sub(float *u, float *out, uint8_t n)
 {
 	// Backward Substitution solve UY = I
 	for (int i = n - 1; i >= 0; i--) {
-		out[i * n + i] = 1 / U[i * n + i];
+		out[i * n + i] = 1 / u[i * n + i];
 
 		for (int j = i - 1; j >= 0; j--) {
 			for (int k = i; k > j; k--) {
-				out[j * n + i] -= U[j * n + k] * out[k * n + i];
+				out[j * n + i] -= u[j * n + k] * out[k * n + i];
 			}
 
-			out[j * n + i] /= U[j * n + j];
+			out[j * n + i] /= u[j * n + j];
 		}
 	}
 }
@@ -165,42 +165,42 @@ static void mat_back_sub(float *U, float *out, uint8_t n)
  *    @param     n,           dimension of matrix
  */
 
-static void mat_LU_decompose(float *A, float *L, float *U, float *P, uint8_t n)
+static void mat_lu_decompose(float *a, float *l, float *u, float *p, uint8_t n)
 {
-	memset(L, 0, n * n * sizeof(float));
-	memset(U, 0, n * n * sizeof(float));
-	memset(P, 0, n * n * sizeof(float));
-	mat_pivot(A, P, n);
+	memset(l, 0, n * n * sizeof(float));
+	memset(u, 0, n * n * sizeof(float));
+	memset(p, 0, n * n * sizeof(float));
+	mat_pivot(a, p, n);
 
-	float *APrime = mat_mul(P, A, n);
+	float *a_prime = mat_mul(p, a, n);
 
 	for (uint8_t i = 0; i < n; i++) {
-		L[i * n + i] = 1;
+		l[i * n + i] = 1;
 	}
 
 	for (uint8_t i = 0; i < n; i++) {
 		for (uint8_t j = 0; j < n; j++) {
 			if (j <= i) {
-				U[j * n + i] = APrime[j * n + i];
+				u[j * n + i] = a_prime[j * n + i];
 
 				for (uint8_t k = 0; k < j; k++) {
-					U[j * n + i] -= L[j * n + k] * U[k * n + i];
+					u[j * n + i] -= l[j * n + k] * u[k * n + i];
 				}
 			}
 
 			if (j >= i) {
-				L[j * n + i] = APrime[j * n + i];
+				l[j * n + i] = a_prime[j * n + i];
 
 				for (uint8_t k = 0; k < i; k++) {
-					L[j * n + i] -= L[j * n + k] * U[k * n + i];
+					l[j * n + i] -= l[j * n + k] * u[k * n + i];
 				}
 
-				L[j * n + i] /= U[i * n + i];
+				l[j * n + i] /= u[i * n + i];
 			}
 		}
 	}
 
-	delete[] APrime;
+	delete[] a_prime;
 }
 
 /*
@@ -212,30 +212,30 @@ static void mat_LU_decompose(float *A, float *L, float *U, float *P, uint8_t n)
  *    @param     n,           dimension of square matrix
  *    @returns                false = matrix is Singular, true = matrix inversion successful
  */
-bool mat_inverse(float *A, float *inv, uint8_t n)
+bool mat_inverse(float *a, float *inv, uint8_t n)
 {
-	float *L, *U, *P;
+	float *l, *u, *p;
 	bool ret = true;
-	L = new float[n * n];
-	U = new float[n * n];
-	P = new float[n * n];
-	mat_LU_decompose(A, L, U, P, n);
+	l = new float[n * n];
+	u = new float[n * n];
+	p = new float[n * n];
+	mat_lu_decompose(a, l, u, p, n);
 
-	float *L_inv = new float[n * n];
-	float *U_inv = new float[n * n];
+	float *l_inv = new float[n * n];
+	float *u_inv = new float[n * n];
 
-	memset(L_inv, 0, n * n * sizeof(float));
-	mat_forward_sub(L, L_inv, n);
+	memset(l_inv, 0, n * n * sizeof(float));
+	mat_forward_sub(l, l_inv, n);
 
-	memset(U_inv, 0, n * n * sizeof(float));
-	mat_back_sub(U, U_inv, n);
+	memset(u_inv, 0, n * n * sizeof(float));
+	mat_back_sub(u, u_inv, n);
 
 	// decomposed matrices no longer required
-	delete[] L;
-	delete[] U;
+	delete[] l;
+	delete[] u;
 
-	float *inv_unpivoted = mat_mul(U_inv, L_inv, n);
-	float *inv_pivoted = mat_mul(inv_unpivoted, P, n);
+	float *inv_unpivoted = mat_mul(u_inv, l_inv, n);
+	float *inv_pivoted = mat_mul(inv_unpivoted, p, n);
 
 	//check sanity of results
 	for (uint8_t i = 0; i < n; i++) {
@@ -251,13 +251,13 @@ bool mat_inverse(float *A, float *inv, uint8_t n)
 	//free memory
 	delete[] inv_pivoted;
 	delete[] inv_unpivoted;
-	delete[] P;
-	delete[] U_inv;
-	delete[] L_inv;
+	delete[] p;
+	delete[] u_inv;
+	delete[] l_inv;
 	return ret;
 }
 
-bool inverse4x4(float m[], float invOut[])
+bool inverse4x4(float m[], float inv_out[])
 {
 	float inv[16], det;
 	uint8_t i;
@@ -383,7 +383,7 @@ bool inverse4x4(float m[], float invOut[])
 	det = 1.0f / det;
 
 	for (i = 0; i < 16; i++) {
-		invOut[i] = inv[i] * det;
+		inv_out[i] = inv[i] * det;
 	}
 
 	return true;

@@ -55,11 +55,11 @@ using namespace simulator;
 
 static px4_task_t g_sim_task = -1;
 
-Simulator *Simulator::_instance = nullptr;
+Simulator *Simulator::instance = nullptr;
 
 Simulator *Simulator::getInstance()
 {
-	return _instance;
+	return instance;
 }
 
 bool Simulator::getMPUReport(uint8_t *buf, int len)
@@ -92,37 +92,37 @@ bool Simulator::getAirspeedSample(uint8_t *buf, int len)
 	return _airspeed.copyData(buf, len);
 }
 
-void Simulator::write_MPU_data(void *buf)
+void Simulator::writeMpuData(void *buf)
 {
 	_mpu.writeData(buf);
 }
 
-void Simulator::write_accel_data(void *buf)
+void Simulator::writeAccelData(void *buf)
 {
 	_accel.writeData(buf);
 }
 
-void Simulator::write_mag_data(void *buf)
+void Simulator::writeMagData(void *buf)
 {
 	_mag.writeData(buf);
 }
 
-void Simulator::write_baro_data(void *buf)
+void Simulator::writeBaroData(void *buf)
 {
 	_baro.writeData(buf);
 }
 
-void Simulator::write_gps_data(void *buf)
+void Simulator::writeGpsData(void *buf)
 {
 	_gps.writeData(buf);
 }
 
-void Simulator::write_airspeed_data(void *buf)
+void Simulator::writeAirspeedData(void *buf)
 {
 	_airspeed.writeData(buf);
 }
 
-void Simulator::parameters_update(bool force)
+void Simulator::parametersUpdate(bool force)
 {
 	bool updated;
 	struct parameter_update_s param_upd;
@@ -143,9 +143,9 @@ int Simulator::start(int argc, char *argv[])
 {
 	int ret = 0;
 	int udp_port = 0;
-	_instance = new Simulator();
+	instance = new Simulator();
 
-	if (_instance) {
+	if (instance) {
 		drv_led_start();
 
 		if (argc == 5 && strcmp(argv[3], "-u") == 0) {
@@ -153,19 +153,19 @@ int Simulator::start(int argc, char *argv[])
 		}
 
 		if (argv[2][1] == 's') {
-			_instance->initializeSensorData();
+			instance->initializeSensorData();
 #ifndef __PX4_QURT
 			// Update sensor data
-			_instance->pollForMAVLinkMessages(false, udp_port);
+			instance->pollForMAVLinkMessages(false, udp_port);
 #endif
 
 		} else if (argv[2][1] == 'p') {
 			// Update sensor data
-			_instance->pollForMAVLinkMessages(true, udp_port);
+			instance->pollForMAVLinkMessages(true, udp_port);
 
 		} else {
-			_instance->initializeSensorData();
-			_instance->_initialized = true;
+			instance->initializeSensorData();
+			instance->_initialized = true;
 		}
 
 	} else {

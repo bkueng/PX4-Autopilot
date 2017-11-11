@@ -46,10 +46,10 @@ namespace launchdetection
 
 CatapultLaunchMethod::CatapultLaunchMethod(SuperBlock *parent) :
 	SuperBlock(parent, "CAT"),
-	thresholdAccel(this, "A"),
-	thresholdTime(this, "T"),
-	motorDelay(this, "MDEL"),
-	pitchMaxPreThrottle(this, "PMAX")
+	_thresholdAccel(this, "A"),
+	_thresholdTime(this, "T"),
+	_motorDelay(this, "MDEL"),
+	_pitchMaxPreThrottle(this, "PMAX")
 {
 	last_timestamp = hrt_absolute_time();
 }
@@ -115,11 +115,11 @@ void CatapultLaunchMethod::reset()
 	state = LAUNCHDETECTION_RES_NONE;
 }
 
-float CatapultLaunchMethod::getPitchMax(float pitchMaxDefault)
+float CatapultLaunchMethod::getPitchMax(float pitch_max_default)
 {
 	/* If motor is turned on do not impose the extra limit on maximum pitch */
 	if (state == LAUNCHDETECTION_RES_DETECTED_ENABLEMOTORS) {
-		return pitchMaxDefault;
+		return pitch_max_default;
 
 	} else {
 		return pitchMaxPreThrottle.get();

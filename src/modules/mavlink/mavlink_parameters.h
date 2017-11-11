@@ -63,9 +63,9 @@ public:
 	 */
 	void send(const hrt_abstime t);
 
-	unsigned get_size();
+	unsigned getSize();
 
-	void handle_message(const mavlink_message_t *msg);
+	void handleMessage(const mavlink_message_t *msg);
 
 private:
 	int		_send_all_index;
@@ -77,24 +77,24 @@ private:
 protected:
 	/// send a single param if a PARAM_REQUEST_LIST is in progress
 	/// @return true if a parameter was sent
-	bool send_one();
+	bool sendOne();
 
-	int send_param(param_t param, int component_id = -1);
+	int sendParam(param_t param, int component_id = -1);
 
 	// Item of a single-linked list to store requested uavcan parameters
-	struct _uavcan_open_request_list_item {
+	struct uavcan_open_request_list_item {
 		uavcan_parameter_request_s req;
-		struct _uavcan_open_request_list_item *next;
+		struct uavcan_open_request_list_item *next;
 	};
 
 	// Request the next uavcan parameter
-	void request_next_uavcan_parameter();
+	void requestNextUavcanParameter();
 	// Enque one uavcan parameter reqest. We store 10 at max.
-	void enque_uavcan_request(uavcan_parameter_request_s *req);
+	void enqueUavcanRequest(uavcan_parameter_request_s *req);
 	// Drop the first reqest from the list
-	void dequeue_uavcan_request();
+	void dequeueUavcanRequest();
 
-	_uavcan_open_request_list_item *_uavcan_open_request_list; // Pointer to the first item in the linked list
+	uavcan_open_request_list_item *_uavcan_open_request_list; // Pointer to the first item in the linked list
 	bool _uavcan_waiting_for_request_response; // We have reqested a parameter and wait for the response
 	uint16_t _uavcan_queued_request_items;	// Number of stored parameter requests currently in the list
 

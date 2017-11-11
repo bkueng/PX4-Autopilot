@@ -63,22 +63,22 @@ LandDetector::~LandDetector()
 int LandDetector::start()
 {
 	/* schedule a cycle to start things */
-	return work_queue(HPWORK, &_work, (worker_t)&LandDetector::_cycle_trampoline, this, 0);
+	return work_queue(HPWORK, &_work, (worker_t)&LandDetector::cycleTrampoline, this, 0);
 }
 
 void
-LandDetector::_cycle_trampoline(void *arg)
+LandDetector::cycleTrampoline(void *arg)
 {
 	LandDetector *dev = reinterpret_cast<LandDetector *>(arg);
 
 	dev->_cycle();
 }
 
-void LandDetector::_cycle()
+void LandDetector::cycle()
 {
 	perf_begin(_cycle_perf);
 
-	if (_object == nullptr) { // not initialized yet
+	if (object == nullptr) { // not initialized yet
 		// Advertise the first land detected uORB.
 		_landDetected.timestamp = hrt_absolute_time();
 		_landDetected.freefall = false;
@@ -94,34 +94,34 @@ void LandDetector::_cycle()
 
 		_check_params(true);
 
-		_object = this;
+		object = this;
 	}
 
 	_check_params(false);
 	_update_topics();
 	_update_state();
 
-	const bool landDetected = (_state == LandDetectionState::LANDED);
-	const bool freefallDetected = (_state == LandDetectionState::FREEFALL);
-	const bool maybe_landedDetected = (_state == LandDetectionState::MAYBE_LANDED);
-	const bool ground_contactDetected = (_state == LandDetectionState::GROUND_CONTACT);
+	const bool land_detected = (_state == LandDetectionState::LANDED);
+	const bool freefall_detected = (_state == LandDetectionState::FREEFALL);
+	const bool maybe_landed_detected = (_state == LandDetectionState::MAYBE_LANDED);
+	const bool ground_contact_detected = (_state == LandDetectionState::GROUND_CONTACT);
 	const float alt_max = _get_max_altitude();
 
 	// Only publish very first time or when the result has changed.
 	if ((_landDetectedPub == nullptr) ||
-	    (_landDetected.landed != landDetected) ||
-	    (_landDetected.freefall != freefallDetected) ||
-	    (_landDetected.maybe_landed != maybe_landedDetected) ||
-	    (_landDetected.ground_contact != ground_contactDetected) ||
+	    (_landDetected.landed != land_detected) ||
+	    (_landDetected.freefall != freefall_detected) ||
+	    (_landDetected.maybe_landed != maybe_landed_detected) ||
+	    (_landDetected.ground_contact != ground_contact_detected) ||
 	    (fabsf(_landDetected.alt_max - alt_max) > FLT_EPSILON)) {
 
 		hrt_abstime now = hrt_absolute_time();
 
-		if (!landDetected && _landDetected.landed) {
+		if (!land_detected && _landDetected.landed) {
 			// We did take off
 			_takeoff_time = now;
 
-		} else if (_takeoff_time != 0 && landDetected && !_landDetected.landed) {
+		} else if (_takeoff_time != 0 && land_detected && !_landDetected.landed) {
 			// We landed
 			_total_flight_time += now - _takeoff_time;
 			_takeoff_time = 0;
@@ -132,10 +132,10 @@ void LandDetector::_cycle()
 		}
 
 		_landDetected.timestamp = hrt_absolute_time();
-		_landDetected.landed = landDetected;
-		_landDetected.freefall = freefallDetected;
-		_landDetected.maybe_landed = maybe_landedDetected;
-		_landDetected.ground_contact = ground_contactDetected;
+		_landDetected.landed = land_detected;
+		_landDetected.freefall = freefall_detected;
+		_landDetected.maybe_landed = maybe_landed_detected;
+		_landDetected.ground_contact = ground_contact_detected;
 		_landDetected.alt_max = alt_max;
 
 		int instance;
@@ -148,22 +148,22 @@ void LandDetector::_cycle()
 	if (!should_exit()) {
 
 		// Schedule next cycle.
-		work_queue(HPWORK, &_work, (worker_t)&LandDetector::_cycle_trampoline, this,
-			   USEC2TICK(1000000 / LAND_DETECTOR_UPDATE_RATE_HZ));
+		work_queue(HPWORK, &_work, (worker_t)&LandDetector::cycleTrampoline, this,
+			   USEC2TICK(1000000 / land_detector_update_rate_hz));
 
 	} else {
-		exit_and_cleanup();
+		exitAndCleanup();
 	}
 }
-void LandDetector::_check_params(const bool force)
+void LandDetector::checkParams(const bool force)
 {
 	bool updated;
-	parameter_update_s paramUpdate;
+	parameter_update_s param_update;
 
 	orb_check(_parameterSub, &updated);
 
 	if (updated) {
-		orb_copy(ORB_ID(parameter_update), _parameterSub, &paramUpdate);
+		orb_copy(ORB_ID(parameter_update), _parameterSub, &param_update);
 	}
 
 	if (updated || force) {
@@ -176,7 +176,7 @@ void LandDetector::_check_params(const bool force)
 	}
 }
 
-void LandDetector::_update_state()
+void LandDetector::updateState()
 {
 	/* when we are landed we also have ground contact for sure but only one output state can be true at a particular time
 	 * with higher priority for landed */
@@ -202,16 +202,16 @@ void LandDetector::_update_state()
 	}
 }
 
-bool LandDetector::_orb_update(const struct orb_metadata *meta, int handle, void *buffer)
+bool LandDetector::orbUpdate(const struct orb_metadata *meta, int handle, void *buffer)
 {
-	bool newData = false;
+	bool new_data = false;
 
 	// check if there is new data to grab
-	if (orb_check(handle, &newData) != OK) {
+	if (orb_check(handle, &new_data) != OK) {
 		return false;
 	}
 
-	if (!newData) {
+	if (!new_data) {
 		return false;
 	}
 

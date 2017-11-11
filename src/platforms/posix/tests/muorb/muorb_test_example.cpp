@@ -44,18 +44,18 @@
 #include <stdio.h>
 #include <px4_defines.h>
 
-px4::AppState MuorbTestExample::appState;
+px4::AppState MuorbTestExample::app_state;
 
 int MuorbTestExample::main()
 {
 	int rc;
-	appState.setRunning(true);
+	app_state.setRunning(true);
 	rc =  PingPongTest();
-	appState.setRunning(false);
+	app_state.setRunning(false);
 	return rc;
 }
 
-int  MuorbTestExample::DefaultTest()
+int  MuorbTestExample::defaultTest()
 {
 	int i = 0;
 	orb_advert_t pub_id = orb_advertise(ORB_ID(esc_status), & m_esc_status);
@@ -84,7 +84,7 @@ int  MuorbTestExample::DefaultTest()
 		return -1;
 	}
 
-	while (!appState.exitRequested() && i < 100) {
+	while (!app_state.exitRequested() && i < 100) {
 
 		PX4_DEBUG("[%d]  Doing work...", i);
 
@@ -124,7 +124,7 @@ int  MuorbTestExample::DefaultTest()
 	return 0;
 }
 
-int MuorbTestExample::PingPongTest()
+int MuorbTestExample::pingPongTest()
 {
 	int i = 0;
 	orb_advert_t pub_id_vc = orb_advertise(ORB_ID(vehicle_command), & m_vc);
@@ -146,7 +146,7 @@ int MuorbTestExample::PingPongTest()
 		return -1;
 	}
 
-	while (!appState.exitRequested()) {
+	while (!app_state.exitRequested()) {
 
 		PX4_INFO("[%d]  Doing work...", i);
 		bool updated = false;

@@ -95,7 +95,7 @@ private:
 
 	math::LowPassFilter2p _filter{SPD3X_MEAS_RATE, SDP3X_MEAS_DRIVER_FILTER_FREQ};
 
-	bool init_sdp3x();
+	bool initSdp3x();
 
 	/**
 	 * Calculate the CRC8 for the sensor payload data
@@ -105,7 +105,7 @@ private:
 	/**
 	 * Write a command in Sensirion specific logic
 	 */
-	int write_command(uint16_t command);
+	int writeCommand(uint16_t command);
 
 	uint16_t _scale{0};
 };

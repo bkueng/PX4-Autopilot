@@ -101,10 +101,10 @@ public:
 	 */
 	void		status();
 
-	void		open_bay();
-	void		close_bay();
+	void		openBay();
+	void		closeBay();
 	void		drop();
-	void		lock_release();
+	void		lockRelease();
 
 private:
 	bool		_task_should_exit;		/**< if true, task should exit */
@@ -115,7 +115,7 @@ private:
 	int		_wind_estimate_sub;
 	struct vehicle_command_s	_command;
 	struct vehicle_global_position_s _global_pos;
-	map_projection_reference_s ref;
+	map_projection_reference_s _ref;
 
 	orb_advert_t	_actuator_pub;
 	struct actuator_controls_s _actuators;
@@ -144,21 +144,21 @@ private:
 	struct mission_s	_onboard_mission;
 	orb_advert_t		_onboard_mission_pub;
 
-	void		task_main();
+	void		taskMain();
 
-	void		handle_command(struct vehicle_command_s *cmd);
+	void		handleCommand(struct vehicle_command_s *cmd);
 
-	void		answer_command(struct vehicle_command_s *cmd, unsigned result);
+	void		answerCommand(struct vehicle_command_s *cmd, unsigned result);
 
 	/**
 	 * Set the actuators
 	 */
-	int		actuators_publish();
+	int		actuatorsPublish();
 
 	/**
 	 * Shim for calling task_main from task_create.
 	 */
-	static void	task_main_trampoline(int argc, char *argv[]);
+	static void	taskMainTrampoline(int argc, char *argv[]);
 };
 
 namespace bottle_drop
@@ -175,7 +175,7 @@ BottleDrop::BottleDrop() :
 	_wind_estimate_sub(-1),
 	_command {},
 	_global_pos {},
-	ref {},
+	_ref {},
 	_actuator_pub(nullptr),
 	_actuators {},
 	_drop_approval(false),
@@ -225,7 +225,7 @@ BottleDrop::start()
 					SCHED_DEFAULT,
 					SCHED_PRIORITY_DEFAULT + 15,
 					1500,
-					(px4_main_t)&BottleDrop::task_main_trampoline,
+					(px4_main_t)&BottleDrop::taskMainTrampoline,
 					nullptr);
 
 	if (_main_task < 0) {
@@ -244,7 +244,7 @@ BottleDrop::status()
 }
 
 void
-BottleDrop::open_bay()
+BottleDrop::openBay()
 {
 	_actuators.control[0] = -1.0f;
 	_actuators.control[1] = 1.0f;
@@ -261,7 +261,7 @@ BottleDrop::open_bay()
 }
 
 void
-BottleDrop::close_bay()
+BottleDrop::closeBay()
 {
 	// closed door and locked survival kit
 	_actuators.control[0] = 1.0f;
@@ -304,7 +304,7 @@ BottleDrop::drop()
 }
 
 void
-BottleDrop::lock_release()
+BottleDrop::lockRelease()
 {
 	_actuators.control[2] = -1.0f;
 	actuators_publish();
@@ -313,7 +313,7 @@ BottleDrop::lock_release()
 }
 
 int
-BottleDrop::actuators_publish()
+BottleDrop::actuatorsPublish()
 {
 	_actuators.timestamp = hrt_absolute_time();
 
@@ -334,7 +334,7 @@ BottleDrop::actuators_publish()
 }
 
 void
-BottleDrop::task_main()
+BottleDrop::taskMain()
 {
 
 	mavlink_log_info(&_mavlink_log_pub, "[bottle_drop] started");
@@ -354,7 +354,7 @@ BottleDrop::task_main()
 	float g = CONSTANTS_ONE_G;               		// constant of gravity [m/s^2]
 	float m = 0.5f;                		// mass of bottle [kg]
 	float rho = 1.2f;              		// air density [kg/m^3]
-	float A = ((0.063f * 0.063f) / 4.0f * M_PI_F); // Bottle cross section [m^2]
+	float a = ((0.063f * 0.063f) / 4.0f * M_PI_F); // Bottle cross section [m^2]
 	float dt_freefall_prediction = 0.01f;   // step size of the free fall prediction [s]
 
 	// Has to be estimated by experiment
@@ -377,14 +377,14 @@ BottleDrop::task_main()
 	float vw;                 				// wind speed [m/s]
 	float vrx;						// relative velocity in x direction [m/s]
 	float v;						// relative speed vector [m/s]
-	float Fd;						// Drag force [N]
-	float Fdx;						// Drag force in x direction [N]
-	float Fdz;						// Drag force in z direction [N]
+	float fd;						// Drag force [N]
+	float fdx;						// Drag force in x direction [N]
+	float fdz;						// Drag force in z direction [N]
 	float x_drop, y_drop;					// coordinates of the drop point in reference to the target (projection of NED)
 	float x_t, y_t;						// coordinates of the target in reference to the target x_t = 0, y_t = 0 (projection of NED)
 	float x_l, y_l;						// local position in projected coordinates
 	float x_f, y_f;						// to-be position of the UAV after dt_runs seconds in projected coordinates
-	double x_f_NED, y_f_NED;				// to-be position of the UAV after dt_runs seconds in NED
+	double x_f_ned, y_f_ned;				// to-be position of the UAV after dt_runs seconds in NED
 	float distance_open_door;				// The distance the UAV travels during its doors open [m]
 	float approach_error = 0.0f;				// The error in radians between current ground vector and desired ground vector
 	float distance_real = 0;				// The distance between the UAVs position and the drop point [m]
@@ -405,7 +405,7 @@ BottleDrop::task_main()
 	param_get(param_gproperties, &z_0);
 	param_get(param_cd, &cd);
 	param_get(param_mass, &m);
-	param_get(param_surface, &A);
+	param_get(param_surface, &a);
 
 	int vehicle_global_position_sub = orb_subscribe(ORB_ID(vehicle_global_position));
 
@@ -525,7 +525,7 @@ BottleDrop::task_main()
 				float approach_direction = get_bearing_to_next_waypoint(flight_vector_s.lat, flight_vector_s.lon, flight_vector_e.lat,
 							   flight_vector_e.lon);
 
-				approach_error = _wrap_pi(ground_direction - approach_direction);
+				approach_error = wrap_pi(ground_direction - approach_direction);
 
 				if (counter % 90 == 0) {
 					mavlink_log_info(&_mavlink_log_pub, "drop distance %u, heading error %u", (unsigned)distance_real,
@@ -551,9 +551,9 @@ BottleDrop::task_main()
 					vw = 0;							// wind speed [m/s]
 					vrx = 0;						// relative velocity in x direction [m/s]
 					v = groundspeed_body;					// relative speed vector [m/s]
-					Fd = 0;							// Drag force [N]
-					Fdx = 0;						// Drag force in x direction [N]
-					Fdz = 0;						// Drag force in z direction [N]
+					fd = 0;							// Drag force [N]
+					fdx = 0;						// Drag force in x direction [N]
+					fdz = 0;						// Drag force in z direction [N]
 
 
 					// Compute the distance the bottle will travel after it is dropped in body frame coordinates --> x
@@ -571,13 +571,13 @@ BottleDrop::task_main()
 
 						// drag force
 						v = sqrtf(vz * vz + vrx * vrx);
-						Fd = 0.5f * rho * A * cd * (v * v);
-						Fdx = Fd * vrx / v;
-						Fdz = Fd * vz / v;
+						fd = 0.5f * rho * a * cd * (v * v);
+						fdx = fd * vrx / v;
+						fdz = fd * vz / v;
 
 						// acceleration
-						az = g - Fdz / m;
-						ax = -Fdx / m;
+						az = g - fdz / m;
+						ax = -fdx / m;
 					}
 
 					// compute drop vector
@@ -668,8 +668,8 @@ BottleDrop::task_main()
 						map_projection_project(&ref, _global_pos.lat, _global_pos.lon, &x_l, &y_l);
 						x_f = x_l + _global_pos.vel_n * dt_runs;
 						y_f = y_l + _global_pos.vel_e * dt_runs;
-						map_projection_reproject(&ref, x_f, y_f, &x_f_NED, &y_f_NED);
-						future_distance = get_distance_to_next_waypoint(x_f_NED, y_f_NED, _drop_position.lat, _drop_position.lon);
+						map_projection_reproject(&ref, x_f, y_f, &x_f_ned, &y_f_ned);
+						future_distance = get_distance_to_next_waypoint(x_f_ned, y_f_ned, _drop_position.lat, _drop_position.lon);
 
 						if (PX4_ISFINITE(distance_real) &&
 						    (distance_real < precision) && ((distance_real < future_distance))) {
@@ -733,10 +733,10 @@ BottleDrop::task_main()
 }
 
 void
-BottleDrop::handle_command(struct vehicle_command_s *cmd)
+BottleDrop::handleCommand(struct vehicle_command_s *cmd)
 {
 	switch (cmd->command) {
-	case vehicle_command_s::VEHICLE_CMD_CUSTOM_0:
+	case vehicle_command_s::vehicle_cmd_custom_0:
 
 		/*
 		 * param1 and param2 set to 1: open and drop
@@ -758,10 +758,10 @@ BottleDrop::handle_command(struct vehicle_command_s *cmd)
 			mavlink_log_critical(&_mavlink_log_pub, "closing bay");
 		}
 
-		answer_command(cmd, vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED);
+		answer_command(cmd, vehicle_command_s::vehicle_cmd_result_accepted);
 		break;
 
-	case vehicle_command_s::VEHICLE_CMD_PAYLOAD_PREPARE_DEPLOY:
+	case vehicle_command_s::vehicle_cmd_payload_prepare_deploy:
 
 		switch ((int)(cmd->param1 + 0.5f)) {
 		case 0:
@@ -789,10 +789,10 @@ BottleDrop::handle_command(struct vehicle_command_s *cmd)
 		mavlink_log_info(&_mavlink_log_pub, "got target: %8.4f, %8.4f, %8.4f", (double)_target_position.lat,
 				 (double)_target_position.lon, (double)_target_position.alt);
 		map_projection_init(&ref, _target_position.lat, _target_position.lon);
-		answer_command(cmd, vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED);
+		answer_command(cmd, vehicle_command_s::vehicle_cmd_result_accepted);
 		break;
 
-	case vehicle_command_s::VEHICLE_CMD_PAYLOAD_CONTROL_DEPLOY:
+	case vehicle_command_s::vehicle_cmd_payload_control_deploy:
 
 		if (cmd->param1 < 0) {
 
@@ -825,7 +825,7 @@ BottleDrop::handle_command(struct vehicle_command_s *cmd)
 			}
 		}
 
-		answer_command(cmd, vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED);
+		answer_command(cmd, vehicle_command_s::vehicle_cmd_result_accepted);
 		break;
 
 	default:
@@ -834,25 +834,25 @@ BottleDrop::handle_command(struct vehicle_command_s *cmd)
 }
 
 void
-BottleDrop::answer_command(struct vehicle_command_s *cmd, unsigned result)
+BottleDrop::answerCommand(struct vehicle_command_s *cmd, unsigned result)
 {
 	switch (result) {
-	case vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED:
+	case vehicle_command_s::vehicle_cmd_result_accepted:
 		break;
 
-	case vehicle_command_s::VEHICLE_CMD_RESULT_DENIED:
+	case vehicle_command_s::vehicle_cmd_result_denied:
 		mavlink_log_critical(&_mavlink_log_pub, "command denied: %u", cmd->command);
 		break;
 
-	case vehicle_command_s::VEHICLE_CMD_RESULT_FAILED:
+	case vehicle_command_s::vehicle_cmd_result_failed:
 		mavlink_log_critical(&_mavlink_log_pub, "command failed: %u", cmd->command);
 		break;
 
-	case vehicle_command_s::VEHICLE_CMD_RESULT_TEMPORARILY_REJECTED:
+	case vehicle_command_s::vehicle_cmd_result_temporarily_rejected:
 		mavlink_log_critical(&_mavlink_log_pub, "command temporarily rejected: %u", cmd->command);
 		break;
 
-	case vehicle_command_s::VEHICLE_CMD_RESULT_UNSUPPORTED:
+	case vehicle_command_s::vehicle_cmd_result_unsupported:
 		mavlink_log_critical(&_mavlink_log_pub, "command unsupported: %u", cmd->command);
 		break;
 
@@ -862,7 +862,7 @@ BottleDrop::answer_command(struct vehicle_command_s *cmd, unsigned result)
 }
 
 void
-BottleDrop::task_main_trampoline(int argc, char *argv[])
+BottleDrop::taskMainTrampoline(int argc, char *argv[])
 {
 	bottle_drop::g_bottle_drop->task_main();
 }

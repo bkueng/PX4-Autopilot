@@ -124,7 +124,7 @@ int MavlinkShell::start()
 					   SCHED_DEFAULT,
 					   SCHED_PRIORITY_DEFAULT,
 					   2048,
-					   &MavlinkShell::shell_start_thread,
+					   &MavlinkShell::shellStartThread,
 					   nullptr);
 
 		if (_task < 0) {
@@ -148,7 +148,7 @@ int MavlinkShell::start()
 	return ret;
 }
 
-int MavlinkShell::shell_start_thread(int argc, char *argv[])
+int MavlinkShell::shellStartThread(int argc, char *argv[])
 {
 	dup2(1, 2); //redirect stderror to stdout
 

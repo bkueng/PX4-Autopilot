@@ -74,14 +74,14 @@ static volatile bool thread_running = false;
 
 static constexpr unsigned input_objs_len_max = 3;
 
-struct ThreadData {
+struct thread_data {
 	InputBase *input_objs[input_objs_len_max] = {nullptr, nullptr, nullptr};
 	unsigned input_objs_len = 0;
 	OutputBase *output_obj = nullptr;
 };
 static volatile ThreadData *g_thread_data = nullptr;
 
-struct Parameters {
+struct parameters {
 	int32_t mnt_mode_in;
 	int32_t mnt_mode_out;
 	int32_t mnt_mav_sysid;
@@ -124,7 +124,7 @@ struct Parameters {
 	}
 };
 
-struct ParameterHandles {
+struct parameter_handles {
 	param_t mnt_mode_in;
 	param_t mnt_mode_out;
 	param_t mnt_mav_sysid;
@@ -146,15 +146,15 @@ struct ParameterHandles {
 
 /* functions */
 static void usage();
-static void update_params(ParameterHandles &param_handles, Parameters &params, bool &got_changes);
-static bool get_params(ParameterHandles &param_handles, Parameters &params);
+static void update_params(parameter_handles &param_handles, parameters &params, bool &got_changes);
+static bool get_params(parameter_handles &param_handles, parameters &params);
 
 static int vmount_thread_main(int argc, char *argv[]);
 extern "C" __EXPORT int vmount_main(int argc, char *argv[]);
 
 static void usage()
 {
-	PRINT_MODULE_DESCRIPTION(
+	print_module_description(
 		R"DESCR_STR(
 ### Description
 Mount (Gimbal) control driver. It maps several different input methods (eg. RC or MAVLink) to a configured
@@ -173,19 +173,19 @@ $ vmount stop
 $ vmount test yaw 30
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("vmount", "driver");
+	print_module_usage_name("vmount", "driver");
 	PRINT_MODULE_USAGE_COMMAND("start");
 	PRINT_MODULE_USAGE_COMMAND_DESCR("test", "Test the output: set a fixed angle for one axis (vmount must not be running)");
-	PRINT_MODULE_USAGE_ARG("roll|pitch|yaw <angle>", "Specify an axis and an angle in degrees", false);
+	print_module_usage_arg("roll|pitch|yaw <angle>", "Specify an axis and an angle in degrees", false);
 	PRINT_MODULE_USAGE_DEFAULT_COMMANDS();
 }
 
 static int vmount_thread_main(int argc, char *argv[])
 {
-	ParameterHandles param_handles;
-	Parameters params;
-	OutputConfig output_config;
-	ThreadData thread_data;
+	parameter_handles param_handles;
+	parameters params;
+	output_config output_config;
+	thread_data thread_data;
 	memset(&params, 0, sizeof(params));
 
 
@@ -245,7 +245,7 @@ static int vmount_thread_main(int argc, char *argv[])
 
 	int parameter_update_sub = orb_subscribe(ORB_ID(parameter_update));
 	thread_running = true;
-	ControlData *control_data = nullptr;
+	control_data *control_data = nullptr;
 	g_thread_data = &thread_data;
 
 	int last_active = 0;
@@ -361,7 +361,7 @@ static int vmount_thread_main(int argc, char *argv[])
 
 				bool already_active = (last_active == i);
 
-				ControlData *control_data_to_check = nullptr;
+				control_data *control_data_to_check = nullptr;
 				unsigned int poll_timeout = already_active ? 50 : 0; // poll only on active input to reduce latency
 				int ret = thread_data.input_objs[i]->update(poll_timeout, &control_data_to_check, already_active);
 
@@ -546,9 +546,9 @@ int vmount_main(int argc, char *argv[])
 	return -1;
 }
 
-void update_params(ParameterHandles &param_handles, Parameters &params, bool &got_changes)
+void update_params(parameter_handles &param_handles, parameters &params, bool &got_changes)
 {
-	Parameters prev_params = params;
+	parameters prev_params = params;
 	param_get(param_handles.mnt_mode_in, &params.mnt_mode_in);
 	param_get(param_handles.mnt_mode_out, &params.mnt_mode_out);
 	param_get(param_handles.mnt_mav_sysid, &params.mnt_mav_sysid);
@@ -569,7 +569,7 @@ void update_params(ParameterHandles &param_handles, Parameters &params, bool &go
 	got_changes = prev_params != params;
 }
 
-bool get_params(ParameterHandles &param_handles, Parameters &params)
+bool get_params(parameter_handles &param_handles, parameters &params)
 {
 	param_handles.mnt_mode_in = param_find("MNT_MODE_IN");
 	param_handles.mnt_mode_out = param_find("MNT_MODE_OUT");

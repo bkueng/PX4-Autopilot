@@ -63,7 +63,7 @@ public:
 	/**
 	 * Change filter parameters
 	 */
-	void set_cutoff_frequency(float sample_freq, float cutoff_freq);
+	void setCutoffFrequency(float sample_freq, float cutoff_freq);
 
 	/**
 	 * Add a new raw value to the filter
@@ -75,7 +75,7 @@ public:
 	/**
 	 * Return the cutoff frequency
 	 */
-	float get_cutoff_freq() const
+	float getCutoffFreq() const
 	{
 		return _cutoff_freq;
 	}

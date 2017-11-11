@@ -68,13 +68,13 @@ MavlinkOrbSubscription::~MavlinkOrbSubscription()
 }
 
 orb_id_t
-MavlinkOrbSubscription::get_topic() const
+MavlinkOrbSubscription::getTopic() const
 {
 	return _topic;
 }
 
 int
-MavlinkOrbSubscription::get_instance() const
+MavlinkOrbSubscription::getInstance() const
 {
 	return _instance;
 }
@@ -129,7 +129,7 @@ MavlinkOrbSubscription::update(void *data)
 }
 
 bool
-MavlinkOrbSubscription::update_if_changed(void *data)
+MavlinkOrbSubscription::updateIfChanged(void *data)
 {
 	bool prevpub = _published;
 
@@ -153,7 +153,7 @@ MavlinkOrbSubscription::update_if_changed(void *data)
 }
 
 bool
-MavlinkOrbSubscription::is_published()
+MavlinkOrbSubscription::isPublished()
 {
 	// If we marked it as published no need to check again
 	if (_published) {
@@ -201,7 +201,7 @@ MavlinkOrbSubscription::is_published()
 }
 
 void
-MavlinkOrbSubscription::subscribe_from_beginning(bool from_beginning)
+MavlinkOrbSubscription::subscribeFromBeginning(bool from_beginning)
 {
 	_subscribe_from_beginning = from_beginning;
 }

@@ -7,12 +7,12 @@ extern orb_advert_t mavlink_log_pub;
 // required number of samples for sensor to initialize.
 // This is a vision based position measurement so we assume
 // as soon as we get one measurement it is initialized.
-static const uint32_t		REQ_VISION_INIT_COUNT = 1;
+static const uint32_t		req_vision_init_count = 1;
 
 // We don't want to deinitialize it because
 // this will throw away a correction before it starts using the data so we
 // set the timeout to 0.5 seconds
-static const uint32_t		VISION_TIMEOUT = 500000;	// 0.5 s
+static const uint32_t		vision_timeout = 500000;	// 0.5 s
 
 void BlockLocalPositionEstimator::visionInit()
 {
@@ -25,7 +25,7 @@ void BlockLocalPositionEstimator::visionInit()
 	}
 
 	// increament sums for mean
-	if (_visionStats.getCount() > REQ_VISION_INIT_COUNT) {
+	if (_visionStats.getCount() > req_vision_init_count) {
 		mavlink_and_console_log_info(&mavlink_log_pub, "[lpe] vision position init: "
 					     "%5.2f %5.2f %5.2f m std %5.2f %5.2f %5.2f m",
 					     double(_visionStats.getMean()(0)),
@@ -72,31 +72,31 @@ void BlockLocalPositionEstimator::visionCorrect()
 	if (visionMeasure(y) != OK) { return; }
 
 	// vision measurement matrix, measures position
-	Matrix<float, n_y_vision, n_x> C;
-	C.setZero();
-	C(Y_vision_x, X_x) = 1;
-	C(Y_vision_y, X_y) = 1;
-	C(Y_vision_z, X_z) = 1;
+	Matrix<float, n_y_vision, n_x> c;
+	c.setZero();
+	c(Y_vision_x, X_x) = 1;
+	c(Y_vision_y, X_y) = 1;
+	c(Y_vision_z, X_z) = 1;
 
 	// noise matrix
-	Matrix<float, n_y_vision, n_y_vision> R;
-	R.setZero();
+	Matrix<float, n_y_vision, n_y_vision> r;
+	r.setZero();
 
 	// use error estimates from vision topic if available
 	if (_sub_vision_pos.get().eph > _vision_xy_stddev.get()) {
-		R(Y_vision_x, Y_vision_x) = _sub_vision_pos.get().eph * _sub_vision_pos.get().eph;
-		R(Y_vision_y, Y_vision_y) = _sub_vision_pos.get().eph * _sub_vision_pos.get().eph;
+		r(Y_vision_x, Y_vision_x) = _sub_vision_pos.get().eph * _sub_vision_pos.get().eph;
+		r(Y_vision_y, Y_vision_y) = _sub_vision_pos.get().eph * _sub_vision_pos.get().eph;
 
 	} else {
-		R(Y_vision_x, Y_vision_x) = _vision_xy_stddev.get() * _vision_xy_stddev.get();
-		R(Y_vision_y, Y_vision_y) = _vision_xy_stddev.get() * _vision_xy_stddev.get();
+		r(Y_vision_x, Y_vision_x) = _vision_xy_stddev.get() * _vision_xy_stddev.get();
+		r(Y_vision_y, Y_vision_y) = _vision_xy_stddev.get() * _vision_xy_stddev.get();
 	}
 
 	if (_sub_vision_pos.get().epv > _vision_z_stddev.get()) {
-		R(Y_vision_z, Y_vision_z) = _sub_vision_pos.get().epv * _sub_vision_pos.get().epv;
+		r(Y_vision_z, Y_vision_z) = _sub_vision_pos.get().epv * _sub_vision_pos.get().epv;
 
 	} else {
-		R(Y_vision_z, Y_vision_z) = _vision_z_stddev.get() * _vision_z_stddev.get();
+		r(Y_vision_z, Y_vision_z) = _vision_z_stddev.get() * _vision_z_stddev.get();
 	}
 
 	// vision delayed x
@@ -114,13 +114,13 @@ void BlockLocalPositionEstimator::visionCorrect()
 	Vector<float, n_x> x0 = _xDelay.get(i_hist);
 
 	// residual
-	Matrix<float, n_y_vision, n_y_vision> S_I = inv<float, n_y_vision>((C * _P * C.transpose()) + R);
-	Matrix<float, n_y_vision, 1> r = y - C * x0;
+	Matrix<float, n_y_vision, n_y_vision> s_i = inv<float, n_y_vision>((c * _P * c.transpose()) + r);
+	Matrix<float, n_y_vision, 1> r = y - c * x0;
 
 	// fault detection
-	float beta = (r.transpose() * (S_I * r))(0, 0);
+	float beta = (r.transpose() * (s_i * r))(0, 0);
 
-	if (beta > BETA_TABLE[n_y_vision]) {
+	if (beta > beta_table[n_y_vision]) {
 		if (!(_sensorFault & SENSOR_VISION)) {
 			mavlink_and_console_log_info(&mavlink_log_pub, "[lpe] vision position fault, beta %5.2f", double(beta));
 			_sensorFault |= SENSOR_VISION;
@@ -133,16 +133,16 @@ void BlockLocalPositionEstimator::visionCorrect()
 
 	// kalman filter correction if no fault
 	if (!(_sensorFault & SENSOR_VISION)) {
-		Matrix<float, n_x, n_y_vision> K = _P * C.transpose() * S_I;
-		Vector<float, n_x> dx = K * r;
+		Matrix<float, n_x, n_y_vision> k = _P * c.transpose() * s_i;
+		Vector<float, n_x> dx = k * r;
 		_x += dx;
-		_P -= K * C * _P;
+		_P -= k * c * _P;
 	}
 }
 
 void BlockLocalPositionEstimator::visionCheckTimeout()
 {
-	if (_timeStamp - _time_last_vision_p > VISION_TIMEOUT) {
+	if (_timeStamp - _time_last_vision_p > vision_timeout) {
 		if (!(_sensorTimeout & SENSOR_VISION)) {
 			_sensorTimeout |= SENSOR_VISION;
 			_visionStats.reset();

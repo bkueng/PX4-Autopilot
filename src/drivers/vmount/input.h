@@ -67,20 +67,20 @@ public:
 	 *                       change is necessary such as big stick movement for RC.
 	 * @return 0 on success, <0 otherwise
 	 */
-	virtual int update(unsigned int timeout_ms, ControlData **control_data, bool already_active);
+	virtual int update(unsigned int timeout_ms, control_data **control_data, bool already_active);
 
 	/** report status to stdout */
-	virtual void print_status() = 0;
+	virtual void printStatus() = 0;
 
 protected:
-	virtual int update_impl(unsigned int timeout_ms, ControlData **control_data, bool already_active) = 0;
+	virtual int updateImpl(unsigned int timeout_ms, control_data **control_data, bool already_active) = 0;
 
 	virtual int initialize() { return 0; }
 
-	void control_data_set_lon_lat(double lon, double lat, float altitude, float roll_angle = 0.f,
+	void controlDataSetLonLat(double lon, double lat, float altitude, float roll_angle = 0.f,
 				      float pitch_fixed_angle = -10.f);
 
-	ControlData _control_data;
+	control_data _control_data;
 
 private:
 	bool _initialized = false;

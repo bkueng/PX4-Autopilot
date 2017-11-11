@@ -57,7 +57,7 @@ FixedwingLandDetector::FixedwingLandDetector()
 	_paramHandle.maxIntVelocity = param_find("LNDFW_VELI_MAX");
 
 	// Use Trigger time when transitioning from in-air (false) to landed (true) / ground contact (true).
-	_landed_hysteresis.set_hysteresis_time_from(false, LAND_DETECTOR_TRIGGER_TIME_US);
+	_landed_hysteresis.set_hysteresis_time_from(false, land_detector_trigger_time_us);
 }
 
 void FixedwingLandDetector::_initialize_topics()
@@ -70,10 +70,10 @@ void FixedwingLandDetector::_initialize_topics()
 
 void FixedwingLandDetector::_update_topics()
 {
-	_orb_update(ORB_ID(actuator_armed), _armingSub, &_arming);
-	_orb_update(ORB_ID(airspeed), _airspeedSub, &_airspeed);
-	_orb_update(ORB_ID(sensor_bias), _sensor_bias_sub, &_sensors);
-	_orb_update(ORB_ID(vehicle_local_position), _local_pos_sub, &_local_pos);
+	orbUpdate(ORB_ID(actuator_armed), _armingSub, &_arming);
+	orbUpdate(ORB_ID(airspeed), _airspeedSub, &_airspeed);
+	orbUpdate(ORB_ID(sensor_bias), _sensor_bias_sub, &_sensors);
+	orbUpdate(ORB_ID(vehicle_local_position), _local_pos_sub, &_local_pos);
 }
 
 void FixedwingLandDetector::_update_params()
@@ -117,7 +117,7 @@ bool FixedwingLandDetector::_get_landed_state()
 		return true;
 	}
 
-	bool landDetected = false;
+	bool land_detected = false;
 
 	if (hrt_elapsed_time(&_local_pos.timestamp) < 500 * 1000) {
 
@@ -145,17 +145,17 @@ bool FixedwingLandDetector::_get_landed_state()
 		_accel_horz_lp = _accel_horz_lp * 0.8f + acc_hor * 0.18f;
 
 		// crude land detector for fixedwing
-		landDetected = _velocity_xy_filtered < _params.maxVelocity
+		land_detected = _velocity_xy_filtered < _params.maxVelocity
 			       && _velocity_z_filtered < _params.maxClimbRate
 			       && _airspeed_filtered < _params.maxAirSpeed
 			       && _accel_horz_lp < _params.maxIntVelocity;
 
 	} else {
 		// Control state topic has timed out and we need to assume we're landed.
-		landDetected = true;
+		land_detected = true;
 	}
 
-	return landDetected;
+	return land_detected;
 }
 
 } // namespace land_detector

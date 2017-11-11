@@ -48,25 +48,25 @@ namespace control
 
 BlockParamBase::BlockParamBase(Block *parent, const char *name, bool parent_prefix)
 {
-	char fullname[blockNameLengthMax];
+	char fullname[block_name_length_max];
 
 	if (parent == nullptr) {
-		strncpy(fullname, name, blockNameLengthMax);
+		strncpy(fullname, name, block_name_length_max);
 
 	} else {
-		char parentName[blockNameLengthMax];
-		parent->getName(parentName, blockNameLengthMax);
+		char parent_name[block_name_length_max];
+		parent->getName(parent_name, block_name_length_max);
 
 		if (strcmp(name, "") == 0) {
-			strncpy(fullname, parentName, blockNameLengthMax);
+			strncpy(fullname, parent_name, block_name_length_max);
 			// ensure string is terminated
 			fullname[sizeof(fullname) - 1] = '\0';
 
 		} else if (parent_prefix) {
-			snprintf(fullname, blockNameLengthMax, "%s_%s", parentName, name);
+			snprintf(fullname, block_name_length_max, "%s_%s", parent_name, name);
 
 		} else {
-			strncpy(fullname, name, blockNameLengthMax);
+			strncpy(fullname, name, block_name_length_max);
 			// ensure string is terminated
 			fullname[sizeof(fullname) - 1] = '\0';
 		}

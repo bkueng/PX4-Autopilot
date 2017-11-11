@@ -59,7 +59,7 @@ start(uint8_t i2c_bus)
 		goto fail;
 	}
 
-	g_dev = new MS5525(i2c_bus, I2C_ADDRESS_1_MS5525DSO, PATH_MS5525);
+	g_dev = new MS5525(i2c_bus, i2_c_address_1_m_s5525_dso, path_m_s5525);
 
 	/* check if the MS4525DO was instantiated */
 	if (g_dev == nullptr) {
@@ -72,7 +72,7 @@ start(uint8_t i2c_bus)
 	}
 
 	/* set the poll rate to default, starts automatic data collection */
-	fd = px4_open(PATH_MS5525, O_RDONLY);
+	fd = px4_open(path_m_s5525, O_RDONLY);
 
 	if (fd < 0) {
 		goto fail;
@@ -116,10 +116,10 @@ int stop()
 // and automatic modes.
 int test()
 {
-	int fd = px4_open(PATH_MS5525, O_RDONLY);
+	int fd = px4_open(path_m_s5525, O_RDONLY);
 
 	if (fd < 0) {
-		PX4_WARN("%s open failed (try 'ms5525_airspeed start' if the driver is not running", PATH_MS5525);
+		PX4_WARN("%s open failed (try 'ms5525_airspeed start' if the driver is not running", path_m_s5525);
 		return PX4_ERROR;
 	}
 
@@ -180,7 +180,7 @@ int test()
 // reset the driver
 int reset()
 {
-	int fd = px4_open(PATH_MS5525, O_RDONLY);
+	int fd = px4_open(path_m_s5525, O_RDONLY);
 
 	if (fd < 0) {
 		PX4_ERR("failed ");
@@ -208,7 +208,7 @@ ms5525_airspeed_usage()
 {
 	PX4_WARN("usage: ms5525_airspeed command [options]");
 	PX4_WARN("options:");
-	PX4_WARN("\t-b --bus i2cbus (%d)", PX4_I2C_BUS_DEFAULT);
+	PX4_WARN("\t-b --bus i2cbus (%d)", p_x4_i2_c_bus_default);
 	PX4_WARN("command:");
 	PX4_WARN("\tstart|stop|reset|test");
 }
@@ -216,7 +216,7 @@ ms5525_airspeed_usage()
 int
 ms5525_airspeed_main(int argc, char *argv[])
 {
-	uint8_t i2c_bus = PX4_I2C_BUS_DEFAULT;
+	uint8_t i2c_bus = p_x4_i2_c_bus_default;
 
 	for (int i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "--bus") == 0) {

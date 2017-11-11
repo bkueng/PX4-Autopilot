@@ -157,19 +157,19 @@ bool RunwayTakeoff::controlYaw()
  * Limited (parameter) as long as the plane is on runway. Otherwise
  * use the one from TECS
  */
-float RunwayTakeoff::getPitch(float tecsPitch)
+float RunwayTakeoff::getPitch(float tecs_pitch)
 {
 	if (_state <= RunwayTakeoffState::CLAMPED_TO_RUNWAY) {
 		return math::radians(_runway_pitch_sp.get());
 	}
 
-	return tecsPitch;
+	return tecs_pitch;
 }
 
 /*
  * Returns the roll setpoint to use.
  */
-float RunwayTakeoff::getRoll(float navigatorRoll)
+float RunwayTakeoff::getRoll(float navigator_roll)
 {
 	// until we have enough ground clearance, set roll to 0
 	if (_state < RunwayTakeoffState::CLIMBOUT) {
@@ -178,12 +178,12 @@ float RunwayTakeoff::getRoll(float navigatorRoll)
 
 	// allow some roll during climbout
 	else if (_state < RunwayTakeoffState::FLY) {
-		return math::constrain(navigatorRoll,
+		return math::constrain(navigator_roll,
 				       math::radians(-_max_takeoff_roll.get()),
 				       math::radians(_max_takeoff_roll.get()));
 	}
 
-	return navigatorRoll;
+	return navigator_roll;
 }
 
 /*
@@ -192,13 +192,13 @@ float RunwayTakeoff::getRoll(float navigatorRoll)
  * In heading hold mode (_heading_mode == 0), it returns initial yaw as long as it's on the
  * runway. When it has enough ground clearance we start navigation towards WP.
  */
-float RunwayTakeoff::getYaw(float navigatorYaw)
+float RunwayTakeoff::getYaw(float navigator_yaw)
 {
 	if (_heading_mode.get() == 0 && _state < RunwayTakeoffState::CLIMBOUT) {
 		return _init_yaw;
 
 	} else {
-		return navigatorYaw;
+		return navigator_yaw;
 	}
 }
 
@@ -208,7 +208,7 @@ float RunwayTakeoff::getYaw(float navigatorYaw)
  * Ramps up in the beginning, until it lifts off the runway it is set to
  * parameter value, then it returns the TECS throttle.
  */
-float RunwayTakeoff::getThrottle(float tecsThrottle)
+float RunwayTakeoff::getThrottle(float tecs_throttle)
 {
 	switch (_state) {
 	case RunwayTakeoffState::THROTTLE_RAMP: {
@@ -223,7 +223,7 @@ float RunwayTakeoff::getThrottle(float tecsThrottle)
 		return _takeoff_throttle.get();
 
 	default:
-		return tecsThrottle;
+		return tecs_throttle;
 	}
 }
 

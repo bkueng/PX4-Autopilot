@@ -148,31 +148,31 @@ Navigator::~Navigator()
 }
 
 void
-Navigator::global_position_update()
+Navigator::globalPositionUpdate()
 {
 	orb_copy(ORB_ID(vehicle_global_position), _global_pos_sub, &_global_pos);
 }
 
 void
-Navigator::local_position_update()
+Navigator::localPositionUpdate()
 {
 	orb_copy(ORB_ID(vehicle_local_position), _local_pos_sub, &_local_pos);
 }
 
 void
-Navigator::gps_position_update()
+Navigator::gpsPositionUpdate()
 {
 	orb_copy(ORB_ID(vehicle_gps_position), _gps_pos_sub, &_gps_pos);
 }
 
 void
-Navigator::sensor_combined_update()
+Navigator::sensorCombinedUpdate()
 {
 	orb_copy(ORB_ID(sensor_combined), _sensor_combined_sub, &_sensor_combined);
 }
 
 void
-Navigator::home_position_update(bool force)
+Navigator::homePositionUpdate(bool force)
 {
 	bool updated = false;
 	orb_check(_home_pos_sub, &updated);
@@ -183,7 +183,7 @@ Navigator::home_position_update(bool force)
 }
 
 void
-Navigator::fw_pos_ctrl_status_update(bool force)
+Navigator::fwPosCtrlStatusUpdate(bool force)
 {
 	bool updated = false;
 	orb_check(_fw_pos_ctrl_status_sub, &updated);
@@ -194,22 +194,22 @@ Navigator::fw_pos_ctrl_status_update(bool force)
 }
 
 void
-Navigator::vehicle_status_update()
+Navigator::vehicleStatusUpdate()
 {
 	if (orb_copy(ORB_ID(vehicle_status), _vstatus_sub, &_vstatus) != OK) {
 		/* in case the commander is not be running */
-		_vstatus.arming_state = vehicle_status_s::ARMING_STATE_STANDBY;
+		_vstatus.arming_state = vehicle_status_s::arming_state_standby;
 	}
 }
 
 void
-Navigator::vehicle_land_detected_update()
+Navigator::vehicleLandDetectedUpdate()
 {
 	orb_copy(ORB_ID(vehicle_land_detected), _land_detected_sub, &_land_detected);
 }
 
 void
-Navigator::params_update()
+Navigator::paramsUpdate()
 {
 	parameter_update_s param_update;
 	orb_copy(ORB_ID(parameter_update), _param_update_sub, &param_update);
@@ -221,13 +221,13 @@ Navigator::params_update()
 }
 
 void
-Navigator::task_main_trampoline(int argc, char *argv[])
+Navigator::taskMainTrampoline(int argc, char *argv[])
 {
 	navigator::g_navigator->task_main();
 }
 
 void
-Navigator::task_main()
+Navigator::taskMain()
 {
 	bool have_geofence_position_data = false;
 
@@ -372,13 +372,13 @@ Navigator::task_main()
 			vehicle_command_s cmd;
 			orb_copy(ORB_ID(vehicle_command), _vehicle_command_sub, &cmd);
 
-			if (cmd.command == vehicle_command_s::VEHICLE_CMD_DO_GO_AROUND) {
+			if (cmd.command == vehicle_command_s::vehicle_cmd_do_go_around) {
 
 				// DO_GO_AROUND is currently handled by the position controller (unacknowledged)
 				// TODO: move DO_GO_AROUND handling to navigator
-				publish_vehicle_command_ack(cmd, vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED);
+				publish_vehicle_command_ack(cmd, vehicle_command_s::vehicle_cmd_result_accepted);
 
-			} else if (cmd.command == vehicle_command_s::VEHICLE_CMD_DO_REPOSITION) {
+			} else if (cmd.command == vehicle_command_s::vehicle_cmd_do_reposition) {
 
 				position_setpoint_triplet_s *rep = get_reposition_triplet();
 				position_setpoint_triplet_s *curr = get_position_setpoint_triplet();
@@ -391,7 +391,7 @@ Navigator::task_main()
 
 				rep->current.loiter_radius = get_loiter_radius();
 				rep->current.loiter_direction = 1;
-				rep->current.type = position_setpoint_s::SETPOINT_TYPE_LOITER;
+				rep->current.type = position_setpoint_s::setpoint_type_loiter;
 				rep->current.cruising_speed = get_cruising_speed();
 				rep->current.cruising_throttle = get_cruising_throttle();
 
@@ -438,7 +438,7 @@ Navigator::task_main()
 
 				// CMD_DO_REPOSITION is acknowledged by commander
 
-			} else if (cmd.command == vehicle_command_s::VEHICLE_CMD_NAV_TAKEOFF) {
+			} else if (cmd.command == vehicle_command_s::vehicle_cmd_nav_takeoff) {
 				position_setpoint_triplet_s *rep = get_takeoff_triplet();
 
 				// store current position as previous position and goal as next
@@ -449,7 +449,7 @@ Navigator::task_main()
 
 				rep->current.loiter_radius = get_loiter_radius();
 				rep->current.loiter_direction = 1;
-				rep->current.type = position_setpoint_s::SETPOINT_TYPE_TAKEOFF;
+				rep->current.type = position_setpoint_s::setpoint_type_takeoff;
 
 				if (home_position_valid()) {
 					rep->current.yaw = cmd.param4;
@@ -477,7 +477,7 @@ Navigator::task_main()
 
 				// CMD_NAV_TAKEOFF is acknowledged by commander
 
-			} else if (cmd.command == vehicle_command_s::VEHICLE_CMD_DO_LAND_START) {
+			} else if (cmd.command == vehicle_command_s::vehicle_cmd_do_land_start) {
 
 				/* find NAV_CMD_DO_LAND_START in the mission and
 				 * use MAV_CMD_MISSION_START to start the mission there
@@ -486,7 +486,7 @@ Navigator::task_main()
 
 				if (land_start != -1) {
 					vehicle_command_s vcmd = {};
-					vcmd.command = vehicle_command_s::VEHICLE_CMD_MISSION_START;
+					vcmd.command = vehicle_command_s::vehicle_cmd_mission_start;
 					vcmd.param1 = land_start;
 					publish_vehicle_cmd(&vcmd);
 
@@ -494,9 +494,9 @@ Navigator::task_main()
 					PX4_WARN("planned landing not available");
 				}
 
-				publish_vehicle_command_ack(cmd, vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED);
+				publish_vehicle_command_ack(cmd, vehicle_command_s::vehicle_cmd_result_accepted);
 
-			} else if (cmd.command == vehicle_command_s::VEHICLE_CMD_MISSION_START) {
+			} else if (cmd.command == vehicle_command_s::vehicle_cmd_mission_start) {
 				if (get_mission_result()->valid &&
 				    PX4_ISFINITE(cmd.param1) && (cmd.param1 >= 0) && (cmd.param1 < _mission_result.seq_total)) {
 
@@ -505,7 +505,7 @@ Navigator::task_main()
 
 				// CMD_MISSION_START is acknowledged by commander
 
-			} else if (cmd.command == vehicle_command_s::VEHICLE_CMD_DO_CHANGE_SPEED) {
+			} else if (cmd.command == vehicle_command_s::vehicle_cmd_do_change_speed) {
 				if (cmd.param2 > FLT_EPSILON) {
 					// XXX not differentiating ground and airspeed yet
 					set_cruising_speed(cmd.param2);
@@ -523,36 +523,36 @@ Navigator::task_main()
 				}
 
 				// TODO: handle responses for supported DO_CHANGE_SPEED options?
-				publish_vehicle_command_ack(cmd, vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED);
+				publish_vehicle_command_ack(cmd, vehicle_command_s::vehicle_cmd_result_accepted);
 
-			} else if (cmd.command == vehicle_command_s::VEHICLE_CMD_DO_SET_ROI) {
+			} else if (cmd.command == vehicle_command_s::vehicle_cmd_do_set_roi) {
 				_vroi = {};
 				_vroi.mode = cmd.param1;
 
 				switch (_vroi.mode) {
-				case vehicle_command_s::VEHICLE_ROI_NONE:
+				case vehicle_command_s::vehicle_roi_none:
 					break;
 
-				case vehicle_command_s::VEHICLE_ROI_WPNEXT:
+				case vehicle_command_s::vehicle_roi_wpnext:
 					// TODO: implement point toward next MISSION
 					break;
 
-				case vehicle_command_s::VEHICLE_ROI_WPINDEX:
+				case vehicle_command_s::vehicle_roi_wpindex:
 					_vroi.mission_seq = cmd.param2;
 					break;
 
-				case vehicle_command_s::VEHICLE_ROI_LOCATION:
+				case vehicle_command_s::vehicle_roi_location:
 					_vroi.lat = cmd.param5;
 					_vroi.lon = cmd.param6;
 					_vroi.alt = cmd.param7;
 					break;
 
-				case vehicle_command_s::VEHICLE_ROI_TARGET:
+				case vehicle_command_s::vehicle_roi_target:
 					_vroi.target_seq = cmd.param2;
 					break;
 
 				default:
-					_vroi.mode = vehicle_command_s::VEHICLE_ROI_NONE;
+					_vroi.mode = vehicle_command_s::vehicle_roi_none;
 					break;
 				}
 
@@ -565,7 +565,7 @@ Navigator::task_main()
 					_vehicle_roi_pub = orb_advertise(ORB_ID(vehicle_roi), &_vroi);
 				}
 
-				publish_vehicle_command_ack(cmd, vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED);
+				publish_vehicle_command_ack(cmd, vehicle_command_s::vehicle_cmd_result_accepted);
 			}
 		}
 
@@ -576,7 +576,7 @@ Navigator::task_main()
 		static hrt_abstime last_geofence_check = 0;
 
 		if (have_geofence_position_data &&
-		    (_geofence.getGeofenceAction() != geofence_result_s::GF_ACTION_NONE) &&
+		    (_geofence.getGeofenceAction() != geofence_result_s::gf_action_none) &&
 		    (hrt_elapsed_time(&last_geofence_check) > GEOFENCE_CHECK_INTERVAL)) {
 
 			bool inside = _geofence.check(_global_pos, _gps_pos, _sensor_combined.baro_alt_meter, _home_pos,
@@ -611,68 +611,68 @@ Navigator::task_main()
 
 		/* Do stuff according to navigation state set by commander */
 		switch (_vstatus.nav_state) {
-		case vehicle_status_s::NAVIGATION_STATE_AUTO_MISSION:
+		case vehicle_status_s::navigation_state_auto_mission:
 			_pos_sp_triplet_published_invalid_once = false;
 			_navigation_mode = &_mission;
 			break;
 
-		case vehicle_status_s::NAVIGATION_STATE_AUTO_LOITER:
+		case vehicle_status_s::navigation_state_auto_loiter:
 			_pos_sp_triplet_published_invalid_once = false;
 			_navigation_mode = &_loiter;
 			break;
 
-		case vehicle_status_s::NAVIGATION_STATE_AUTO_RCRECOVER:
+		case vehicle_status_s::navigation_state_auto_rcrecover:
 			_pos_sp_triplet_published_invalid_once = false;
 			_navigation_mode = &_rcLoss;
 			break;
 
-		case vehicle_status_s::NAVIGATION_STATE_AUTO_RTL:
+		case vehicle_status_s::navigation_state_auto_rtl:
 			_pos_sp_triplet_published_invalid_once = false;
 			_navigation_mode = &_rtl;
 			break;
 
-		case vehicle_status_s::NAVIGATION_STATE_AUTO_TAKEOFF:
+		case vehicle_status_s::navigation_state_auto_takeoff:
 			_pos_sp_triplet_published_invalid_once = false;
 			_navigation_mode = &_takeoff;
 			break;
 
-		case vehicle_status_s::NAVIGATION_STATE_AUTO_LAND:
+		case vehicle_status_s::navigation_state_auto_land:
 			_pos_sp_triplet_published_invalid_once = false;
 			_navigation_mode = &_land;
 			break;
 
-		case vehicle_status_s::NAVIGATION_STATE_DESCEND:
+		case vehicle_status_s::navigation_state_descend:
 			_pos_sp_triplet_published_invalid_once = false;
 			_navigation_mode = &_land;
 			break;
 
-		case vehicle_status_s::NAVIGATION_STATE_AUTO_RTGS:
+		case vehicle_status_s::navigation_state_auto_rtgs:
 			_pos_sp_triplet_published_invalid_once = false;
 			_navigation_mode = &_dataLinkLoss;
 			break;
 
-		case vehicle_status_s::NAVIGATION_STATE_AUTO_LANDENGFAIL:
+		case vehicle_status_s::navigation_state_auto_landengfail:
 			_pos_sp_triplet_published_invalid_once = false;
 			_navigation_mode = &_engineFailure;
 			break;
 
-		case vehicle_status_s::NAVIGATION_STATE_AUTO_LANDGPSFAIL:
+		case vehicle_status_s::navigation_state_auto_landgpsfail:
 			_pos_sp_triplet_published_invalid_once = false;
 			_navigation_mode = &_gpsFailure;
 			break;
 
-		case vehicle_status_s::NAVIGATION_STATE_AUTO_FOLLOW_TARGET:
+		case vehicle_status_s::navigation_state_auto_follow_target:
 			_pos_sp_triplet_published_invalid_once = false;
 			_navigation_mode = &_follow_target;
 			break;
 
-		case vehicle_status_s::NAVIGATION_STATE_MANUAL:
-		case vehicle_status_s::NAVIGATION_STATE_ACRO:
-		case vehicle_status_s::NAVIGATION_STATE_ALTCTL:
-		case vehicle_status_s::NAVIGATION_STATE_POSCTL:
-		case vehicle_status_s::NAVIGATION_STATE_TERMINATION:
-		case vehicle_status_s::NAVIGATION_STATE_OFFBOARD:
-		case vehicle_status_s::NAVIGATION_STATE_STAB:
+		case vehicle_status_s::navigation_state_manual:
+		case vehicle_status_s::navigation_state_acro:
+		case vehicle_status_s::navigation_state_altctl:
+		case vehicle_status_s::navigation_state_posctl:
+		case vehicle_status_s::navigation_state_termination:
+		case vehicle_status_s::navigation_state_offboard:
+		case vehicle_status_s::navigation_state_stab:
 		default:
 			_pos_sp_triplet_published_invalid_once = false;
 			_navigation_mode = nullptr;
@@ -687,10 +687,10 @@ Navigator::task_main()
 
 		/* if we landed and have not received takeoff setpoint then stay in idle */
 		if (_land_detected.landed &&
-		    !((_vstatus.nav_state == vehicle_status_s::NAVIGATION_STATE_AUTO_TAKEOFF)
-		      || (_vstatus.nav_state == vehicle_status_s::NAVIGATION_STATE_AUTO_MISSION))) {
+		    !((_vstatus.nav_state == vehicle_status_s::navigation_state_auto_takeoff)
+		      || (_vstatus.nav_state == vehicle_status_s::navigation_state_auto_mission))) {
 
-			_pos_sp_triplet.current.type = position_setpoint_s::SETPOINT_TYPE_IDLE;
+			_pos_sp_triplet.current.type = position_setpoint_s::setpoint_type_idle;
 			_pos_sp_triplet.current.valid = true;
 			_pos_sp_triplet.previous.valid = false;
 			_pos_sp_triplet.next.valid = false;
@@ -745,7 +745,7 @@ Navigator::start()
 					     SCHED_DEFAULT,
 					     SCHED_PRIORITY_NAVIGATION,
 					     1800,
-					     (px4_main_t)&Navigator::task_main_trampoline,
+					     (px4_main_t)&Navigator::taskMainTrampoline,
 					     nullptr);
 
 	if (_navigator_task < 0) {
@@ -764,7 +764,7 @@ Navigator::status()
 }
 
 void
-Navigator::publish_position_setpoint_triplet()
+Navigator::publishPositionSetpointTriplet()
 {
 	/* do not publish an empty triplet */
 	if (!_pos_sp_triplet.current.valid) {
@@ -781,19 +781,19 @@ Navigator::publish_position_setpoint_triplet()
 }
 
 float
-Navigator::get_default_acceptance_radius()
+Navigator::getDefaultAcceptanceRadius()
 {
 	return _param_acceptance_radius.get();
 }
 
 float
-Navigator::get_acceptance_radius()
+Navigator::getAcceptanceRadius()
 {
 	return get_acceptance_radius(_param_acceptance_radius.get());
 }
 
 float
-Navigator::get_altitude_acceptance_radius()
+Navigator::getAltitudeAcceptanceRadius()
 {
 	if (!get_vstatus()->is_rotary_wing) {
 		return _param_fw_alt_acceptance_radius.get();
@@ -804,7 +804,7 @@ Navigator::get_altitude_acceptance_radius()
 }
 
 float
-Navigator::get_cruising_speed()
+Navigator::getCruisingSpeed()
 {
 	/* there are three options: The mission-requested cruise speed, or the current hover / plane speed */
 	if (_vstatus.is_rotary_wing) {
@@ -826,7 +826,7 @@ Navigator::get_cruising_speed()
 }
 
 void
-Navigator::set_cruising_speed(float speed)
+Navigator::setCruisingSpeed(float speed)
 {
 	if (_vstatus.is_rotary_wing) {
 		_mission_cruising_speed_mc = speed;
@@ -837,14 +837,14 @@ Navigator::set_cruising_speed(float speed)
 }
 
 void
-Navigator::reset_cruising_speed()
+Navigator::resetCruisingSpeed()
 {
 	_mission_cruising_speed_mc = -1.0f;
 	_mission_cruising_speed_fw = -1.0f;
 }
 
 void
-Navigator::reset_triplets()
+Navigator::resetTriplets()
 {
 	_pos_sp_triplet.current.valid = false;
 	_pos_sp_triplet.previous.valid = false;
@@ -853,7 +853,7 @@ Navigator::reset_triplets()
 }
 
 float
-Navigator::get_cruising_throttle()
+Navigator::getCruisingThrottle()
 {
 	/* Return the mission-requested cruise speed, or default FW_THR_CRUISE value */
 	if (_mission_throttle > FLT_EPSILON) {
@@ -865,7 +865,7 @@ Navigator::get_cruising_throttle()
 }
 
 float
-Navigator::get_acceptance_radius(float mission_item_radius)
+Navigator::getAcceptanceRadius(float mission_item_radius)
 {
 	float radius = mission_item_radius;
 
@@ -883,7 +883,7 @@ Navigator::get_acceptance_radius(float mission_item_radius)
 }
 
 void
-Navigator::load_fence_from_file(const char *filename)
+Navigator::loadFenceFromFile(const char *filename)
 {
 	_geofence.loadFromFile(filename);
 }
@@ -892,7 +892,7 @@ Navigator::load_fence_from_file(const char *filename)
  * Creates a fake traffic measurement with supplied parameters.
  *
  */
-void Navigator::fake_traffic(const char *callsign, float distance, float direction, float traffic_heading,
+void Navigator::fakeTraffic(const char *callsign, float distance, float direction, float traffic_heading,
 			     float altitude_diff, float hor_velocity, float ver_velocity)
 {
 	double lat, lon;
@@ -920,11 +920,11 @@ void Navigator::fake_traffic(const char *callsign, float distance, float directi
 	tr.flags = 0; // Flags to indicate various statuses including valid data fields
 	tr.squawk = 6667;
 
-	orb_advert_t h = orb_advertise_queue(ORB_ID(transponder_report), &tr, transponder_report_s::ORB_QUEUE_LENGTH);
+	orb_advert_t h = orb_advertise_queue(ORB_ID(transponder_report), &tr, transponder_report_s::orb_queue_length);
 	(void)orb_unadvertise(h);
 }
 
-void Navigator::check_traffic()
+void Navigator::checkTraffic()
 {
 	double lat = get_global_position()->lat;
 	double lon = get_global_position()->lon;
@@ -1004,7 +1004,7 @@ void Navigator::check_traffic()
 
 							// ask the commander to execute an RTL
 							vehicle_command_s vcmd = {};
-							vcmd.command = vehicle_command_s::VEHICLE_CMD_NAV_RETURN_TO_LAUNCH;
+							vcmd.command = vehicle_command_s::vehicle_cmd_nav_return_to_launch;
 							publish_vehicle_cmd(&vcmd);
 							break;
 						}
@@ -1018,7 +1018,7 @@ void Navigator::check_traffic()
 }
 
 bool
-Navigator::abort_landing()
+Navigator::abortLanding()
 {
 	bool should_abort = false;
 
@@ -1026,7 +1026,7 @@ Navigator::abort_landing()
 		if (hrt_elapsed_time(&_fw_pos_ctrl_status.timestamp) < 1000000) {
 
 			if (get_position_setpoint_triplet()->current.valid
-			    && get_position_setpoint_triplet()->current.type == position_setpoint_s::SETPOINT_TYPE_LAND) {
+			    && get_position_setpoint_triplet()->current.type == position_setpoint_s::setpoint_type_land) {
 
 				should_abort = _fw_pos_ctrl_status.abort_landing;
 			}
@@ -1101,7 +1101,7 @@ int navigator_main(int argc, char *argv[])
 }
 
 void
-Navigator::publish_mission_result()
+Navigator::publishMissionResult()
 {
 	_mission_result.timestamp = hrt_absolute_time();
 	_mission_result.instance_count = _mission_instance_count;
@@ -1129,7 +1129,7 @@ Navigator::publish_mission_result()
 }
 
 void
-Navigator::publish_geofence_result()
+Navigator::publishGeofenceResult()
 {
 	/* lazily publish the geofence result only once available */
 	if (_geofence_result_pub != nullptr) {
@@ -1143,7 +1143,7 @@ Navigator::publish_geofence_result()
 }
 
 void
-Navigator::set_mission_failure(const char *reason)
+Navigator::setMissionFailure(const char *reason)
 {
 	if (!_mission_result.failure) {
 		_mission_result.failure = true;
@@ -1153,7 +1153,7 @@ Navigator::set_mission_failure(const char *reason)
 }
 
 void
-Navigator::publish_vehicle_cmd(vehicle_command_s *vcmd)
+Navigator::publishVehicleCmd(vehicle_command_s *vcmd)
 {
 	vcmd->timestamp = hrt_absolute_time();
 	vcmd->source_system = _vstatus.system_id;
@@ -1181,12 +1181,12 @@ Navigator::publish_vehicle_cmd(vehicle_command_s *vcmd)
 		orb_publish(ORB_ID(vehicle_command), _vehicle_cmd_pub, vcmd);
 
 	} else {
-		_vehicle_cmd_pub = orb_advertise_queue(ORB_ID(vehicle_command), vcmd, vehicle_command_s::ORB_QUEUE_LENGTH);
+		_vehicle_cmd_pub = orb_advertise_queue(ORB_ID(vehicle_command), vcmd, vehicle_command_s::orb_queue_length);
 	}
 }
 
 void
-Navigator::publish_vehicle_command_ack(const vehicle_command_s &cmd, uint8_t result)
+Navigator::publishVehicleCommandAck(const vehicle_command_s &cmd, uint8_t result)
 {
 	vehicle_command_ack_s command_ack = {};
 
@@ -1205,6 +1205,6 @@ Navigator::publish_vehicle_command_ack(const vehicle_command_s &cmd, uint8_t res
 
 	} else {
 		_vehicle_cmd_ack_pub = orb_advertise_queue(ORB_ID(vehicle_command_ack), &command_ack,
-				       vehicle_command_ack_s::ORB_QUEUE_LENGTH);
+				       vehicle_command_ack_s::orb_queue_length);
 	}
 }

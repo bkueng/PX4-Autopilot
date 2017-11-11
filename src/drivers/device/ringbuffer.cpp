@@ -59,7 +59,7 @@ RingBuffer::~RingBuffer()
 }
 
 unsigned
-RingBuffer::_next(unsigned index)
+RingBuffer::next(unsigned index)
 {
 	return (0 == index) ? _num_items : (index - 1);
 }
@@ -406,7 +406,7 @@ RingBuffer::resize(unsigned new_size)
 }
 
 void
-RingBuffer::print_info(const char *name)
+RingBuffer::printInfo(const char *name)
 {
 	printf("%s	%u/%lu (%u/%u @ %p)\n",
 	       name,

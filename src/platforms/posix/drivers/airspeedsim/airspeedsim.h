@@ -92,7 +92,7 @@ public:
 	/**
 	 * Diagnostics - print some basic information about the driver.
 	 */
-	virtual void	print_info();
+	virtual void	printInfo();
 
 private:
 	ringbuffer::RingBuffer		*_reports;
@@ -120,7 +120,7 @@ protected:
 	/**
 	 * Update the subsystem status
 	 */
-	void update_status();
+	void updateStatus();
 
 	struct work_s			_work;
 	bool			_sensor_ok;
@@ -147,7 +147,7 @@ protected:
 	* @param address	The I2C bus address to probe.
 	* @return		True if the device is present.
 	*/
-	int	probe_address(uint8_t address);
+	int	probeAddress(uint8_t address);
 
 	/**
 	* Initialise the automatic measurement state machine and start it.
@@ -168,14 +168,14 @@ protected:
 	*
 	* @param arg		Instance pointer for the driver that is polling.
 	*/
-	static void	cycle_trampoline(void *arg);
+	static void	cycleTrampoline(void *arg);
 
 	/**
 	* add a new report to the reports queue
 	*
 	* @param report		differential_pressure_s report
 	*/
-	void	new_report(const differential_pressure_s &report);
+	void	newReport(const differential_pressure_s &report);
 };
 
 

@@ -74,7 +74,7 @@ public:
 	 * @return		true if putting the item triggered an integral reset and the integral should be
 	 *			published.
 	 */
-	bool put_with_interval(unsigned interval_us, math::Vector<3> &val, math::Vector<3> &integral,
+	bool putWithInterval(unsigned interval_us, math::Vector<3> &val, math::Vector<3> &integral,
 			       uint64_t &integral_dt);
 
 	/**
@@ -95,7 +95,7 @@ public:
 	 * @param filtered_val	The integral differentiated by the integration time.
 	 * @return		the integral since the last read-reset
 	 */
-	math::Vector<3>		get_and_filtered(bool reset, uint64_t &integral_dt, math::Vector<3> &filtered_val);
+	math::Vector<3>		getAndFiltered(bool reset, uint64_t &integral_dt, math::Vector<3> &filtered_val);
 
 private:
 	uint64_t _auto_reset_interval;			/**< the interval after which the content will be published
@@ -117,5 +117,5 @@ private:
 	 *
 	 * @param integral_dt	Get the dt in us of the current integration.
 	 */
-	void _reset(uint64_t &integral_dt);
+	void reset(uint64_t &integral_dt);
 };

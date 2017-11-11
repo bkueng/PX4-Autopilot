@@ -83,7 +83,7 @@ VtolType::~VtolType()
 /**
 * Adjust idle speed for mc mode.
 */
-void VtolType::set_idle_mc()
+void VtolType::setIdleMc()
 {
 	const char *dev = PWM_OUTPUT0_DEVICE_PATH;
 	int fd = px4_open(dev, 0);
@@ -117,7 +117,7 @@ void VtolType::set_idle_mc()
 /**
 * Adjust idle speed for fw mode.
 */
-void VtolType::set_idle_fw()
+void VtolType::setIdleFw()
 {
 	const char *dev = PWM_OUTPUT0_DEVICE_PATH;
 	int fd = px4_open(dev, 0);
@@ -145,7 +145,7 @@ void VtolType::set_idle_fw()
 	px4_close(fd);
 }
 
-void VtolType::update_mc_state()
+void VtolType::updateMcState()
 {
 	// copy virtual attitude setpoint to real attitude setpoint
 	memcpy(_v_att_sp, _mc_virtual_att_sp, sizeof(vehicle_attitude_setpoint_s));
@@ -160,20 +160,20 @@ void VtolType::update_mc_state()
 	if (_attc->get_pos_sp_triplet()->current.valid &&
 	    !_v_control_mode->flag_control_manual_enabled) {
 
-		if (_params->wv_takeoff && _attc->get_pos_sp_triplet()->current.type == position_setpoint_s::SETPOINT_TYPE_TAKEOFF) {
+		if (_params->wv_takeoff && _attc->get_pos_sp_triplet()->current.type == position_setpoint_s::setpoint_type_takeoff) {
 			_v_att_sp->disable_mc_yaw_control = true;
 
 		} else if (_params->wv_loiter
-			   && _attc->get_pos_sp_triplet()->current.type == position_setpoint_s::SETPOINT_TYPE_LOITER) {
+			   && _attc->get_pos_sp_triplet()->current.type == position_setpoint_s::setpoint_type_loiter) {
 			_v_att_sp->disable_mc_yaw_control = true;
 
-		} else if (_params->wv_land && _attc->get_pos_sp_triplet()->current.type == position_setpoint_s::SETPOINT_TYPE_LAND) {
+		} else if (_params->wv_land && _attc->get_pos_sp_triplet()->current.type == position_setpoint_s::setpoint_type_land) {
 			_v_att_sp->disable_mc_yaw_control = true;
 		}
 	}
 }
 
-void VtolType::update_fw_state()
+void VtolType::updateFwState()
 {
 	// copy virtual attitude setpoint to real attitude setpoint
 	memcpy(_v_att_sp, _fw_virtual_att_sp, sizeof(vehicle_attitude_setpoint_s));
@@ -201,17 +201,17 @@ void VtolType::update_fw_state()
 	check_quadchute_condition();
 }
 
-void VtolType::update_transition_state()
+void VtolType::updateTransitionState()
 {
 	check_quadchute_condition();
 }
 
-bool VtolType::can_transition_on_ground()
+bool VtolType::canTransitionOnGround()
 {
 	return !_v_control_mode->flag_armed || _land_detected->landed;
 }
 
-void VtolType::check_quadchute_condition()
+void VtolType::checkQuadchuteCondition()
 {
 
 	if (_v_control_mode->flag_armed && !_land_detected->landed) {
@@ -228,20 +228,20 @@ void VtolType::check_quadchute_condition()
 		// adaptive quadchute
 		// We use tecs for tracking in FW and local_pos_sp during transitions
 		if (_params->fw_alt_err > FLT_EPSILON && _v_control_mode->flag_control_altitude_enabled) {
-			float altErr = 0.0f;
+			float alt_err = 0.0f;
 
 			if (_tecs_running) {
-				altErr = _tecs_status->altitudeSp - _tecs_status->altitude_filtered;
+				alt_err = _tecs_status->altitudeSp - _tecs_status->altitude_filtered;
 
 			} else {
-				altErr = -_local_pos_sp->z - -_local_pos->z;
+				alt_err = -_local_pos_sp->z - -_local_pos->z;
 
 				if (!_local_pos->z_valid) {
-					altErr = 0.0f;
+					alt_err = 0.0f;
 				}
 			}
 
-			if (altErr > _params->fw_alt_err) {
+			if (alt_err > _params->fw_alt_err) {
 				_attc->abort_front_transition("QuadChute: Altitude error too large");
 			}
 		}

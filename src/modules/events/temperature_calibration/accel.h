@@ -54,7 +54,7 @@ public:
 
 private:
 
-	virtual inline int update_sensor_instance(PerSensorData &data, int sensor_sub);
+	virtual inline int update_sensor_instance(per_sensor_data &data, int sensor_sub);
 
-	inline int finish_sensor_instance(PerSensorData &data, int sensor_index);
+	inline int finishSensorInstance(per_sensor_data &data, int sensor_index);
 };

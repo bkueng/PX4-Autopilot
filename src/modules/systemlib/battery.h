@@ -68,17 +68,17 @@ public:
 	/**
 	 * Get the battery cell count
 	 */
-	int cell_count() { return _param_n_cells.get(); }
+	int cellCount() { return _param_n_cells.get(); }
 
 	/**
 	 * Get the empty voltage per cell
 	 */
-	float empty_cell_voltage() { return _param_v_empty.get(); }
+	float emptyCellVoltage() { return _param_v_empty.get(); }
 
 	/**
 	 * Get the full voltage per cell
 	 */
-	float full_cell_voltage() { return _param_v_full.get(); }
+	float fullCellVoltage() { return _param_v_full.get(); }
 
 	/**
 	 * Update current battery status message.

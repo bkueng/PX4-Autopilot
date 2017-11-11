@@ -74,7 +74,7 @@ void TemperatureCalibrationBaro::reset_calibration()
 	//nothing to do
 }
 
-int TemperatureCalibrationBaro::update_sensor_instance(PerSensorData &data, int sensor_sub)
+int TemperatureCalibrationBaro::update_sensor_instance(per_sensor_data &data, int sensor_sub)
 {
 	bool finished = data.hot_soaked;
 
@@ -167,7 +167,7 @@ int TemperatureCalibrationBaro::finish()
 	return result;
 }
 
-int TemperatureCalibrationBaro::finish_sensor_instance(PerSensorData &data, int sensor_index)
+int TemperatureCalibrationBaro::finishSensorInstance(per_sensor_data &data, int sensor_index)
 {
 	if (!data.hot_soaked || data.tempcal_complete) {
 		return 0;

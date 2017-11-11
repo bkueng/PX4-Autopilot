@@ -114,33 +114,33 @@ namespace px4
 namespace logger
 {
 
-int Logger::custom_command(int argc, char *argv[])
+int Logger::customCommand(int argc, char *argv[])
 {
-	if (!is_running()) {
-		print_usage("logger not running");
+	if (!isRunning()) {
+		printUsage("logger not running");
 		return 1;
 	}
 
 	if (!strcmp(argv[0], "on")) {
-		get_instance()->set_arm_override(true);
+		getInstance()->set_arm_override(true);
 		return 0;
 	}
 
 	if (!strcmp(argv[0], "off")) {
-		get_instance()->set_arm_override(false);
+		getInstance()->set_arm_override(false);
 		return 0;
 	}
 
-	return print_usage("unknown command");
+	return printUsage("unknown command");
 }
 
-int Logger::print_usage(const char *reason)
+int Logger::printUsage(const char *reason)
 {
 	if (reason) {
 		PX4_WARN("%s\n", reason);
 	}
 
-	PRINT_MODULE_DESCRIPTION(
+	print_module_description(
 		R"DESCR_STR(
 ### Description
 System logger which logs a configurable set of uORB topics and system printf messages
@@ -169,16 +169,16 @@ Or if already running:
 $ logger on
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("logger", "system");
+	print_module_usage_name("logger", "system");
 	PRINT_MODULE_USAGE_COMMAND("start");
-	PRINT_MODULE_USAGE_PARAM_STRING('m', "all", "file|mavlink|all", "Backend mode", true);
-	PRINT_MODULE_USAGE_PARAM_FLAG('e', "Enable logging right after start until disarm (otherwise only when armed)", true);
-	PRINT_MODULE_USAGE_PARAM_FLAG('f', "Log until shutdown (implies -e)", true);
-	PRINT_MODULE_USAGE_PARAM_FLAG('t', "Use date/time for naming log directories and files", true);
-	PRINT_MODULE_USAGE_PARAM_INT('r', 280, 0, 8000, "Log rate in Hz, 0 means unlimited rate", true);
-	PRINT_MODULE_USAGE_PARAM_INT('b', 12, 4, 10000, "Log buffer size in KiB", true);
-	PRINT_MODULE_USAGE_PARAM_INT('q', 14, 1, 100, "uORB queue size for mavlink mode", true);
-	PRINT_MODULE_USAGE_PARAM_STRING('p', nullptr, "<topic_name>",
+	print_module_usage_param_string('m', "all", "file|mavlink|all", "Backend mode", true);
+	print_module_usage_param_flag('e', "Enable logging right after start until disarm (otherwise only when armed)", true);
+	print_module_usage_param_flag('f', "Log until shutdown (implies -e)", true);
+	print_module_usage_param_flag('t', "Use date/time for naming log directories and files", true);
+	print_module_usage_param_int('r', 280, 0, 8000, "Log rate in Hz, 0 means unlimited rate", true);
+	print_module_usage_param_int('b', 12, 4, 10000, "Log buffer size in KiB", true);
+	print_module_usage_param_int('q', 14, 1, 100, "uORB queue size for mavlink mode", true);
+	print_module_usage_param_string('p', nullptr, "<topic_name>",
 					 "Poll on a topic instead of running with fixed rate (Log rate and topic intervals are ignored if this is set)", true);
 	PRINT_MODULE_USAGE_COMMAND_DESCR("on", "start logging now, override arming (logger must be running)");
 	PRINT_MODULE_USAGE_COMMAND_DESCR("off", "stop logging now, override arming (logger must be running)");
@@ -187,17 +187,17 @@ $ logger on
 	return 0;
 }
 
-int Logger::task_spawn(int argc, char *argv[])
+int Logger::taskSpawn(int argc, char *argv[])
 {
-	_task_id = px4_task_spawn_cmd("logger",
+	task_id = px4_task_spawn_cmd("logger",
 				      SCHED_DEFAULT,
 				      SCHED_PRIORITY_LOG_CAPTURE,
 				      3600,
-				      (px4_main_t)&run_trampoline,
+				      (px4_main_t)&runTrampoline,
 				      (char *const *)argv);
 
-	if (_task_id < 0) {
-		_task_id = -1;
+	if (task_id < 0) {
+		task_id = -1;
 		return -errno;
 	}
 
@@ -209,13 +209,13 @@ int Logger::print_status()
 	PX4_INFO("Running in mode: %s", configured_backend_mode());
 
 	bool is_logging = false;
-	if (_writer.is_started(LogWriter::BackendFile)) {
+	if (_writer.is_started(LogWriter::backend_file)) {
 		PX4_INFO("File Logging Running");
 		print_statistics();
 		is_logging = true;
 	}
 
-	if (_writer.is_started(LogWriter::BackendMavlink)) {
+	if (_writer.is_started(LogWriter::backend_mavlink)) {
 		PX4_INFO("Mavlink Logging Running");
 		is_logging = true;
 	}
@@ -227,9 +227,9 @@ int Logger::print_status()
 	return 0;
 }
 
-void Logger::print_statistics()
+void Logger::printStatistics()
 {
-	if (!_writer.is_started(LogWriter::BackendFile)) { //currently only statistics for file logging
+	if (!_writer.is_started(LogWriter::backend_file)) { //currently only statistics for file logging
 		return;
 	}
 
@@ -257,7 +257,7 @@ Logger *Logger::instantiate(int argc, char *argv[])
 	bool log_name_timestamp = false;
 	unsigned int queue_size = 14; //TODO: we might be able to reduce this if mavlink polled on the topic and/or
 	// topic sizes get reduced
-	LogWriter::Backend backend = LogWriter::BackendAll;
+	LogWriter::Backend backend = LogWriter::backend_all;
 	const char *poll_topic = nullptr;
 
 	int myoptind = 1;
@@ -303,13 +303,13 @@ Logger *Logger::instantiate(int argc, char *argv[])
 
 		case 'm':
 			if (!strcmp(myoptarg, "file")) {
-				backend = LogWriter::BackendFile;
+				backend = LogWriter::backend_file;
 
 			} else if (!strcmp(myoptarg, "mavlink")) {
-				backend = LogWriter::BackendMavlink;
+				backend = LogWriter::backend_mavlink;
 
 			} else if (!strcmp(myoptarg, "all")) {
-				backend = LogWriter::BackendAll;
+				backend = LogWriter::backend_all;
 
 			} else {
 				PX4_ERR("unknown mode: %s", myoptarg);
@@ -361,7 +361,7 @@ Logger *Logger::instantiate(int argc, char *argv[])
 	} else {
 #ifndef __PX4_NUTTX
 		//check for replay mode
-		const char *logfile = getenv(px4::replay::ENV_FILENAME);
+		const char *logfile = getenv(px4::replay::env_filename);
 
 		if (logfile) {
 			logger->setReplayFile(logfile);
@@ -415,19 +415,19 @@ Logger::~Logger()
 	}
 }
 
-bool Logger::request_stop_static()
+bool Logger::requestStopStatic()
 {
-	if (is_running()) {
-		get_instance()->request_stop();
+	if (isRunning()) {
+		getInstance()->request_stop();
 		return false;
 	}
 
 	return true;
 }
 
-LoggerSubscription* Logger::add_topic(const orb_metadata *topic)
+logger_subscription* Logger::addTopic(const orb_metadata *topic)
 {
-	LoggerSubscription *subscription = nullptr;
+	logger_subscription *subscription = nullptr;
 	size_t fields_len = strlen(topic->o_fields) + strlen(topic->o_name) + 1; //1 for ':'
 
 	if (fields_len > sizeof(ulog_message_format_s::format)) {
@@ -451,7 +451,7 @@ LoggerSubscription* Logger::add_topic(const orb_metadata *topic)
 		PX4_DEBUG("Topic %s does not exist. Not subscribing (yet)", topic->o_name);
 	}
 
-	if (_subscriptions.push_back(LoggerSubscription(fd, topic))) {
+	if (_subscriptions.push_back(logger_subscription(fd, topic))) {
 		subscription = &_subscriptions[_subscriptions.size() - 1];
 	} else {
 		PX4_WARN("logger: failed to add topic. Too many subscriptions");
@@ -463,10 +463,10 @@ LoggerSubscription* Logger::add_topic(const orb_metadata *topic)
 	return subscription;
 }
 
-bool Logger::add_topic(const char *name, unsigned interval)
+bool Logger::addTopic(const char *name, unsigned interval)
 {
 	const orb_metadata **topics = orb_get_topics();
-	LoggerSubscription *subscription = nullptr;
+	logger_subscription *subscription = nullptr;
 
 	for (size_t i = 0; i < orb_topics_count(); i++) {
 		if (strcmp(name, topics[i]->o_name) == 0) {
@@ -508,7 +508,7 @@ bool Logger::add_topic(const char *name, unsigned interval)
 	return subscription;
 }
 
-bool Logger::copy_if_updated_multi(LoggerSubscription &sub, int multi_instance, void *buffer, bool try_to_subscribe)
+bool Logger::copyIfUpdatedMulti(logger_subscription &sub, int multi_instance, void *buffer, bool try_to_subscribe)
 {
 	bool updated = false;
 	int &handle = sub.fd[multi_instance];
@@ -536,7 +536,7 @@ bool Logger::copy_if_updated_multi(LoggerSubscription &sub, int multi_instance, 
 	return updated;
 }
 
-bool Logger::try_to_subscribe_topic(LoggerSubscription &sub, int multi_instance)
+bool Logger::tryToSubscribeTopic(logger_subscription &sub, int multi_instance)
 {
 	bool ret = false;
 	if (OK == orb_exists(sub.metadata, multi_instance)) {
@@ -569,7 +569,7 @@ bool Logger::try_to_subscribe_topic(LoggerSubscription &sub, int multi_instance)
 	return ret;
 }
 
-void Logger::add_default_topics()
+void Logger::addDefaultTopics()
 {
 #ifdef CONFIG_ARCH_BOARD_SITL
 	add_topic("vehicle_attitude_groundtruth", 10);
@@ -616,7 +616,7 @@ void Logger::add_default_topics()
 	add_topic("wind_estimate", 200);
 }
 
-void Logger::add_high_rate_topics()
+void Logger::addHighRateTopics()
 {
 	// maximum rate to analyze fast maneuvers (e.g. for racing)
 	add_topic("actuator_controls_0");
@@ -627,14 +627,14 @@ void Logger::add_high_rate_topics()
 	add_topic("vehicle_rates_setpoint");
 }
 
-void Logger::add_debug_topics()
+void Logger::addDebugTopics()
 {
 	add_topic("debug_key_value");
 	add_topic("debug_value");
 	add_topic("debug_vect");
 }
 
-void Logger::add_estimator_replay_topics()
+void Logger::addEstimatorReplayTopics()
 {
 	// for estimator replay (need to be at full rate)
 	add_topic("ekf2_timestamps");
@@ -653,14 +653,14 @@ void Logger::add_estimator_replay_topics()
 	add_topic("vehicle_vision_position");
 }
 
-void Logger::add_thermal_calibration_topics()
+void Logger::addThermalCalibrationTopics()
 {
 	add_topic("sensor_accel", 100);
 	add_topic("sensor_baro", 100);
 	add_topic("sensor_gyro", 100);
 }
 
-void Logger::add_sensor_comparison_topics()
+void Logger::addSensorComparisonTopics()
 {
 	add_topic("sensor_accel", 100);
 	add_topic("sensor_baro", 100);
@@ -668,7 +668,7 @@ void Logger::add_sensor_comparison_topics()
 	add_topic("sensor_mag", 100);
 }
 
-void Logger::add_system_identification_topics()
+void Logger::addSystemIdentificationTopics()
 {
 	// for system id need to log imu and controls at full rate
 	add_topic("actuator_controls_0");
@@ -676,7 +676,7 @@ void Logger::add_system_identification_topics()
 	add_topic("sensor_combined");
 }
 
-int Logger::add_topics_from_file(const char *fname)
+int Logger::addTopicsFromFile(const char *fname)
 {
 	FILE		*fp;
 	char		line[80];
@@ -731,14 +731,14 @@ int Logger::add_topics_from_file(const char *fname)
 	return ntopics;
 }
 
-const char *Logger::configured_backend_mode() const
+const char *Logger::configuredBackendMode() const
 {
 	switch (_writer.backend()) {
-	case LogWriter::BackendFile: return "file";
+	case LogWriter::backend_file: return "file";
 
-	case LogWriter::BackendMavlink: return "mavlink";
+	case LogWriter::backend_mavlink: return "mavlink";
 
-	case LogWriter::BackendAll: return "all";
+	case LogWriter::backend_all: return "all";
 
 	default: return "several";
 	}
@@ -752,16 +752,16 @@ void Logger::run()
 
 	PX4_INFO("logger started (mode=%s)", configured_backend_mode());
 
-	if (_writer.backend() & LogWriter::BackendFile) {
-		int mkdir_ret = mkdir(LOG_ROOT, S_IRWXU | S_IRWXG | S_IRWXO);
+	if (_writer.backend() & LogWriter::backend_file) {
+		int mkdir_ret = mkdir(log_root, S_IRWXU | S_IRWXG | S_IRWXO);
 
 		if (mkdir_ret == 0) {
-			PX4_INFO("log root dir created: %s", LOG_ROOT);
+			PX4_INFO("log root dir created: %s", log_root);
 
 		} else if (errno != EEXIST) {
-			PX4_ERR("failed creating log root dir: %s", LOG_ROOT);
+			PX4_ERR("failed creating log root dir: %s", log_root);
 
-			if ((_writer.backend() & ~LogWriter::BackendFile) == 0) {
+			if ((_writer.backend() & ~LogWriter::backend_file) == 0) {
 				return;
 			}
 		}
@@ -772,7 +772,7 @@ void Logger::run()
 	}
 
 	int vehicle_status_sub = orb_subscribe(ORB_ID(vehicle_status));
-	uORB::Subscription<parameter_update_s> parameter_update_sub(ORB_ID(parameter_update));
+	u_orb::Subscription<parameter_update_s> parameter_update_sub(ORB_ID(parameter_update));
 	int log_message_sub = orb_subscribe(ORB_ID(log_message));
 	orb_set_interval(log_message_sub, 20);
 
@@ -829,7 +829,7 @@ void Logger::run()
 	int vehicle_command_sub = -1;
 	orb_advert_t vehicle_command_ack_pub = nullptr;
 
-	if (_writer.backend() & LogWriter::BackendMavlink) {
+	if (_writer.backend() & LogWriter::backend_mavlink) {
 		vehicle_command_sub = orb_subscribe(ORB_ID(vehicle_command));
 	}
 
@@ -878,7 +878,7 @@ void Logger::run()
 	uint32_t	total_bytes = 0;
 #endif /* DBGPRINT */
 
-	px4_register_shutdown_hook(&Logger::request_stop_static);
+	px4_register_shutdown_hook(&Logger::requestStopStatic);
 
 	// we start logging immediately
 	// the case where we wait with logging until vehicle is armed is handled below
@@ -920,8 +920,8 @@ void Logger::run()
 		if (ret == 0 && vehicle_status_updated) {
 			vehicle_status_s vehicle_status;
 			orb_copy(ORB_ID(vehicle_status), vehicle_status_sub, &vehicle_status);
-			bool armed = (vehicle_status.arming_state == vehicle_status_s::ARMING_STATE_ARMED) ||
-				     (vehicle_status.arming_state == vehicle_status_s::ARMING_STATE_ARMED_ERROR) ||
+			bool armed = (vehicle_status.arming_state == vehicle_status_s::arming_state_armed) ||
+				     (vehicle_status.arming_state == vehicle_status_s::arming_state_armed_error) ||
 				     _arm_override;
 
 			if (_was_armed != armed && !_log_until_shutdown) {
@@ -958,25 +958,25 @@ void Logger::run()
 				vehicle_command_s command;
 				orb_copy(ORB_ID(vehicle_command), vehicle_command_sub, &command);
 
-				if (command.command == vehicle_command_s::VEHICLE_CMD_LOGGING_START) {
+				if (command.command == vehicle_command_s::vehicle_cmd_logging_start) {
 					if ((int)(command.param1 + 0.5f) != 0) {
 						ack_vehicle_command(vehicle_command_ack_pub, &command,
-								    vehicle_command_s::VEHICLE_CMD_RESULT_UNSUPPORTED);
+								    vehicle_command_s::vehicle_cmd_result_unsupported);
 
 					} else if (can_start_mavlink_log()) {
 						ack_vehicle_command(vehicle_command_ack_pub, &command,
-								    vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED);
+								    vehicle_command_s::vehicle_cmd_result_accepted);
 						start_log_mavlink();
 
 					} else {
 						ack_vehicle_command(vehicle_command_ack_pub, &command,
-								    vehicle_command_s::VEHICLE_CMD_RESULT_TEMPORARILY_REJECTED);
+								    vehicle_command_s::vehicle_cmd_result_temporarily_rejected);
 					}
 
-				} else if (command.command == vehicle_command_s::VEHICLE_CMD_LOGGING_STOP) {
+				} else if (command.command == vehicle_command_s::vehicle_cmd_logging_stop) {
 					stop_log_mavlink();
 					ack_vehicle_command(vehicle_command_ack_pub, &command,
-							    vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED);
+							    vehicle_command_s::vehicle_cmd_result_accepted);
 				}
 			}
 		}
@@ -1015,7 +1015,7 @@ void Logger::run()
 
 			int sub_idx = 0;
 
-			for (LoggerSubscription &sub : _subscriptions) {
+			for (logger_subscription &sub : _subscriptions) {
 				/* each message consists of a header followed by an orb data object
 				 */
 				size_t msg_size = sizeof(ulog_message_data_header_s) + sub.metadata->o_size_no_padding;
@@ -1179,7 +1179,7 @@ void Logger::run()
 	_writer.thread_stop();
 
 	//unsubscribe
-	for (LoggerSubscription &sub : _subscriptions) {
+	for (logger_subscription &sub : _subscriptions) {
 		for (int instance = 0; instance < ORB_MULTI_MAX_INSTANCES; instance++) {
 			if (sub.fd[instance] >= 0) {
 				orb_unsubscribe(sub.fd[instance]);
@@ -1205,10 +1205,10 @@ void Logger::run()
 		orb_unsubscribe(vehicle_command_sub);
 	}
 
-	px4_unregister_shutdown_hook(&Logger::request_stop_static);
+	px4_unregister_shutdown_hook(&Logger::requestStopStatic);
 }
 
-bool Logger::write_message(void *ptr, size_t size)
+bool Logger::writeMessage(void *ptr, size_t size)
 {
 	if (_writer.write_message(ptr, size, _dropout_start) != -1) {
 
@@ -1234,13 +1234,13 @@ bool Logger::write_message(void *ptr, size_t size)
 	return false;
 }
 
-int Logger::create_log_dir(tm *tt)
+int Logger::createLogDir(tm *tt)
 {
 	/* create dir on sdcard if needed */
 	int mkdir_ret;
 
 	if (tt) {
-		int n = snprintf(_log_dir, sizeof(_log_dir), "%s/", LOG_ROOT);
+		int n = snprintf(_log_dir, sizeof(_log_dir), "%s/", log_root);
 
 		if (n >= sizeof(_log_dir)) {
 			PX4_ERR("log path too long");
@@ -1261,7 +1261,7 @@ int Logger::create_log_dir(tm *tt)
 		/* look for the next dir that does not exist */
 		while (!_has_log_dir) {
 			/* format log dir: e.g. /fs/microsd/sess001 */
-			int n = snprintf(_log_dir, sizeof(_log_dir), "%s/sess%03u", LOG_ROOT, dir_number);
+			int n = snprintf(_log_dir, sizeof(_log_dir), "%s/sess%03u", log_root, dir_number);
 
 			if (n >= sizeof(_log_dir)) {
 				PX4_ERR("log path too long (%i)", n);
@@ -1289,13 +1289,13 @@ int Logger::create_log_dir(tm *tt)
 	return 0;
 }
 
-bool Logger::file_exist(const char *filename)
+bool Logger::fileExist(const char *filename)
 {
 	struct stat buffer;
 	return stat(filename, &buffer) == 0;
 }
 
-int Logger::get_log_file_name(char *file_name, size_t file_name_size)
+int Logger::getLogFileName(char *file_name, size_t file_name_size)
 {
 	tm tt = {};
 	bool time_ok = false;
@@ -1330,19 +1330,19 @@ int Logger::get_log_file_name(char *file_name, size_t file_name_size)
 		uint16_t file_number = 1; // start with file log001
 
 		/* look for the next file that does not exist */
-		while (file_number <= MAX_NO_LOGFILE) {
+		while (file_number <= max_no_logfile) {
 			/* format log file path: e.g. /fs/microsd/sess001/log001.ulg */
 			snprintf(_log_file_name, sizeof(_log_file_name), "log%03u%s.ulg", file_number, replay_suffix);
 			snprintf(file_name, file_name_size, "%s/%s", _log_dir, _log_file_name);
 
-			if (!file_exist(file_name)) {
+			if (!fileExist(file_name)) {
 				break;
 			}
 
 			file_number++;
 		}
 
-		if (file_number > MAX_NO_LOGFILE) {
+		if (file_number > max_no_logfile) {
 			/* we should not end up here, either we have more than MAX_NO_LOGFILE on the SD card, or another problem */
 			return -1;
 		}
@@ -1361,7 +1361,7 @@ void Logger::setReplayFile(const char *file_name)
 	_replay_file_name = strdup(file_name);
 }
 
-bool Logger::get_log_time(struct tm *tt, bool boot_time)
+bool Logger::getLogTime(struct tm *tt, bool boot_time)
 {
 	int vehicle_gps_position_sub = orb_subscribe(ORB_ID(vehicle_gps_position));
 
@@ -1412,9 +1412,9 @@ bool Logger::get_log_time(struct tm *tt, bool boot_time)
 	return gmtime_r(&utc_time_sec, tt) != nullptr;
 }
 
-void Logger::start_log_file()
+void Logger::startLogFile()
 {
-	if (_writer.is_started(LogWriter::BackendFile) || (_writer.backend() & LogWriter::BackendFile) == 0) {
+	if (_writer.is_started(LogWriter::backend_file) || (_writer.backend() & LogWriter::backend_file) == 0) {
 		return;
 	}
 
@@ -1431,7 +1431,7 @@ void Logger::start_log_file()
 	mavlink_log_info(&_mavlink_log_pub, "[logger] file: %s", file_name);
 
 	_writer.start_log_file(file_name);
-	_writer.select_write_backend(LogWriter::BackendFile);
+	_writer.select_write_backend(LogWriter::backend_file);
 	_writer.set_need_reliable_transfer(true);
 	write_header();
 	write_version();
@@ -1451,9 +1451,9 @@ void Logger::start_log_file()
 	initialize_load_output();
 }
 
-void Logger::stop_log_file()
+void Logger::stopLogFile()
 {
-	if (!_writer.is_started(LogWriter::BackendFile)) {
+	if (!_writer.is_started(LogWriter::backend_file)) {
 		return;
 	}
 
@@ -1463,7 +1463,7 @@ void Logger::stop_log_file()
 	_writer.stop_log_file();
 }
 
-void Logger::start_log_mavlink()
+void Logger::startLogMavlink()
 {
 	if (!can_start_mavlink_log()) {
 		return;
@@ -1472,7 +1472,7 @@ void Logger::start_log_mavlink()
 	PX4_INFO("Start mavlink log");
 
 	_writer.start_log_mavlink();
-	_writer.select_write_backend(LogWriter::BackendMavlink);
+	_writer.select_write_backend(LogWriter::backend_mavlink);
 	_writer.set_need_reliable_transfer(true);
 	write_header();
 	write_version();
@@ -1487,7 +1487,7 @@ void Logger::start_log_mavlink()
 	initialize_load_output();
 }
 
-void Logger::stop_log_mavlink()
+void Logger::stopLogMavlink()
 {
 	// don't write perf data since a client does not expect more data after a stop command
 	PX4_INFO("Stop mavlink log");
@@ -1501,7 +1501,7 @@ struct perf_callback_data_t {
 	char *buffer;
 };
 
-void Logger::perf_iterate_callback(perf_counter_t handle, void *user)
+void Logger::perfIterateCallback(perf_counter_t handle, void *user)
 {
 	perf_callback_data_t *callback_data = (perf_callback_data_t *)user;
 	const int buffer_length = 256;
@@ -1521,7 +1521,7 @@ void Logger::perf_iterate_callback(perf_counter_t handle, void *user)
 	++callback_data->counter;
 }
 
-void Logger::write_perf_data(bool preflight)
+void Logger::writePerfData(bool preflight)
 {
 	perf_callback_data_t callback_data = {};
 	callback_data.logger = this;
@@ -1529,11 +1529,11 @@ void Logger::write_perf_data(bool preflight)
 	callback_data.preflight = preflight;
 
 	// write the perf counters
-	perf_iterate_all(perf_iterate_callback, &callback_data);
+	perf_iterate_all(perfIterateCallback, &callback_data);
 }
 
 
-void Logger::print_load_callback(void *user)
+void Logger::printLoadCallback(void *user)
 {
 	perf_callback_data_t *callback_data = (perf_callback_data_t *)user;
 	const char *perf_name;
@@ -1553,7 +1553,7 @@ void Logger::print_load_callback(void *user)
 	++callback_data->counter;
 }
 
-void Logger::initialize_load_output()
+void Logger::initializeLoadOutput()
 {
 	perf_callback_data_t callback_data;
 	callback_data.logger = this;
@@ -1563,11 +1563,11 @@ void Logger::initialize_load_output()
 	hrt_abstime curr_time = hrt_absolute_time();
 	init_print_load_s(curr_time, &_load);
 	// this will not yet print anything
-	print_load_buffer(curr_time, buffer, sizeof(buffer), print_load_callback, &callback_data, &_load);
+	print_load_buffer(curr_time, buffer, sizeof(buffer), printLoadCallback, &callback_data, &_load);
 	_next_load_print = curr_time + 1000000;
 }
 
-void Logger::write_load_output(bool preflight)
+void Logger::writeLoadOutput(bool preflight)
 {
 	perf_callback_data_t callback_data = {};
 	char buffer[140];
@@ -1579,11 +1579,11 @@ void Logger::write_load_output(bool preflight)
 	_writer.set_need_reliable_transfer(true);
 	// TODO: maybe we should restrict the output to a selected backend (eg. when file logging is running
 	// and mavlink log is started, this will be added to the file as well)
-	print_load_buffer(curr_time, buffer, sizeof(buffer), print_load_callback, &callback_data, &_load);
+	print_load_buffer(curr_time, buffer, sizeof(buffer), printLoadCallback, &callback_data, &_load);
 	_writer.set_need_reliable_transfer(false);
 }
 
-void Logger::write_formats()
+void Logger::writeFormats()
 {
 	_writer.lock();
 	ulog_message_format_s msg = {};
@@ -1601,11 +1601,11 @@ void Logger::write_formats()
 	_writer.unlock();
 }
 
-void Logger::write_all_add_logged_msg()
+void Logger::writeAllAddLoggedMsg()
 {
 	_writer.lock();
 
-	for (LoggerSubscription &sub : _subscriptions) {
+	for (logger_subscription &sub : _subscriptions) {
 		for (int instance = 0; instance < ORB_MULTI_MAX_INSTANCES; ++instance) {
 			if (sub.fd[instance] >= 0) {
 				write_add_logged_msg(sub, instance);
@@ -1616,7 +1616,7 @@ void Logger::write_all_add_logged_msg()
 	_writer.unlock();
 }
 
-void Logger::write_add_logged_msg(LoggerSubscription &subscription, int instance)
+void Logger::writeAddLoggedMsg(logger_subscription &subscription, int instance)
 {
 	ulog_message_add_logged_s msg;
 
@@ -1641,7 +1641,7 @@ void Logger::write_add_logged_msg(LoggerSubscription &subscription, int instance
 }
 
 /* write info message */
-void Logger::write_info(const char *name, const char *value)
+void Logger::writeInfo(const char *name, const char *value)
 {
 	_writer.lock();
 	ulog_message_info_header_s msg = {};
@@ -1666,7 +1666,7 @@ void Logger::write_info(const char *name, const char *value)
 	_writer.unlock();
 }
 
-void Logger::write_info_multiple(const char *name, const char *value, bool is_continued)
+void Logger::writeInfoMultiple(const char *name, const char *value, bool is_continued)
 {
 	_writer.lock();
 	ulog_message_info_multiple_header_s msg;
@@ -1692,19 +1692,19 @@ void Logger::write_info_multiple(const char *name, const char *value, bool is_co
 	_writer.unlock();
 }
 
-void Logger::write_info(const char *name, int32_t value)
+void Logger::writeInfo(const char *name, int32_t value)
 {
 	write_info_template<int32_t>(name, value, "int32_t");
 }
 
-void Logger::write_info(const char *name, uint32_t value)
+void Logger::writeInfo(const char *name, uint32_t value)
 {
 	write_info_template<uint32_t>(name, value, "uint32_t");
 }
 
 
 template<typename T>
-void Logger::write_info_template(const char *name, T value, const char *type_str)
+void Logger::writeInfoTemplate(const char *name, T value, const char *type_str)
 {
 	_writer.lock();
 	ulog_message_info_header_s msg = {};
@@ -1726,7 +1726,7 @@ void Logger::write_info_template(const char *name, T value, const char *type_str
 	_writer.unlock();
 }
 
-void Logger::write_header()
+void Logger::writeHeader()
 {
 	ulog_file_header_s header = {};
 	header.magic[0] = 'U';
@@ -1754,7 +1754,7 @@ void Logger::write_header()
 }
 
 /* write version info messages */
-void Logger::write_version()
+void Logger::writeVersion()
 {
 	write_info("ver_sw", px4_firmware_version_string());
 	write_info("ver_sw_release", px4_firmware_version());
@@ -1820,7 +1820,7 @@ void Logger::write_version()
 	}
 }
 
-void Logger::write_parameters()
+void Logger::writeParameters()
 {
 	_writer.lock();
 	ulog_message_parameter_header_s msg = {};
@@ -1888,7 +1888,7 @@ void Logger::write_parameters()
 	_writer.notify();
 }
 
-void Logger::write_changed_parameters()
+void Logger::writeChangedParameters()
 {
 	_writer.lock();
 	ulog_message_parameter_header_s msg = {};
@@ -1958,7 +1958,7 @@ void Logger::write_changed_parameters()
 	_writer.notify();
 }
 
-int Logger::check_free_space()
+int Logger::checkFreeSpace()
 {
 	struct statfs statfs_buf;
 
@@ -1974,11 +1974,11 @@ int Logger::check_free_space()
 
 	/* remove old logs if the free space falls below a threshold */
 	do {
-		if (statfs(LOG_ROOT, &statfs_buf) != 0) {
+		if (statfs(log_root, &statfs_buf) != 0) {
 			return PX4_ERROR;
 		}
 
-		DIR *dp = opendir(LOG_ROOT);
+		DIR *dp = opendir(log_root);
 
 		if (dp == nullptr) {
 			break; // ignore if we cannot access the log directory
@@ -2053,10 +2053,10 @@ int Logger::check_free_space()
 		int n;
 
 		if (num_sess >= num_dates) {
-			n = snprintf(directory_to_delete, sizeof(directory_to_delete), "%s/sess%03u", LOG_ROOT, sess_idx_min);
+			n = snprintf(directory_to_delete, sizeof(directory_to_delete), "%s/sess%03u", log_root, sess_idx_min);
 
 		} else {
-			n = snprintf(directory_to_delete, sizeof(directory_to_delete), "%s/%04u-%02u-%02u", LOG_ROOT, year_min, month_min,
+			n = snprintf(directory_to_delete, sizeof(directory_to_delete), "%s/%04u-%02u-%02u", log_root, year_min, month_min,
 				     day_min);
 		}
 
@@ -2087,7 +2087,7 @@ int Logger::check_free_space()
 	return PX4_OK;
 }
 
-int Logger::remove_directory(const char *dir)
+int Logger::removeDirectory(const char *dir)
 {
 	DIR *d = opendir(dir);
 	size_t dir_len = strlen(dir);
@@ -2139,7 +2139,7 @@ int Logger::remove_directory(const char *dir)
 	return ret;
 }
 
-void Logger::ack_vehicle_command(orb_advert_t &vehicle_command_ack_pub, vehicle_command_s *cmd, uint32_t result)
+void Logger::ackVehicleCommand(orb_advert_t &vehicle_command_ack_pub, vehicle_command_s *cmd, uint32_t result)
 {
 	vehicle_command_ack_s vehicle_command_ack = {
 		.timestamp = hrt_absolute_time(),
@@ -2154,7 +2154,7 @@ void Logger::ack_vehicle_command(orb_advert_t &vehicle_command_ack_pub, vehicle_
 
 	if (vehicle_command_ack_pub == nullptr) {
 		vehicle_command_ack_pub = orb_advertise_queue(ORB_ID(vehicle_command_ack), &vehicle_command_ack,
-					  vehicle_command_ack_s::ORB_QUEUE_LENGTH);
+					  vehicle_command_ack_s::orb_queue_length);
 
 	} else {
 		orb_publish(ORB_ID(vehicle_command_ack), vehicle_command_ack_pub, &vehicle_command_ack);

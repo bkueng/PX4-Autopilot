@@ -79,7 +79,7 @@ unsigned SimpleMixer::set_trim(float trim)
 }
 
 int
-SimpleMixer::parse_output_scaler(const char *buf, unsigned &buflen, mixer_scaler_s &scaler)
+SimpleMixer::parseOutputScaler(const char *buf, unsigned &buflen, mixer_scaler_s &scaler)
 {
 	int ret;
 	int s[5];
@@ -115,7 +115,7 @@ SimpleMixer::parse_output_scaler(const char *buf, unsigned &buflen, mixer_scaler
 }
 
 int
-SimpleMixer::parse_control_scaler(const char *buf, unsigned &buflen, mixer_scaler_s &scaler, uint8_t &control_group,
+SimpleMixer::parseControlScaler(const char *buf, unsigned &buflen, mixer_scaler_s &scaler, uint8_t &control_group,
 				  uint8_t &control_index)
 {
 	unsigned u[2];
@@ -153,7 +153,7 @@ SimpleMixer::parse_control_scaler(const char *buf, unsigned &buflen, mixer_scale
 }
 
 SimpleMixer *
-SimpleMixer::from_text(Mixer::ControlCallback control_cb, uintptr_t cb_handle, const char *buf, unsigned &buflen)
+SimpleMixer::fromText(Mixer::ControlCallback control_cb, uintptr_t cb_handle, const char *buf, unsigned &buflen)
 {
 	SimpleMixer *sm = nullptr;
 	mixer_simple_s *mixinfo = nullptr;
@@ -162,7 +162,7 @@ SimpleMixer::from_text(Mixer::ControlCallback control_cb, uintptr_t cb_handle, c
 	const char *end = buf + buflen;
 
 	/* enforce that the mixer ends with a new line */
-	if (!string_well_formed(buf, buflen)) {
+	if (!stringWellFormed(buf, buflen)) {
 		return nullptr;
 	}
 
@@ -188,13 +188,13 @@ SimpleMixer::from_text(Mixer::ControlCallback control_cb, uintptr_t cb_handle, c
 
 	mixinfo->control_count = inputs;
 
-	if (parse_output_scaler(end - buflen, buflen, mixinfo->output_scaler)) {
+	if (parseOutputScaler(end - buflen, buflen, mixinfo->output_scaler)) {
 		debug("simple mixer parser failed parsing out scaler tag, ret: '%s'", buf);
 		goto out;
 	}
 
 	for (unsigned i = 0; i < inputs; i++) {
-		if (parse_control_scaler(end - buflen, buflen,
+		if (parseControlScaler(end - buflen, buflen,
 					 mixinfo->controls[i].scaler,
 					 mixinfo->controls[i].control_group,
 					 mixinfo->controls[i].control_index)) {
@@ -224,7 +224,7 @@ out:
 }
 
 SimpleMixer *
-SimpleMixer::pwm_input(Mixer::ControlCallback control_cb, uintptr_t cb_handle, unsigned input, uint16_t min,
+SimpleMixer::pwmInput(Mixer::ControlCallback control_cb, uintptr_t cb_handle, unsigned input, uint16_t min,
 		       uint16_t mid, uint16_t max)
 {
 	SimpleMixer *sm = nullptr;
@@ -340,7 +340,7 @@ SimpleMixer::check()
 	}
 
 	/* validate the output scaler */
-	ret = scale_check(_pinfo->output_scaler);
+	ret = scaleCheck(_pinfo->output_scaler);
 
 	if (ret != 0) {
 		return ret;
@@ -358,7 +358,7 @@ SimpleMixer::check()
 		}
 
 		/* validate the scaler */
-		ret = scale_check(_pinfo->controls[i].scaler);
+		ret = scaleCheck(_pinfo->controls[i].scaler);
 
 		if (ret != 0) {
 			return (10 * i + ret);

@@ -146,7 +146,7 @@ private:
 	float _altitude_min{0.0f};
 	float _altitude_max{0.0f};
 
-	struct PolygonInfo {
+	struct polygon_info {
 		uint16_t fence_type; ///< one of MAV_CMD_NAV_FENCE_* (can also be a circular region)
 		uint16_t dataman_index;
 		union {
@@ -154,7 +154,7 @@ private:
 			float circle_radius;
 		};
 	};
-	PolygonInfo *_polygons{nullptr};
+	polygon_info *_polygons{nullptr};
 	int _num_polygons{0};
 
 	map_projection_reference_s _projection_reference = {}; ///< reference to convert (lon, lat) to local [m]
@@ -173,7 +173,7 @@ private:
 	/**
 	 * implementation of updateFence(), but without locking
 	 */
-	void _updateFence();
+	void updateFence();
 
 	/**
 	 * Check if a point passes the Geofence test.

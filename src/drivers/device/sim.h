@@ -55,7 +55,7 @@ public:
 	/**
 	 * Get the address
 	 */
-	int16_t		get_address() const { return _address; }
+	int16_t		getAddress() const { return _address; }
 
 protected:
 	/**

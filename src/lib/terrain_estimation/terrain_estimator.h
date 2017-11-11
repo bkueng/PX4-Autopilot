@@ -62,13 +62,13 @@ public:
 	TerrainEstimator();
 	~TerrainEstimator() {}
 
-	bool is_valid() {return _terrain_valid;}
-	float get_distance_to_ground() {return -_x(0);}
-	float get_velocity() {return _x(1);}
+	bool isValid() {return _terrain_valid;}
+	float getDistanceToGround() {return -_x(0);}
+	float getVelocity() {return _x(1);}
 
 	void predict(float dt, const struct vehicle_attitude_s *attitude, const struct sensor_combined_s *sensor,
 		     const struct distance_sensor_s *distance);
-	void measurement_update(uint64_t time_ref, const struct vehicle_gps_position_s *gps,
+	void measurementUpdate(uint64_t time_ref, const struct vehicle_gps_position_s *gps,
 				const struct distance_sensor_s *distance,
 				const struct vehicle_attitude_s *attitude);
 
@@ -97,6 +97,6 @@ private:
 	} _params;
 	*/
 
-	bool is_distance_valid(float distance);
+	bool isDistanceValid(float distance);
 
 };

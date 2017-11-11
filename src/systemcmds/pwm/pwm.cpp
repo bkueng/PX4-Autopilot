@@ -79,7 +79,7 @@ usage(const char *reason)
 		PX4_WARN("%s", reason);
 	}
 
-	PRINT_MODULE_DESCRIPTION(
+	print_module_description(
 		R"DESCR_STR(
 ### Description
 This command is used to configure PWM outputs for servo and ESC control.
@@ -111,61 +111,61 @@ $ pwm test -c 13 -p 1200
 )DESCR_STR");
 
 
-	PRINT_MODULE_USAGE_NAME("pwm", "command");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("arm", "Arm output");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("disarm", "Disarm output");
+	print_module_usage_name("pwm", "command");
+	print_module_usage_command_descr("arm", "Arm output");
+	print_module_usage_command_descr("disarm", "Disarm output");
 
-	PRINT_MODULE_USAGE_COMMAND_DESCR("info", "Print current configuration of all channels");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("forcefail", "Force Failsafe mode");
-	PRINT_MODULE_USAGE_ARG("on|off", "Turn on or off", false);
-	PRINT_MODULE_USAGE_COMMAND_DESCR("terminatefail", "Force Termination Failsafe mode");
-	PRINT_MODULE_USAGE_ARG("on|off", "Turn on or off", false);
+	print_module_usage_command_descr("info", "Print current configuration of all channels");
+	print_module_usage_command_descr("forcefail", "Force Failsafe mode");
+	print_module_usage_arg("on|off", "Turn on or off", false);
+	print_module_usage_command_descr("terminatefail", "Force Termination Failsafe mode");
+	print_module_usage_arg("on|off", "Turn on or off", false);
 
-	PRINT_MODULE_USAGE_COMMAND_DESCR("rate", "Configure PWM rates");
-	PRINT_MODULE_USAGE_PARAM_INT('r', -1, 50, 400, "PWM Rate in Hz (0 = Oneshot, otherwise 50 to 400Hz)", false);
+	print_module_usage_command_descr("rate", "Configure PWM rates");
+	print_module_usage_param_int('r', -1, 50, 400, "PWM Rate in Hz (0 = Oneshot, otherwise 50 to 400Hz)", false);
 
-	PRINT_MODULE_USAGE_COMMAND_DESCR("oneshot", "Configure Oneshot125 (rate is set to 0)");
+	print_module_usage_command_descr("oneshot", "Configure Oneshot125 (rate is set to 0)");
 
-	PRINT_MODULE_USAGE_COMMAND_DESCR("failsafe", "Set Failsafe PWM value");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("disarmed", "Set Disarmed PWM value");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("min", "Set Minimum PWM value");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("max", "Set Maximum PWM value");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("test", "Set Output to a specific value until 'q' or 'c' or 'ctrl-c' pressed");
+	print_module_usage_command_descr("failsafe", "Set Failsafe PWM value");
+	print_module_usage_command_descr("disarmed", "Set Disarmed PWM value");
+	print_module_usage_command_descr("min", "Set Minimum PWM value");
+	print_module_usage_command_descr("max", "Set Maximum PWM value");
+	print_module_usage_command_descr("test", "Set Output to a specific value until 'q' or 'c' or 'ctrl-c' pressed");
 
-	PRINT_MODULE_USAGE_COMMAND_DESCR("steps", "Run 5 steps from 0 to 100%");
+	print_module_usage_command_descr("steps", "Run 5 steps from 0 to 100%");
 
 
-	PRINT_MODULE_USAGE_PARAM_COMMENT("The commands 'failsafe', 'disarmed', 'min', 'max' and 'test' require a PWM value:");
-	PRINT_MODULE_USAGE_PARAM_INT('p', 0, 0, 4000, "PWM value (eg. 1100)", false);
+	print_module_usage_param_comment("The commands 'failsafe', 'disarmed', 'min', 'max' and 'test' require a PWM value:");
+	print_module_usage_param_int('p', 0, 0, 4000, "PWM value (eg. 1100)", false);
 
-	PRINT_MODULE_USAGE_PARAM_COMMENT("The commands 'rate', 'oneshot', 'failsafe', 'disarmed', 'min', 'max', 'test' and 'steps' "
+	print_module_usage_param_comment("The commands 'rate', 'oneshot', 'failsafe', 'disarmed', 'min', 'max', 'test' and 'steps' "
 					 "additionally require to specify the channels with one of the following commands:");
-	PRINT_MODULE_USAGE_PARAM_STRING('c', nullptr, nullptr, "select channels in the form: 1234 (1 digit per channel, 1=first)",
+	print_module_usage_param_string('c', nullptr, nullptr, "select channels in the form: 1234 (1 digit per channel, 1=first)",
 					true);
-	PRINT_MODULE_USAGE_PARAM_INT('m', 0, 0, 4096, "Select channels via bitmask (eg. 0xF, 3)", true);
-	PRINT_MODULE_USAGE_PARAM_INT('g', 0, 0, 10, "Select channels by group (eg. 0, 1, 2. use 'pwm info' to show groups)",
+	print_module_usage_param_int('m', 0, 0, 4096, "Select channels via bitmask (eg. 0xF, 3)", true);
+	print_module_usage_param_int('g', 0, 0, 10, "Select channels by group (eg. 0, 1, 2. use 'pwm info' to show groups)",
 				     true);
-	PRINT_MODULE_USAGE_PARAM_FLAG('a', "Select all channels", true);
+	print_module_usage_param_flag('a', "Select all channels", true);
 
-	PRINT_MODULE_USAGE_PARAM_COMMENT("These parameters apply to all commands:");
-	PRINT_MODULE_USAGE_PARAM_STRING('d', "/dev/pwm_output0", "<file:dev>", "Select PWM output device", true);
-	PRINT_MODULE_USAGE_PARAM_FLAG('v', "Verbose output", true);
-	PRINT_MODULE_USAGE_PARAM_FLAG('e', "Exit with 1 instead of 0 on error", true);
+	print_module_usage_param_comment("These parameters apply to all commands:");
+	print_module_usage_param_string('d', "/dev/pwm_output0", "<file:dev>", "Select PWM output device", true);
+	print_module_usage_param_flag('v', "Verbose output", true);
+	print_module_usage_param_flag('e', "Exit with 1 instead of 0 on error", true);
 
 }
 
 static unsigned
-get_parameter_value(const char *option, const char *paramDescription)
+get_parameter_value(const char *option, const char *param_description)
 {
 	unsigned result_value = 0;
 
 	/* check if this is a param name */
 	if (strncmp("p:", option, 2) == 0) {
 
-		char paramName[32];
-		strncpy(paramName, option + 2, 17);
+		char param_name[32];
+		strncpy(param_name, option + 2, 17);
 		/* user wants to use a param name */
-		param_t parm = param_find(paramName);
+		param_t parm = param_find(param_name);
 
 		if (parm != PARAM_INVALID) {
 			int32_t pwm_parm;
@@ -175,12 +175,12 @@ get_parameter_value(const char *option, const char *paramDescription)
 				result_value = pwm_parm;
 
 			} else {
-				PX4_ERR("PARAM '%s' LOAD FAIL", paramDescription);
+				PX4_ERR("PARAM '%s' LOAD FAIL", param_description);
 				return gret;
 			}
 
 		} else {
-			PX4_ERR("PARAM '%s' NAME NOT FOUND", paramName);
+			PX4_ERR("PARAM '%s' NAME NOT FOUND", param_name);
 			return 1;
 		}
 
@@ -189,7 +189,7 @@ get_parameter_value(const char *option, const char *paramDescription)
 		result_value = strtoul(option, &ep, 0);
 
 		if (*ep != '\0') {
-			PX4_ERR("BAD '%s'", paramDescription);
+			PX4_ERR("BAD '%s'", param_description);
 			return 1;
 		}
 	}

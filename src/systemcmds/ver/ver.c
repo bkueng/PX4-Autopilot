@@ -79,25 +79,25 @@ static void usage(const char *reason)
 		printf("%s\n\n", reason);
 	}
 
-	PRINT_MODULE_DESCRIPTION("Tool to print various version information");
+	print_module_description("Tool to print various version information");
 
-	PRINT_MODULE_USAGE_NAME("ver", "command");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("hw", "Hardware architecture");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("mcu", "MCU info");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("git", "git version information");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("bdate", "Build date and time");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("gcc", "Compiler info");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("bdate", "Build date and time");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("uid", "UUID");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("mfguid", "Manufacturer UUID");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("uri", "Build URI");
+	print_module_usage_name("ver", "command");
+	print_module_usage_command_descr("hw", "Hardware architecture");
+	print_module_usage_command_descr("mcu", "MCU info");
+	print_module_usage_command_descr("git", "git version information");
+	print_module_usage_command_descr("bdate", "Build date and time");
+	print_module_usage_command_descr("gcc", "Compiler info");
+	print_module_usage_command_descr("bdate", "Build date and time");
+	print_module_usage_command_descr("uid", "UUID");
+	print_module_usage_command_descr("mfguid", "Manufacturer UUID");
+	print_module_usage_command_descr("uri", "Build URI");
 
-	PRINT_MODULE_USAGE_COMMAND_DESCR("all", "Print all versions");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("hwcmp", "Compare hardware version (returns 0 on match)");
-	PRINT_MODULE_USAGE_ARG("<hw> [<hw2>]",
+	print_module_usage_command_descr("all", "Print all versions");
+	print_module_usage_command_descr("hwcmp", "Compare hardware version (returns 0 on match)");
+	print_module_usage_arg("<hw> [<hw2>]",
 			       "Hardware to compare against (eg. PX4FMU_V4). An OR comparison is used if multiple are specified", false);
-	PRINT_MODULE_USAGE_COMMAND_DESCR("hwtypecmp", "Compare hardware type (returns 0 on match)");
-	PRINT_MODULE_USAGE_ARG("<hwtype> [<hwtype2>]",
+	print_module_usage_command_descr("hwtypecmp", "Compare hardware type (returns 0 on match)");
+	print_module_usage_arg("<hwtype> [<hwtype2>]",
 			       "Hardware type to compare against (eg. V2). An OR comparison is used if multiple are specified", false);
 }
 

@@ -42,7 +42,7 @@ pthread_mutex_t px4_modules_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #ifndef __PX4_NUTTX
 
-void PRINT_MODULE_DESCRIPTION(const char *description)
+void print_module_description(const char *description)
 {
 	// TODO: the output could be improved by:
 	// - mark titles in bold (lines starting with ##)
@@ -52,18 +52,18 @@ void PRINT_MODULE_DESCRIPTION(const char *description)
 
 #endif /* __PX4_NUTTX */
 
-void PRINT_MODULE_USAGE_NAME(const char *executable_name, const char *category)
+void print_module_usage_name(const char *executable_name, const char *category)
 {
 	printf("Usage: %s <command> [arguments...]\n", executable_name);
 	printf(" Commands:\n");
 }
 
-void PRINT_MODULE_USAGE_NAME_SIMPLE(const char *executable_name, const char *category)
+void print_module_usage_name_simple(const char *executable_name, const char *category)
 {
 	printf("Usage: %s [arguments...]\n", executable_name);
 }
 
-void PRINT_MODULE_USAGE_COMMAND_DESCR(const char *name, const char *description)
+void print_module_usage_command_descr(const char *name, const char *description)
 {
 	if (description) {
 		printf("\n   %-13s %s\n", name, description);
@@ -73,12 +73,12 @@ void PRINT_MODULE_USAGE_COMMAND_DESCR(const char *name, const char *description)
 	}
 }
 
-void PRINT_MODULE_USAGE_PARAM_COMMENT(const char *comment)
+void print_module_usage_param_comment(const char *comment)
 {
 	printf("\n %s\n", comment);
 }
 
-void PRINT_MODULE_USAGE_PARAM_INT(char option_char, int default_val, int min_val, int max_val,
+void print_module_usage_param_int(char option_char, int default_val, int min_val, int max_val,
 				  const char *description, bool is_optional)
 {
 	if (is_optional) {
@@ -90,7 +90,7 @@ void PRINT_MODULE_USAGE_PARAM_INT(char option_char, int default_val, int min_val
 	}
 }
 
-void PRINT_MODULE_USAGE_PARAM_FLOAT(char option_char, float default_val, float min_val, float max_val,
+void print_module_usage_param_float(char option_char, float default_val, float min_val, float max_val,
 				    const char *description, bool is_optional)
 {
 	if (is_optional) {
@@ -102,7 +102,7 @@ void PRINT_MODULE_USAGE_PARAM_FLOAT(char option_char, float default_val, float m
 	}
 }
 
-void PRINT_MODULE_USAGE_PARAM_FLAG(char option_char, const char *description, bool is_optional)
+void print_module_usage_param_flag(char option_char, const char *description, bool is_optional)
 {
 	if (is_optional) {
 		printf("     [-%c]        %s\n", option_char, description);
@@ -112,7 +112,7 @@ void PRINT_MODULE_USAGE_PARAM_FLAG(char option_char, const char *description, bo
 	}
 }
 
-void PRINT_MODULE_USAGE_PARAM_STRING(char option_char, const char *default_val, const char *values,
+void print_module_usage_param_string(char option_char, const char *default_val, const char *values,
 				     const char *description, bool is_optional)
 {
 	if (is_optional) {
@@ -138,7 +138,7 @@ void PRINT_MODULE_USAGE_PARAM_STRING(char option_char, const char *default_val, 
 }
 
 
-void PRINT_MODULE_USAGE_ARG(const char *values, const char *description, bool is_optional)
+void print_module_usage_arg(const char *values, const char *description, bool is_optional)
 {
 	if (is_optional) {
 		printf("     [%-9s] %s\n", values, description);

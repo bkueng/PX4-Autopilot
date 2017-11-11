@@ -6,8 +6,8 @@ extern orb_advert_t mavlink_log_pub;
 
 // required number of samples for sensor
 // to initialize
-static const uint32_t		REQ_BARO_INIT_COUNT = 100;
-static const uint32_t		BARO_TIMEOUT = 100000;	// 0.1 s
+static const uint32_t		req_baro_init_count = 100;
+static const uint32_t		baro_timeout = 100000;	// 0.1 s
 
 void BlockLocalPositionEstimator::baroInit()
 {
@@ -20,7 +20,7 @@ void BlockLocalPositionEstimator::baroInit()
 	}
 
 	// if finished
-	if (_baroStats.getCount() > REQ_BARO_INIT_COUNT) {
+	if (_baroStats.getCount() > req_baro_init_count) {
 		_baroAltOrigin = _baroStats.getMean()(0);
 		mavlink_and_console_log_info(&mavlink_log_pub,
 					     "[lpe] baro init %d m std %d cm",
@@ -57,23 +57,23 @@ void BlockLocalPositionEstimator::baroCorrect()
 	y -= _baroAltOrigin;
 
 	// baro measurement matrix
-	Matrix<float, n_y_baro, n_x> C;
-	C.setZero();
-	C(Y_baro_z, X_z) = -1;	// measured altitude, negative down dir.
+	Matrix<float, n_y_baro, n_x> c;
+	c.setZero();
+	c(Y_baro_z, X_z) = -1;	// measured altitude, negative down dir.
 
-	Matrix<float, n_y_baro, n_y_baro> R;
-	R.setZero();
-	R(0, 0) = _baro_stddev.get() * _baro_stddev.get();
+	Matrix<float, n_y_baro, n_y_baro> r;
+	r.setZero();
+	r(0, 0) = _baro_stddev.get() * _baro_stddev.get();
 
 	// residual
-	Matrix<float, n_y_baro, n_y_baro> S_I =
-		inv<float, n_y_baro>((C * _P * C.transpose()) + R);
-	Vector<float, n_y_baro> r = y - (C * _x);
+	Matrix<float, n_y_baro, n_y_baro> s_i =
+		inv<float, n_y_baro>((c * _P * c.transpose()) + r);
+	Vector<float, n_y_baro> r = y - (c * _x);
 
 	// fault detection
-	float beta = (r.transpose() * (S_I * r))(0, 0);
+	float beta = (r.transpose() * (s_i * r))(0, 0);
 
-	if (beta > BETA_TABLE[n_y_baro]) {
+	if (beta > beta_table[n_y_baro]) {
 		if (!(_sensorFault & SENSOR_BARO)) {
 			mavlink_log_critical(&mavlink_log_pub, "[lpe] baro fault, r %5.2f m, beta %5.2f",
 					     double(r(0)), double(beta));
@@ -86,15 +86,15 @@ void BlockLocalPositionEstimator::baroCorrect()
 	}
 
 	// kalman filter correction always
-	Matrix<float, n_x, n_y_baro> K = _P * C.transpose() * S_I;
-	Vector<float, n_x> dx = K * r;
+	Matrix<float, n_x, n_y_baro> k = _P * c.transpose() * s_i;
+	Vector<float, n_x> dx = k * r;
 	_x += dx;
-	_P -= K * C * _P;
+	_P -= k * c * _P;
 }
 
 void BlockLocalPositionEstimator::baroCheckTimeout()
 {
-	if (_timeStamp - _time_last_baro > BARO_TIMEOUT) {
+	if (_timeStamp - _time_last_baro > baro_timeout) {
 		if (!(_sensorTimeout & SENSOR_BARO)) {
 			_sensorTimeout |= SENSOR_BARO;
 			_baroStats.reset();

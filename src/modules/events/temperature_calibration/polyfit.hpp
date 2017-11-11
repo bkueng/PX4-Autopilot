@@ -113,10 +113,10 @@ Author: Siddharth Bharat Purohit
 #endif
 
 template<size_t _forder>
-class polyfitter
+class Polyfitter
 {
 public:
-	polyfitter() {}
+	Polyfitter() {}
 
 	void update(double x, double y)
 	{
@@ -127,9 +127,9 @@ public:
 	bool fit(double res[])
 	{
 		//Do inverse of VTV
-		matrix::SquareMatrix<double, _forder> IVTV;
+		matrix::SquareMatrix<double, _forder> ivtv;
 
-		IVTV = _VTV.I();
+		ivtv = _VTV.I();
 
 		for (unsigned i = 0; i < _forder; i++) {
 			for (int j = 0; j < _forder; j++) {
@@ -143,7 +143,7 @@ public:
 			res[i] = 0.0;
 
 			for (int j = 0; j < _forder; j++) {
-				res[i] += IVTV(i, j) * (double)_VTY(j);
+				res[i] += ivtv(i, j) * (double)_VTY(j);
 			}
 
 			PF_DEBUG("%.10f ", res[i]);
@@ -156,7 +156,7 @@ private:
 	matrix::SquareMatrix<double, _forder> _VTV;
 	matrix::Vector<double, _forder> _VTY;
 
-	void update_VTY(double x, double y)
+	void updateVty(double x, double y)
 	{
 		double temp = 1.0;
 		PF_DEBUG("O %.6f\n", (double)x);
@@ -170,7 +170,7 @@ private:
 		PF_DEBUG("\n");
 	}
 
-	void update_VTV(double x)
+	void updateVtv(double x)
 	{
 		double temp = 1.0f;
 		int8_t z;

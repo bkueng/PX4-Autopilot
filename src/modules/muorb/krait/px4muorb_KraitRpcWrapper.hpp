@@ -55,24 +55,24 @@ public:
 	/**
 	 * Initiatizes the rpc channel px4 muorb
 	 */
-	bool Initialize();
+	bool initialize();
 
 	/**
 	 * Terminate to clean up the resources.  This should be called at program exit
 	 */
-	bool Terminate();
+	bool terminate();
 
 	/**
 	 * Muorb related functions to pub/sub of orb topic from krait to adsp
 	 */
-	int32_t TopicAdvertised(const char *topic);
-	int32_t TopicUnadvertised(const char *topic);
-	int32_t AddSubscriber(const char *topic);
-	int32_t RemoveSubscriber(const char *topic);
-	int32_t SendData(const char *topic, int32_t length_in_bytes, const uint8_t *data);
-	int32_t ReceiveData(int32_t *msg_type, char **topic, int32_t *length_in_bytes, uint8_t **data);
-	int32_t IsSubscriberPresent(const char *topic, int32_t *status);
-	int32_t ReceiveBulkData(uint8_t **bulk_data, int32_t *length_in_bytes, int32_t *topic_count);
-	int32_t UnblockReceiveData();
+	int32_t topicAdvertised(const char *topic);
+	int32_t topicUnadvertised(const char *topic);
+	int32_t addSubscriber(const char *topic);
+	int32_t removeSubscriber(const char *topic);
+	int32_t sendData(const char *topic, int32_t length_in_bytes, const uint8_t *data);
+	int32_t receiveData(int32_t *msg_type, char **topic, int32_t *length_in_bytes, uint8_t **data);
+	int32_t isSubscriberPresent(const char *topic, int32_t *status);
+	int32_t receiveBulkData(uint8_t **bulk_data, int32_t *length_in_bytes, int32_t *topic_count);
+	int32_t unblockReceiveData();
 };
 #endif // _px4muorb_KraitWrapper_hpp_

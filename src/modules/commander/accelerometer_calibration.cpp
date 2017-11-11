@@ -155,10 +155,10 @@ static int32_t device_id[max_accel_sens];
 static int device_prio_max = 0;
 static int32_t device_id_primary = 0;
 
-calibrate_return do_accel_calibration_measurements(orb_advert_t *mavlink_log_pub, float (&accel_offs)[max_accel_sens][3], float (&accel_T)[max_accel_sens][3][3], unsigned *active_sensors);
+calibrate_return do_accel_calibration_measurements(orb_advert_t *mavlink_log_pub, float (&accel_offs)[max_accel_sens][3], float (&accel_t)[max_accel_sens][3][3], unsigned *active_sensors);
 calibrate_return read_accelerometer_avg(int sensor_correction_sub, int (&subs)[max_accel_sens], float (&accel_avg)[max_accel_sens][detect_orientation_side_count][3], unsigned orient, unsigned samples_num);
 int mat_invert3(float src[3][3], float dst[3][3]);
-calibrate_return calculate_calibration_values(unsigned sensor, float (&accel_ref)[max_accel_sens][detect_orientation_side_count][3], float (&accel_T)[max_accel_sens][3][3], float (&accel_offs)[max_accel_sens][3], float g);
+calibrate_return calculate_calibration_values(unsigned sensor, float (&accel_ref)[max_accel_sens][detect_orientation_side_count][3], float (&accel_t)[max_accel_sens][3][3], float (&accel_offs)[max_accel_sens][3], float g);
 
 /// Data passed to calibration worker routine
 typedef struct  {
@@ -244,12 +244,12 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 	}
 
 	float accel_offs[max_accel_sens][3];
-	float accel_T[max_accel_sens][3][3];
+	float accel_t[max_accel_sens][3][3];
 	unsigned active_sensors = 0;
 
 	/* measure and calculate offsets & scales */
 	if (res == PX4_OK) {
-		calibrate_return cal_return = do_accel_calibration_measurements(mavlink_log_pub, accel_offs, accel_T, &active_sensors);
+		calibrate_return cal_return = do_accel_calibration_measurements(mavlink_log_pub, accel_offs, accel_t, &active_sensors);
 		if (cal_return == calibrate_return_cancelled) {
 			// Cancel message already displayed, nothing left to do
 			return PX4_ERROR;
@@ -283,15 +283,15 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 		/* handle individual sensors, one by one */
 		math::Vector<3> accel_offs_vec(accel_offs[uorb_index]);
 		math::Vector<3> accel_offs_rotated = board_rotation_t * accel_offs_vec;
-		math::Matrix<3, 3> accel_T_mat(accel_T[uorb_index]);
-		math::Matrix<3, 3> accel_T_rotated = board_rotation_t * accel_T_mat * board_rotation;
+		math::Matrix<3, 3> accel_t_mat(accel_t[uorb_index]);
+		math::Matrix<3, 3> accel_t_rotated = board_rotation_t * accel_t_mat * board_rotation;
 
 		accel_scale.x_offset = accel_offs_rotated(0);
-		accel_scale.x_scale = accel_T_rotated(0, 0);
+		accel_scale.x_scale = accel_t_rotated(0, 0);
 		accel_scale.y_offset = accel_offs_rotated(1);
-		accel_scale.y_scale = accel_T_rotated(1, 1);
+		accel_scale.y_scale = accel_t_rotated(1, 1);
 		accel_scale.z_offset = accel_offs_rotated(2);
-		accel_scale.z_scale = accel_T_rotated(2, 2);
+		accel_scale.z_scale = accel_t_rotated(2, 2);
 
 		bool failed = false;
 
@@ -441,7 +441,7 @@ static calibrate_return accel_calibration_worker(detect_orientation_return orien
 	return calibrate_return_ok;
 }
 
-calibrate_return do_accel_calibration_measurements(orb_advert_t *mavlink_log_pub, float (&accel_offs)[max_accel_sens][3], float (&accel_T)[max_accel_sens][3][3], unsigned *active_sensors)
+calibrate_return do_accel_calibration_measurements(orb_advert_t *mavlink_log_pub, float (&accel_offs)[max_accel_sens][3], float (&accel_t)[max_accel_sens][3][3], unsigned *active_sensors)
 {
 	calibrate_return result = calibrate_return_ok;
 
@@ -551,7 +551,7 @@ calibrate_return do_accel_calibration_measurements(orb_advert_t *mavlink_log_pub
 	if (result == calibrate_return_ok) {
 		/* calculate offsets and transform matrix */
 		for (unsigned i = 0; i < (*active_sensors); i++) {
-			result = calculate_calibration_values(i, worker_data.accel_ref, accel_T, accel_offs, CONSTANTS_ONE_G);
+			result = calculate_calibration_values(i, worker_data.accel_ref, accel_t, accel_offs, CONSTANTS_ONE_G);
 
 			if (result != calibrate_return_ok) {
 				calibration_log_critical(mavlink_log_pub, "[cal] ERROR: calibration calculation error");
@@ -705,7 +705,7 @@ int mat_invert3(float src[3][3], float dst[3][3])
 	return PX4_OK;
 }
 
-calibrate_return calculate_calibration_values(unsigned sensor, float (&accel_ref)[max_accel_sens][detect_orientation_side_count][3], float (&accel_T)[max_accel_sens][3][3], float (&accel_offs)[max_accel_sens][3], float g)
+calibrate_return calculate_calibration_values(unsigned sensor, float (&accel_ref)[max_accel_sens][detect_orientation_side_count][3], float (&accel_t)[max_accel_sens][3][3], float (&accel_offs)[max_accel_sens][3], float g)
 {
 	/* calculate offsets */
 	for (unsigned i = 0; i < 3; i++) {
@@ -713,20 +713,20 @@ calibrate_return calculate_calibration_values(unsigned sensor, float (&accel_ref
 	}
 
 	/* fill matrix A for linear equations system*/
-	float mat_A[3][3];
-	memset(mat_A, 0, sizeof(mat_A));
+	float mat_a[3][3];
+	memset(mat_a, 0, sizeof(mat_a));
 
 	for (unsigned i = 0; i < 3; i++) {
 		for (unsigned j = 0; j < 3; j++) {
 			float a = accel_ref[sensor][i * 2][j] - accel_offs[sensor][j];
-			mat_A[i][j] = a;
+			mat_a[i][j] = a;
 		}
 	}
 
 	/* calculate inverse matrix for A */
-	float mat_A_inv[3][3];
+	float mat_a_inv[3][3];
 
-	if (mat_invert3(mat_A, mat_A_inv) != PX4_OK) {
+	if (mat_invert3(mat_a, mat_a_inv) != PX4_OK) {
 		return calibrate_return_error;
 	}
 
@@ -734,7 +734,7 @@ calibrate_return calculate_calibration_values(unsigned sensor, float (&accel_ref
 	for (unsigned i = 0; i < 3; i++) {
 		for (unsigned j = 0; j < 3; j++) {
 			/* simplify matrices mult because b has only one non-zero element == g at index i */
-			accel_T[sensor][j][i] = mat_A_inv[j][i] * g;
+			accel_t[sensor][j][i] = mat_a_inv[j][i] * g;
 		}
 	}
 

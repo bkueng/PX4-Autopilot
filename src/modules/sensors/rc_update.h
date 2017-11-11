@@ -77,30 +77,30 @@ public:
 	/**
 	 * Check for changes in rc_parameter_map
 	 */
-	void rc_parameter_map_poll(ParameterHandles &parameter_handles, bool forced = false);
+	void rcParameterMapPoll(parameter_handles &parameter_handles, bool forced = false);
 
 	/**
 	 * update the RC functions. Call this when the parameters change.
 	 */
-	void update_rc_functions();
+	void updateRcFunctions();
 
 	/**
 	 * Gather and publish RC input data.
 	 */
-	void		rc_poll(const ParameterHandles &parameter_handles);
+	void		rcPoll(const ParameterHandles &parameter_handles);
 
 private:
 
 	/**
 	 * Get and limit value for specified RC function. Returns NAN if not mapped.
 	 */
-	float		get_rc_value(uint8_t func, float min_value, float max_value);
+	float		getRcValue(uint8_t func, float min_value, float max_value);
 
 	/**
 	 * Get switch position for specified function.
 	 */
-	switch_pos_t	get_rc_sw3pos_position(uint8_t func, float on_th, bool on_inv, float mid_th, bool mid_inv);
-	switch_pos_t	get_rc_sw2pos_position(uint8_t func, float on_th, bool on_inv);
+	switch_pos_t	getRcSw3posPosition(uint8_t func, float on_th, bool on_inv, float mid_th, bool mid_inv);
+	switch_pos_t	getRcSw2posPosition(uint8_t func, float on_th, bool on_inv);
 
 	/**
 	 * Update parameters from RC channels if the functionality is activated and the
@@ -108,7 +108,7 @@ private:
 	 *
 	 * @param
 	 */
-	void set_params_from_rc(const ParameterHandles &parameter_handles);
+	void setParamsFromRc(const ParameterHandles &parameter_handles);
 
 
 	int		_rc_sub = -1;			/**< raw rc channels data subscription */
@@ -121,7 +121,7 @@ private:
 	struct rc_channels_s _rc;			/**< r/c channel data */
 
 	struct rc_parameter_map_s _rc_parameter_map;
-	float _param_rc_values[rc_parameter_map_s::RC_PARAM_MAP_NCHAN];	/**< parameter values for RC control */
+	float _param_rc_values[rc_parameter_map_s::rc_param_map_nchan];	/**< parameter values for RC control */
 
 	const Parameters &_parameters;
 

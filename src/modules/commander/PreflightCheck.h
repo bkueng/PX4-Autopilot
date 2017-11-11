@@ -43,7 +43,7 @@
 
 #pragma once
 
-namespace Commander
+namespace commander
 {
 /**
 * Runs a preflight check on all sensors to see if they are properly calibrated and healthy
@@ -68,8 +68,8 @@ namespace Commander
 * @param checkGNSS
 *   true if the GNSS receiver should be checked
 **/
-bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool checkAirspeed, bool checkRC, bool checkGNSS,
-    bool checkDynamic, bool isVTOL, bool reportFailures, bool prearm, hrt_abstime time_since_boot);
+bool preflight_check(orb_advert_t *mavlink_log_pub, bool check_sensors, bool check_airspeed, bool check_rc, bool check_gnss,
+    bool check_dynamic, bool is_vtol, bool report_failures, bool prearm, hrt_abstime time_since_boot);
 
 static constexpr unsigned max_mandatory_gyro_count = 1;
 static constexpr unsigned max_optional_gyro_count = 3;

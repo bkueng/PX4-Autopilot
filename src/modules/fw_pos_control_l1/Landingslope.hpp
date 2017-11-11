@@ -115,14 +115,14 @@ public:
 	void update(float landing_slope_angle_rad_new,
 		    float flare_relative_alt_new,
 		    float motor_lim_relative_alt_new,
-		    float H1_virt_new);
+		    float h1_virt_new);
 
 
-	float landing_slope_angle_rad() { return _landing_slope_angle_rad; }
-	float flare_relative_alt() { return _flare_relative_alt; }
-	float motor_lim_relative_alt() { return _motor_lim_relative_alt; }
-	float flare_length() { return _flare_length; }
-	float horizontal_slope_displacement() { return _horizontal_slope_displacement; }
+	float landingSlopeAngleRad() { return _landing_slope_angle_rad; }
+	float flareRelativeAlt() { return _flare_relative_alt; }
+	float motorLimRelativeAlt() { return _motor_lim_relative_alt; }
+	float flareLength() { return _flare_length; }
+	float horizontalSlopeDisplacement() { return _horizontal_slope_displacement; }
 
 };
 

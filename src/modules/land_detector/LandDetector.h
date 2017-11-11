@@ -68,16 +68,16 @@ public:
 	LandDetector();
 	virtual ~LandDetector();
 
-	static int task_spawn(int argc, char *argv[]);
+	static int taskSpawn(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int custom_command(int argc, char *argv[])
+	static int customCommand(int argc, char *argv[])
 	{
-		return print_usage("unknown command");
+		return printUsage("unknown command");
 	}
 
 	/** @see ModuleBase */
-	static int print_usage(const char *reason = nullptr);
+	static int printUsage(const char *reason = nullptr);
 
 	/** @see ModuleBase::print_status() */
 	int print_status() override;
@@ -85,7 +85,7 @@ public:
 	/**
 	 * @return current state.
 	 */
-	LandDetectionState get_state() const
+	LandDetectionState getState() const
 	{
 		return _state;
 	}
@@ -99,52 +99,52 @@ protected:
 	/**
 	 * Called once to initialize uORB topics.
 	 */
-	virtual void _initialize_topics() = 0;
+	virtual void initializeTopics() = 0;
 
 	/**
 	 * Update uORB topics.
 	 */
-	virtual void _update_topics() = 0;
+	virtual void updateTopics() = 0;
 
 	/**
 	 * Update parameters.
 	 */
-	virtual void _update_params() = 0;
+	virtual void updateParams() = 0;
 
 	/**
 	 * @return true if UAV is in a landed state.
 	 */
-	virtual bool _get_landed_state() = 0;
+	virtual bool getLandedState() = 0;
 
 	/**
 	 * @return true if UAV is in almost landed state
 	 */
-	virtual bool _get_maybe_landed_state() = 0;
+	virtual bool getMaybeLandedState() = 0;
 
 	/**
 	 * @return true if UAV is touching ground but not landed
 	 */
-	virtual bool _get_ground_contact_state()  = 0;
+	virtual bool getGroundContactState()  = 0;
 
 	/**
 	 * @return true if UAV is in free-fall state.
 	 */
-	virtual bool _get_freefall_state() = 0;
+	virtual bool getFreefallState() = 0;
 
 	/**
 	 *  @return maximum altitude that can be reached
 	 */
-	virtual float _get_max_altitude() = 0;
+	virtual float getMaxAltitude() = 0;
 
 	/**
 	 * Convenience function for polling uORB subscriptions.
 	 *
 	 * @return true if there was new data and it was successfully copied
 	 */
-	static bool _orb_update(const struct orb_metadata *meta, int handle, void *buffer);
+	static bool orbUpdate(const struct orb_metadata *meta, int handle, void *buffer);
 
 	/** Run main land detector loop at this rate in Hz. */
-	static constexpr uint32_t LAND_DETECTOR_UPDATE_RATE_HZ = 50;
+	static constexpr uint32_t land_detector_update_rate_hz = 50;
 
 	orb_advert_t _landDetectedPub{nullptr};
 	vehicle_land_detected_s _landDetected{};
@@ -159,13 +159,13 @@ protected:
 	systemlib::Hysteresis _ground_contact_hysteresis{true};
 
 private:
-	static void _cycle_trampoline(void *arg);
+	static void cycleTrampoline(void *arg);
 
-	void _cycle();
+	void cycle();
 
-	void _check_params(const bool force);
+	void checkParams(const bool force);
 
-	void _update_state();
+	void updateState();
 
 	param_t _p_total_flight_time_high{PARAM_INVALID};
 	param_t _p_total_flight_time_low{PARAM_INVALID};

@@ -43,15 +43,15 @@
 #include <unistd.h>
 #include <stdio.h>
 
-px4::AppState HelloExample::appState;
+px4::AppState HelloExample::app_state;
 
 int HelloExample::main()
 {
-	appState.setRunning(true);
+	app_state.setRunning(true);
 
 	int i = 0;
 
-	while (!appState.exitRequested() && i < 5) {
+	while (!app_state.exitRequested() && i < 5) {
 		sleep(2);
 
 		printf("  Doing work...\n");

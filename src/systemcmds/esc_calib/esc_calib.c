@@ -70,7 +70,7 @@ usage(const char *reason)
 		PX4_ERR("%s", reason);
 	}
 
-	PRINT_MODULE_DESCRIPTION("Tool for ESC calibration\n"
+	print_module_description("Tool for ESC calibration\n"
 				 "\n"
 				 "Calibration procedure (running the command will guide you through it):\n"
 				 "- Remove props, power off the ESC's\n"
@@ -79,14 +79,14 @@ usage(const char *reason)
 				 "- Run this command\n"
 				);
 
-	PRINT_MODULE_USAGE_NAME_SIMPLE("esc_calib", "command");
-	PRINT_MODULE_USAGE_PARAM_STRING('d', "/dev/pwm_output0", "<file:dev>", "Select PWM output device", true);
-	PRINT_MODULE_USAGE_PARAM_INT('l', 1000, 0, 3000, "Low PWM value in us", true);
-	PRINT_MODULE_USAGE_PARAM_INT('h', 2000, 0, 3000, "High PWM value in us", true);
-	PRINT_MODULE_USAGE_PARAM_STRING('c', NULL, NULL, "select channels in the form: 1234 (1 digit per channel, 1=first)",
+	print_module_usage_name_simple("esc_calib", "command");
+	print_module_usage_param_string('d', "/dev/pwm_output0", "<file:dev>", "Select PWM output device", true);
+	print_module_usage_param_int('l', 1000, 0, 3000, "Low PWM value in us", true);
+	print_module_usage_param_int('h', 2000, 0, 3000, "High PWM value in us", true);
+	print_module_usage_param_string('c', NULL, NULL, "select channels in the form: 1234 (1 digit per channel, 1=first)",
 					true);
-	PRINT_MODULE_USAGE_PARAM_INT('m', 0, 0, 4096, "Select channels via bitmask (eg. 0xF, 3)", true);
-	PRINT_MODULE_USAGE_PARAM_FLAG('a', "Select all channels", true);
+	print_module_usage_param_int('m', 0, 0, 4096, "Select channels via bitmask (eg. 0xF, 3)", true);
+	print_module_usage_param_flag('a', "Select all channels", true);
 }
 
 int

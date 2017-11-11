@@ -96,7 +96,7 @@ public:
 	/**
 	 * Before iterating using get_next(), reset to start.
 	 */
-	void reset_to_start()
+	void resetToStart()
 	{
 		_current_i = -1;
 	}
@@ -107,7 +107,7 @@ public:
 	 *
 	 * This is basically a poor man's iterator.
 	 */
-	T *get_next()
+	T *getNext()
 	{
 		// Increment first, then leave it until called again.
 		++_current_i;
@@ -125,7 +125,7 @@ public:
 	/**
 	 * Disable the last item that we have gotten.
 	 */
-	void drop_current()
+	void dropCurrent()
 	{
 		if (_current_i < _list_len) {
 			_list[_current_i].timestamp_us = 0;
@@ -135,7 +135,7 @@ public:
 	/**
 	 * Update the timestamp of the item we have gotten.
 	 */
-	void update_current()
+	void updateCurrent()
 	{
 		if (_current_i < _list_len) {
 			_list[_current_i].timestamp = hrt_absolute_time();

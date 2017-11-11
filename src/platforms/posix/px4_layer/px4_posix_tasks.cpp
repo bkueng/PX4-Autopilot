@@ -65,7 +65,7 @@
 #define PX4_MAX_TASKS 50
 #define SHELL_TASK_ID (PX4_MAX_TASKS+1)
 
-pthread_t _shell_task_id = 0;
+pthread_t shell_task_id = 0;
 pthread_mutex_t task_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 struct task_entry {

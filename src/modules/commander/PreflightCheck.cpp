@@ -75,7 +75,7 @@
 
 using namespace DriverFramework;
 
-namespace Commander
+namespace commander
 {
 
 static int check_calibration(DevHandle &h, const char *param_template, int &devid)
@@ -119,7 +119,7 @@ static int check_calibration(DevHandle &h, const char *param_template, int &devi
 	return !calibration_found;
 }
 
-static bool magnometerCheck(orb_advert_t *mavlink_log_pub, unsigned instance, bool optional, int &device_id, bool report_fail)
+static bool magnometer_check(orb_advert_t *mavlink_log_pub, unsigned instance, bool optional, int &device_id, bool report_fail)
 {
 	bool success = true;
 
@@ -163,7 +163,7 @@ out:
 	return success;
 }
 
-static bool imuConsistencyCheck(orb_advert_t *mavlink_log_pub, bool report_status)
+static bool imu_consistency_check(orb_advert_t *mavlink_log_pub, bool report_status)
 {
 	bool success = true; // start with a pass and change to a fail if any test fails
 	float test_limit = 1.0f; // pass limit re-used for each test
@@ -214,7 +214,7 @@ out:
 }
 
 // return false if the magnetomer measurements are inconsistent
-static bool magConsistencyCheck(orb_advert_t *mavlink_log_pub, bool report_status)
+static bool mag_consistency_check(orb_advert_t *mavlink_log_pub, bool report_status)
 {
 	// get the sensor preflight data
 	int sensors_sub = orb_subscribe(ORB_ID(sensor_preflight));
@@ -239,7 +239,7 @@ static bool magConsistencyCheck(orb_advert_t *mavlink_log_pub, bool report_statu
 	return true;
 }
 
-static bool accelerometerCheck(orb_advert_t *mavlink_log_pub, unsigned instance, bool optional, bool dynamic, int &device_id, bool report_fail)
+static bool accelerometer_check(orb_advert_t *mavlink_log_pub, unsigned instance, bool optional, bool dynamic, int &device_id, bool report_fail)
 {
 	bool success = true;
 
@@ -312,7 +312,7 @@ out:
 	return success;
 }
 
-static bool gyroCheck(orb_advert_t *mavlink_log_pub, unsigned instance, bool optional, int &device_id, bool report_fail)
+static bool gyro_check(orb_advert_t *mavlink_log_pub, unsigned instance, bool optional, int &device_id, bool report_fail)
 {
 	bool success = true;
 
@@ -356,7 +356,7 @@ out:
 	return success;
 }
 
-static bool baroCheck(orb_advert_t *mavlink_log_pub, unsigned instance, bool optional, int &device_id, bool report_fail)
+static bool baro_check(orb_advert_t *mavlink_log_pub, unsigned instance, bool optional, int &device_id, bool report_fail)
 {
 	bool success = true;
 
@@ -392,7 +392,7 @@ static bool baroCheck(orb_advert_t *mavlink_log_pub, unsigned instance, bool opt
 	return success;
 }
 
-static bool airspeedCheck(orb_advert_t *mavlink_log_pub, bool optional, bool report_fail, bool prearm)
+static bool airspeed_check(orb_advert_t *mavlink_log_pub, bool optional, bool report_fail, bool prearm)
 {
 	bool success = true;
 
@@ -453,15 +453,15 @@ out:
 	return success;
 }
 
-static bool gnssCheck(orb_advert_t *mavlink_log_pub, bool report_fail, bool &lock_detected)
+static bool gnss_check(orb_advert_t *mavlink_log_pub, bool report_fail, bool &lock_detected)
 {
 	bool success = true;
 	lock_detected = false;
-	int gpsSub = orb_subscribe(ORB_ID(vehicle_gps_position));
+	int gps_sub = orb_subscribe(ORB_ID(vehicle_gps_position));
 
 	//Wait up to 2000ms to allow the driver to detect a GNSS receiver module
 	px4_pollfd_struct_t fds[1];
-	fds[0].fd = gpsSub;
+	fds[0].fd = gps_sub;
 	fds[0].events = POLLIN;
 
 	if (px4_poll(fds, 1, 2000) <= 0) {
@@ -470,7 +470,7 @@ static bool gnssCheck(orb_advert_t *mavlink_log_pub, bool report_fail, bool &loc
 	} else {
 		struct vehicle_gps_position_s gps;
 
-		if ((OK != orb_copy(ORB_ID(vehicle_gps_position), gpsSub, &gps)) ||
+		if ((OK != orb_copy(ORB_ID(vehicle_gps_position), gps_sub, &gps)) ||
 		    (hrt_elapsed_time(&gps.timestamp) > 1000000)) {
 			success = false;
 		} else if (gps.fix_type >= 3) {
@@ -485,11 +485,11 @@ static bool gnssCheck(orb_advert_t *mavlink_log_pub, bool report_fail, bool &loc
 		}
 	}
 
-	orb_unsubscribe(gpsSub);
+	orb_unsubscribe(gps_sub);
 	return success;
 }
 
-static bool ekf2Check(orb_advert_t *mavlink_log_pub, bool optional, bool report_fail, bool enforce_gps_required)
+static bool ekf2_check(orb_advert_t *mavlink_log_pub, bool optional, bool report_fail, bool enforce_gps_required)
 {
 	bool success = true; // start with a pass and change to a fail if any test fails
 	float test_limit = 1.0f; // pass limit re-used for each test
@@ -546,10 +546,10 @@ static bool ekf2Check(orb_advert_t *mavlink_log_pub, bool optional, bool report_
 
 	// If GPS aiding is required, declare fault condition if the required GPS quality checks are failing
 	if (enforce_gps_required) {
-		if ((status.gps_check_fail_flags & ((1 << estimator_status_s::GPS_CHECK_FAIL_MIN_SAT_COUNT)
-						    + (1 << estimator_status_s::GPS_CHECK_FAIL_MIN_GDOP)
-						    + (1 << estimator_status_s::GPS_CHECK_FAIL_MAX_HORZ_ERR)
-						    + (1 << estimator_status_s::GPS_CHECK_FAIL_MAX_VERT_ERR))) > 0) {
+		if ((status.gps_check_fail_flags & ((1 << estimator_status_s::gps_check_fail_min_sat_count)
+						    + (1 << estimator_status_s::gps_check_fail_min_gdop)
+						    + (1 << estimator_status_s::gps_check_fail_max_horz_err)
+						    + (1 << estimator_status_s::gps_check_fail_max_vert_err))) > 0) {
 			if (report_fail) {
 				mavlink_log_critical(mavlink_log_pub, "PREFLIGHT FAIL: GPS QUALITY CHECKS");
 			}
@@ -593,8 +593,8 @@ out:
 	return success;
 }
 
-bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool checkAirspeed, bool checkRC, bool checkGNSS,
-		    bool checkDynamic, bool isVTOL, bool reportFailures, bool prearm, hrt_abstime time_since_boot)
+bool preflight_check(orb_advert_t *mavlink_log_pub, bool check_sensors, bool check_airspeed, bool check_rc, bool check_gnss,
+		    bool check_dynamic, bool is_vtol, bool report_failures, bool prearm, hrt_abstime time_since_boot)
 {
 
 	if (time_since_boot < 2000000) {
@@ -621,7 +621,7 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool check
 	bool failed = false;
 
 	/* ---- MAG ---- */
-	if (checkSensors) {
+	if (check_sensors) {
 		bool prime_found = false;
 		int32_t prime_id = 0;
 		param_get(param_find("CAL_MAG_PRIME"), &prime_id);
@@ -631,7 +631,7 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool check
 			bool required = (i < max_mandatory_mag_count);
 			int device_id = -1;
 
-			if (!magnometerCheck(mavlink_log_pub, i, !required, device_id, reportFailures) && required) {
+			if (!magnometer_check(mavlink_log_pub, i, !required, device_id, report_failures) && required) {
 				failed = true;
 			}
 
@@ -642,21 +642,21 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool check
 
 		/* check if the primary device is present */
 		if (!prime_found && prime_id != 0) {
-			if (reportFailures) {
+			if (report_failures) {
 				mavlink_log_critical(mavlink_log_pub, "Warning: Primary compass not found");
 			}
 			failed = true;
 		}
 
 		/* fail if mag sensors are inconsistent */
-		if (!magConsistencyCheck(mavlink_log_pub, reportFailures)) {
+		if (!mag_consistency_check(mavlink_log_pub, report_failures)) {
 			failed = true;
 		}
 
 	}
 
 	/* ---- ACCEL ---- */
-	if (checkSensors) {
+	if (check_sensors) {
 		bool prime_found = false;
 		int32_t prime_id = 0;
 		param_get(param_find("CAL_ACC_PRIME"), &prime_id);
@@ -666,7 +666,7 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool check
 			bool required = (i < max_mandatory_accel_count);
 			int device_id = -1;
 
-			if (!accelerometerCheck(mavlink_log_pub, i, !required, checkDynamic, device_id, reportFailures) && required) {
+			if (!accelerometer_check(mavlink_log_pub, i, !required, check_dynamic, device_id, report_failures) && required) {
 				failed = true;
 			}
 
@@ -677,7 +677,7 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool check
 
 		/* check if the primary device is present */
 		if (!prime_found && prime_id != 0) {
-			if (reportFailures) {
+			if (report_failures) {
 				mavlink_log_critical(mavlink_log_pub, "Warning: Primary accelerometer not found");
 			}
 			failed = true;
@@ -685,7 +685,7 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool check
 	}
 
 	/* ---- GYRO ---- */
-	if (checkSensors) {
+	if (check_sensors) {
 		bool prime_found = false;
 		int32_t prime_id = 0;
 		param_get(param_find("CAL_GYRO_PRIME"), &prime_id);
@@ -695,7 +695,7 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool check
 			bool required = (i < max_mandatory_gyro_count);
 			int device_id = -1;
 
-			if (!gyroCheck(mavlink_log_pub, i, !required, device_id, reportFailures) && required) {
+			if (!gyro_check(mavlink_log_pub, i, !required, device_id, report_failures) && required) {
 				failed = true;
 			}
 
@@ -706,7 +706,7 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool check
 
 		/* check if the primary device is present */
 		if (!prime_found && prime_id != 0) {
-			if (reportFailures) {
+			if (report_failures) {
 				mavlink_log_critical(mavlink_log_pub, "Warning: Primary gyro not found");
 			}
 			failed = true;
@@ -714,7 +714,7 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool check
 	}
 
 	/* ---- BARO ---- */
-	if (checkSensors) {
+	if (check_sensors) {
 		bool prime_found = false;
 		int32_t prime_id = 0;
 		param_get(param_find("CAL_BARO_PRIME"), &prime_id);
@@ -724,7 +724,7 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool check
 			bool required = (i < max_mandatory_baro_count);
 			int device_id = -1;
 
-			if (!baroCheck(mavlink_log_pub, i, !required, device_id, reportFailures) && required) {
+			if (!baro_check(mavlink_log_pub, i, !required, device_id, report_failures) && required) {
 				failed = true;
 			}
 
@@ -736,7 +736,7 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool check
 		// TODO there is no logic in place to calibrate the primary baro yet
 		// // check if the primary device is present
 		if (!prime_found && prime_id != 0) {
-			if (reportFailures) {
+			if (report_failures) {
 				mavlink_log_critical(mavlink_log_pub, "warning: primary barometer not operational");
 			}
 			failed = true;
@@ -744,23 +744,23 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool check
 	}
 
 	/* ---- IMU CONSISTENCY ---- */
-	if (checkSensors) {
-		if (!imuConsistencyCheck(mavlink_log_pub, reportFailures)) {
+	if (check_sensors) {
+		if (!imu_consistency_check(mavlink_log_pub, report_failures)) {
 			failed = true;
 		}
 	}
 
 	/* ---- AIRSPEED ---- */
-	if (checkAirspeed) {
-		if (!airspeedCheck(mavlink_log_pub, true, reportFailures, prearm)) {
+	if (check_airspeed) {
+		if (!airspeed_check(mavlink_log_pub, true, report_failures, prearm)) {
 			failed = true;
 		}
 	}
 
 	/* ---- RC CALIBRATION ---- */
-	if (checkRC) {
-		if (rc_calibration_check(mavlink_log_pub, reportFailures, isVTOL) != OK) {
-			if (reportFailures) {
+	if (check_rc) {
+		if (rc_calibration_check(mavlink_log_pub, report_failures, is_vtol) != OK) {
+			if (report_failures) {
 				mavlink_log_critical(mavlink_log_pub, "RC calibration check failed");
 			}
 			failed = true;
@@ -768,14 +768,14 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool check
 	}
 
 	/* ---- Global Navigation Satellite System receiver ---- */
-	static hrt_abstime _time_last_no_gps_lock = 0;
-	if (checkGNSS) {
+	static hrt_abstime time_last_no_gps_lock = 0;
+	if (check_gnss) {
 		bool lock_detected = false;
-		if (!gnssCheck(mavlink_log_pub, reportFailures, lock_detected)) {
+		if (!gnss_check(mavlink_log_pub, report_failures, lock_detected)) {
 			failed = true;
 		}
 		if (!lock_detected) {
-			_time_last_no_gps_lock = time_since_boot;
+			time_last_no_gps_lock = time_since_boot;
 		}
 	}
 
@@ -783,11 +783,11 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, bool checkSensors, bool check
 	// only check EKF2 data if EKF2 is selected as the estimator and GNSS checking is enabled
 	int32_t estimator_type;
 	param_get(param_find("SYS_MC_EST_GROUP"), &estimator_type);
-	if (estimator_type == 2 && checkGNSS) {
+	if (estimator_type == 2 && check_gnss) {
 		// don't fail if not using GPS for the first 20s after gaining 3D lock because quality checks take time to pass
-		bool enforce_gps_required = (_time_last_no_gps_lock > 20 * 1000000);
+		bool enforce_gps_required = (time_last_no_gps_lock > 20 * 1000000);
 
-		if (!ekf2Check(mavlink_log_pub, true, reportFailures, enforce_gps_required)) {
+		if (!ekf2_check(mavlink_log_pub, true, report_failures, enforce_gps_required)) {
 			failed = true;
 		}
 	}

@@ -49,7 +49,7 @@ class Tiltrotor : public VtolType
 
 public:
 
-	Tiltrotor(VtolAttitudeControl *_att_controller);
+	Tiltrotor(VtolAttitudeControl *att_controller);
 	~Tiltrotor();
 
 	virtual void update_vtol_state();
@@ -125,17 +125,17 @@ private:
 	/**
 	 * Return a bitmap of channels that should be turned off in fixed wing mode.
 	 */
-	int get_motor_off_channels(const int channels);
+	int getMotorOffChannels(const int channels);
 
 	/**
 	 * Return true if the motor channel is off in fixed wing mode.
 	 */
-	bool is_motor_off_channel(const int channel);
+	bool isMotorOffChannel(const int channel);
 
 	/**
 	 * Adjust the state of the rear motors. In fw mode they shouldn't spin.
 	 */
-	void set_rear_motor_state(rear_motor_state state, int value = 0);
+	void setRearMotorState(rear_motor_state state, int value = 0);
 
 	/**
 	 * Update parameters.

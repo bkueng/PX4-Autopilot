@@ -28,7 +28,7 @@ bool SF0XTest::run_tests()
 
 bool SF0XTest::sf0xTest()
 {
-	const char _LINE_MAX = 20;
+	const char line_max = 20;
 	//char _linebuf[_LINE_MAX];
 	//_linebuf[0] = '\0';
 
@@ -52,8 +52,8 @@ bool SF0XTest::sf0xTest()
 
 	enum SF0X_PARSE_STATE state = SF0X_PARSE_STATE0_UNSYNC;
 	float dist_m;
-	char _parserbuf[_LINE_MAX];
-	unsigned _parsebuf_index = 0;
+	char parserbuf[line_max];
+	unsigned parsebuf_index = 0;
 
 	for (unsigned l = 0; l < sizeof(lines) / sizeof(lines[0]); l++) {
 		//printf("\n%s", _linebuf);
@@ -61,7 +61,7 @@ bool SF0XTest::sf0xTest()
 		int parse_ret;
 
 		for (int i = 0; i < strlen(lines[l]); i++) {
-			parse_ret = sf0x_parser(lines[l][i], _parserbuf, &_parsebuf_index, &state, &dist_m);
+			parse_ret = sf0x_parser(lines[l][i], parserbuf, &parsebuf_index, &state, &dist_m);
 
 			if (parse_ret == 0) {
 				if (l == 0) {

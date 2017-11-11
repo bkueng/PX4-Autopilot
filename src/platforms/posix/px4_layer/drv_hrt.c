@@ -64,34 +64,34 @@ static void		hrt_call_reschedule(void);
 #define HRT_INTERVAL_MIN	50
 #define HRT_INTERVAL_MAX	50000000
 
-static px4_sem_t 	_hrt_lock;
-static struct work_s	_hrt_work;
+static px4_sem_t 	hrt_lock;
+static struct work_s	hrt_work;
 #ifndef __PX4_QURT
 static hrt_abstime px4_timestart = 0;
 #else
 static int32_t dsp_offset = 0;
 #endif
-static hrt_abstime _start_delay_time = 0;
-static hrt_abstime _delay_interval = 0;
+static hrt_abstime start_delay_time = 0;
+static hrt_abstime delay_interval = 0;
 static hrt_abstime max_time = 0;
-pthread_mutex_t _hrt_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t hrt_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void
 hrt_call_invoke(void);
 
 static hrt_abstime
-_hrt_absolute_time_internal(void);
+hrt_absolute_time_internal(void);
 
 __EXPORT hrt_abstime hrt_reset(void);
 
 static void hrt_lock(void)
 {
-	px4_sem_wait(&_hrt_lock);
+	px4_sem_wait(&hrt_lock);
 }
 
 static void hrt_unlock(void)
 {
-	px4_sem_post(&_hrt_lock);
+	px4_sem_post(&hrt_lock);
 }
 
 #if defined(__PX4_APPLE_LEGACY)
@@ -150,7 +150,7 @@ uint64_t hrt_system_time(void)
 /*
  * Get absolute time.
  */
-hrt_abstime _hrt_absolute_time_internal(void)
+hrt_abstime hrt_absolute_time_internal(void)
 {
 	struct timespec ts;
 
@@ -190,18 +190,18 @@ int hrt_set_absolute_time_offset(int32_t time_diff_us)
  */
 hrt_abstime hrt_absolute_time(void)
 {
-	pthread_mutex_lock(&_hrt_mutex);
+	pthread_mutex_lock(&hrt_mutex);
 
 	hrt_abstime ret;
 
-	if (_start_delay_time > 0) {
-		ret = _start_delay_time;
+	if (start_delay_time > 0) {
+		ret = start_delay_time;
 
 	} else {
-		ret = _hrt_absolute_time_internal();
+		ret = hrt_absolute_time_internal();
 	}
 
-	ret -= _delay_interval;
+	ret -= delay_interval;
 
 	if (ret < max_time) {
 		PX4_ERR("WARNING! TIME IS NEGATIVE! %d vs %d", (int)ret, (int)max_time);
@@ -209,7 +209,7 @@ hrt_abstime hrt_absolute_time(void)
 	}
 
 	max_time = ret;
-	pthread_mutex_unlock(&_hrt_mutex);
+	pthread_mutex_unlock(&hrt_mutex);
 
 	return ret;
 }
@@ -220,7 +220,7 @@ __EXPORT hrt_abstime hrt_reset(void)
 	px4_timestart = 0;
 #endif
 	max_time = 0;
-	return _hrt_absolute_time_internal();
+	return hrt_absolute_time_internal();
 }
 
 /*
@@ -316,47 +316,47 @@ void	hrt_init(void)
 {
 	sq_init(&callout_queue);
 
-	int sem_ret = px4_sem_init(&_hrt_lock, 0, 1);
+	int sem_ret = px4_sem_init(&hrt_lock, 0, 1);
 
 	if (sem_ret) {
 		PX4_ERR("SEM INIT FAIL: %s", strerror(errno));
 	}
 
-	memset(&_hrt_work, 0, sizeof(_hrt_work));
+	memset(&hrt_work, 0, sizeof(hrt_work));
 }
 
 void	hrt_start_delay()
 {
-	pthread_mutex_lock(&_hrt_mutex);
-	_start_delay_time = _hrt_absolute_time_internal();
-	pthread_mutex_unlock(&_hrt_mutex);
+	pthread_mutex_lock(&hrt_mutex);
+	start_delay_time = hrt_absolute_time_internal();
+	pthread_mutex_unlock(&hrt_mutex);
 }
 
 void	hrt_stop_delay_delta(hrt_abstime delta)
 {
-	pthread_mutex_lock(&_hrt_mutex);
+	pthread_mutex_lock(&hrt_mutex);
 
-	uint64_t delta_measured = _hrt_absolute_time_internal() - _start_delay_time;
+	uint64_t delta_measured = hrt_absolute_time_internal() - start_delay_time;
 
 	if (delta_measured < delta) {
 		delta = delta_measured;
 	}
 
-	_delay_interval += delta;
-	_start_delay_time = 0;
+	delay_interval += delta;
+	start_delay_time = 0;
 
-	pthread_mutex_unlock(&_hrt_mutex);
+	pthread_mutex_unlock(&hrt_mutex);
 
 }
 
 void	hrt_stop_delay()
 {
-	pthread_mutex_lock(&_hrt_mutex);
-	uint64_t delta = _hrt_absolute_time_internal() - _start_delay_time;
-	_delay_interval += delta;
-	_start_delay_time = 0;
+	pthread_mutex_lock(&hrt_mutex);
+	uint64_t delta = hrt_absolute_time_internal() - start_delay_time;
+	delay_interval += delta;
+	start_delay_time = 0;
 
-	pthread_mutex_unlock(&_hrt_mutex);
+	pthread_mutex_unlock(&hrt_mutex);
 
 }
 
@@ -454,9 +454,9 @@ hrt_call_reschedule()
 	// high priority work queue
 
 	// Remove the existing expiry and update with the new expiry
-	hrt_work_cancel(&_hrt_work);
+	hrt_work_cancel(&hrt_work);
 
-	hrt_work_queue(&_hrt_work, (worker_t)&hrt_tim_isr, NULL, delay);
+	hrt_work_queue(&hrt_work, (worker_t)&hrt_tim_isr, NULL, delay);
 }
 
 static void

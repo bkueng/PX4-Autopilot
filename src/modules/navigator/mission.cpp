@@ -146,7 +146,7 @@ Mission::on_inactivation()
 {
 	// Disable camera trigger
 	vehicle_command_s cmd = {};
-	cmd.command = vehicle_command_s::VEHICLE_CMD_DO_TRIGGER_CONTROL;
+	cmd.command = vehicle_command_s::vehicle_cmd_do_trigger_control;
 	// Pause trigger
 	cmd.param1 = -1.0f;
 	cmd.param3 = 1.0f;
@@ -160,7 +160,7 @@ Mission::on_activation()
 
 	// unpause triggering if it was paused
 	vehicle_command_s cmd = {};
-	cmd.command = vehicle_command_s::VEHICLE_CMD_DO_TRIGGER_CONTROL;
+	cmd.command = vehicle_command_s::vehicle_cmd_do_trigger_control;
 	// unpause trigger
 	cmd.param1 = -1.0f;
 	cmd.param3 = 0.0f;
@@ -249,7 +249,7 @@ Mission::on_active()
 }
 
 bool
-Mission::set_current_offboard_mission_index(unsigned index)
+Mission::setCurrentOffboardMissionIndex(unsigned index)
 {
 	if (index < _offboard_mission.count) {
 
@@ -271,7 +271,7 @@ Mission::set_current_offboard_mission_index(unsigned index)
 }
 
 int
-Mission::find_offboard_land_start()
+Mission::findOffboardLandStart()
 {
 	/* find the first MAV_CMD_DO_LAND_START and return the index
 	 *  return -1 if not found
@@ -299,7 +299,7 @@ Mission::find_offboard_land_start()
 }
 
 void
-Mission::update_onboard_mission()
+Mission::updateOnboardMission()
 {
 	/* reset triplets */
 	_navigator->reset_triplets();
@@ -347,7 +347,7 @@ Mission::update_onboard_mission()
 }
 
 void
-Mission::update_offboard_mission()
+Mission::updateOffboardMission()
 {
 	bool failed = true;
 
@@ -410,7 +410,7 @@ Mission::update_offboard_mission()
 
 
 void
-Mission::advance_mission()
+Mission::advanceMission()
 {
 	/* do not advance mission item if we're processing sub mission work items */
 	if (_work_item_type != WORK_ITEM_TYPE_DEFAULT) {
@@ -433,7 +433,7 @@ Mission::advance_mission()
 }
 
 float
-Mission::get_absolute_altitude_for_item(struct mission_item_s &mission_item)
+Mission::getAbsoluteAltitudeForItem(struct mission_item_s &mission_item)
 {
 	if (mission_item.altitude_is_relative) {
 		return mission_item.altitude + _navigator->get_home_position()->alt;
@@ -444,7 +444,7 @@ Mission::get_absolute_altitude_for_item(struct mission_item_s &mission_item)
 }
 
 void
-Mission::set_mission_items()
+Mission::setMissionItems()
 {
 	/* reset the altitude foh (first order hold) logic, if altitude foh is enabled (param) a new foh element starts now */
 	altitude_sp_foh_reset();
@@ -513,7 +513,7 @@ Mission::set_mission_items()
 		pos_sp_triplet->next.valid = false;
 
 		/* reuse setpoint for LOITER only if it's not IDLE */
-		_navigator->set_can_loiter_at_sp(pos_sp_triplet->current.type == position_setpoint_s::SETPOINT_TYPE_LOITER);
+		_navigator->set_can_loiter_at_sp(pos_sp_triplet->current.type == position_setpoint_s::setpoint_type_loiter);
 
 		set_mission_finished();
 
@@ -541,7 +541,7 @@ Mission::set_mission_items()
 	/*********************************** handle mission item *********************************************/
 
 	/* handle position mission items */
-	if (item_contains_position(_mission_item)) {
+	if (itemContainsPosition(_mission_item)) {
 
 		/* force vtol land */
 		if (_navigator->force_vtol() && _mission_item.nav_cmd == NAV_CMD_LAND) {
@@ -639,7 +639,7 @@ Mission::set_mission_items()
 			}
 
 			_mission_item.nav_cmd = NAV_CMD_DO_VTOL_TRANSITION;
-			_mission_item.params[0] = vtol_vehicle_status_s::VEHICLE_VTOL_STATE_FW;
+			_mission_item.params[0] = vtol_vehicle_status_s::vehicle_vtol_state_fw;
 			_mission_item.yaw = _navigator->get_global_position()->yaw;
 
 			/* set position setpoint to target during the transition */
@@ -673,7 +673,7 @@ Mission::set_mission_items()
 			float altitude = _navigator->get_global_position()->alt;
 
 			if (pos_sp_triplet->current.valid
-			    && pos_sp_triplet->current.type == position_setpoint_s::SETPOINT_TYPE_POSITION) {
+			    && pos_sp_triplet->current.type == position_setpoint_s::setpoint_type_position) {
 				altitude = pos_sp_triplet->current.alt;
 			}
 
@@ -693,7 +693,7 @@ Mission::set_mission_items()
 		    && !_navigator->get_land_detected()->landed) {
 
 			_mission_item.nav_cmd = NAV_CMD_DO_VTOL_TRANSITION;
-			_mission_item.params[0] = vtol_vehicle_status_s::VEHICLE_VTOL_STATE_MC;
+			_mission_item.params[0] = vtol_vehicle_status_s::vehicle_vtol_state_mc;
 			_mission_item.autocontinue = true;
 			new_work_item_type = WORK_ITEM_TYPE_MOVE_TO_LAND_AFTER_TRANSITION;
 		}
@@ -720,7 +720,7 @@ Mission::set_mission_items()
 			float altitude = _navigator->get_global_position()->alt;
 
 			if (pos_sp_triplet->current.valid
-			    && pos_sp_triplet->current.type == position_setpoint_s::SETPOINT_TYPE_POSITION) {
+			    && pos_sp_triplet->current.type == position_setpoint_s::setpoint_type_position) {
 				altitude = pos_sp_triplet->current.alt;
 			}
 
@@ -815,8 +815,8 @@ Mission::set_mission_items()
 	_work_item_type = new_work_item_type;
 
 	/* require takeoff after landing or idle */
-	if (pos_sp_triplet->current.type == position_setpoint_s::SETPOINT_TYPE_LAND
-	    || pos_sp_triplet->current.type == position_setpoint_s::SETPOINT_TYPE_IDLE) {
+	if (pos_sp_triplet->current.type == position_setpoint_s::setpoint_type_land
+	    || pos_sp_triplet->current.type == position_setpoint_s::setpoint_type_idle) {
 
 		_need_takeoff = true;
 	}
@@ -859,7 +859,7 @@ Mission::set_mission_items()
 }
 
 bool
-Mission::do_need_vertical_takeoff()
+Mission::doNeedVerticalTakeoff()
 {
 	if (_navigator->get_vstatus()->is_rotary_wing) {
 
@@ -897,7 +897,7 @@ Mission::do_need_vertical_takeoff()
 }
 
 bool
-Mission::do_need_move_to_land()
+Mission::doNeedMoveToLand()
 {
 	if (_navigator->get_vstatus()->is_rotary_wing
 	    && (_mission_item.nav_cmd == NAV_CMD_LAND || _mission_item.nav_cmd == NAV_CMD_VTOL_LAND)) {
@@ -912,7 +912,7 @@ Mission::do_need_move_to_land()
 }
 
 bool
-Mission::do_need_move_to_takeoff()
+Mission::doNeedMoveToTakeoff()
 {
 	if (_navigator->get_vstatus()->is_rotary_wing && _mission_item.nav_cmd == NAV_CMD_VTOL_TAKEOFF) {
 
@@ -926,9 +926,9 @@ Mission::do_need_move_to_takeoff()
 }
 
 void
-Mission::copy_positon_if_valid(struct mission_item_s *mission_item, struct position_setpoint_s *setpoint)
+Mission::copyPositonIfValid(struct mission_item_s *mission_item, struct position_setpoint_s *setpoint)
 {
-	if (setpoint->valid && setpoint->type == position_setpoint_s::SETPOINT_TYPE_POSITION) {
+	if (setpoint->valid && setpoint->type == position_setpoint_s::setpoint_type_position) {
 		mission_item->lat = setpoint->lat;
 		mission_item->lon = setpoint->lon;
 		mission_item->altitude = setpoint->alt;
@@ -943,7 +943,7 @@ Mission::copy_positon_if_valid(struct mission_item_s *mission_item, struct posit
 }
 
 void
-Mission::set_align_mission_item(struct mission_item_s *mission_item, struct mission_item_s *mission_item_next)
+Mission::setAlignMissionItem(struct mission_item_s *mission_item, struct mission_item_s *mission_item_next)
 {
 	mission_item->nav_cmd = NAV_CMD_WAYPOINT;
 	copy_positon_if_valid(mission_item, &(_navigator->get_position_setpoint_triplet()->current));
@@ -959,7 +959,7 @@ Mission::set_align_mission_item(struct mission_item_s *mission_item, struct miss
 }
 
 float
-Mission::calculate_takeoff_altitude(struct mission_item_s *mission_item)
+Mission::calculateTakeoffAltitude(struct mission_item_s *mission_item)
 {
 	/* calculate takeoff altitude */
 	float takeoff_alt = get_absolute_altitude_for_item(*mission_item);
@@ -976,7 +976,7 @@ Mission::calculate_takeoff_altitude(struct mission_item_s *mission_item)
 }
 
 void
-Mission::heading_sp_update()
+Mission::headingSpUpdate()
 {
 	/* we don't want to be yawing during takeoff, landing or aligning for a transition */
 	if (_mission_item.nav_cmd == NAV_CMD_TAKEOFF
@@ -1024,7 +1024,7 @@ Mission::heading_sp_update()
 			point_to_latlon[1] = _navigator->get_home_position()->lon;
 
 		} else if (_param_yawmode.get() == MISSION_YAWMODE_TO_ROI
-			   && _navigator->get_vroi().mode == vehicle_roi_s::ROI_LOCATION) {
+			   && _navigator->get_vroi().mode == vehicle_roi_s::roi_location) {
 			/* target location is ROI */
 			point_to_latlon[0] = _navigator->get_vroi().lat;
 			point_to_latlon[1] = _navigator->get_vroi().lon;
@@ -1049,7 +1049,7 @@ Mission::heading_sp_update()
 
 			/* always keep the back of the rotary wing pointing towards home */
 			if (_param_yawmode.get() == MISSION_YAWMODE_BACK_TO_HOME) {
-				_mission_item.yaw = _wrap_pi(yaw + M_PI_F);
+				_mission_item.yaw = wrap_pi(yaw + M_PI_F);
 				pos_sp_triplet->current.yaw = _mission_item.yaw;
 
 			} else {
@@ -1064,7 +1064,7 @@ Mission::heading_sp_update()
 }
 
 void
-Mission::altitude_sp_foh_update()
+Mission::altitudeSpFohUpdate()
 {
 	struct position_setpoint_triplet_s *pos_sp_triplet = _navigator->get_position_setpoint_triplet();
 
@@ -1075,8 +1075,8 @@ Mission::altitude_sp_foh_update()
 
 
 	if (!pos_sp_triplet->previous.valid || !pos_sp_triplet->current.valid || !PX4_ISFINITE(pos_sp_triplet->previous.alt)
-	    || !(pos_sp_triplet->previous.type == position_setpoint_s::SETPOINT_TYPE_POSITION ||
-		 pos_sp_triplet->previous.type == position_setpoint_s::SETPOINT_TYPE_LOITER) ||
+	    || !(pos_sp_triplet->previous.type == position_setpoint_s::setpoint_type_position ||
+		 pos_sp_triplet->previous.type == position_setpoint_s::setpoint_type_loiter) ||
 	    _navigator->get_vstatus()->is_rotary_wing) {
 
 		return;
@@ -1135,13 +1135,13 @@ Mission::altitude_sp_foh_update()
 }
 
 void
-Mission::altitude_sp_foh_reset()
+Mission::altitudeSpFohReset()
 {
 	_min_current_sp_distance_xy = FLT_MAX;
 }
 
 void
-Mission::cruising_speed_sp_update()
+Mission::cruisingSpeedSpUpdate()
 {
 	struct position_setpoint_triplet_s *pos_sp_triplet = _navigator->get_position_setpoint_triplet();
 
@@ -1159,7 +1159,7 @@ Mission::cruising_speed_sp_update()
 }
 
 void
-Mission::do_abort_landing()
+Mission::doAbortLanding()
 {
 	// Abort FW landing
 	//  first climb out then loiter over intended landing location
@@ -1205,7 +1205,7 @@ Mission::do_abort_landing()
 	// send reposition cmd to get out of mission
 	vehicle_command_s vcmd = {};
 
-	vcmd.command = vehicle_command_s::VEHICLE_CMD_DO_REPOSITION;
+	vcmd.command = vehicle_command_s::vehicle_cmd_do_reposition;
 	vcmd.param1 = -1;
 	vcmd.param2 = 1;
 	vcmd.param5 = _mission_item.lat;
@@ -1216,7 +1216,7 @@ Mission::do_abort_landing()
 }
 
 bool
-Mission::prepare_mission_items(bool onboard, struct mission_item_s *mission_item,
+Mission::prepareMissionItems(bool onboard, struct mission_item_s *mission_item,
 			       struct mission_item_s *next_position_mission_item, bool *has_next_position_item)
 {
 	bool first_res = false;
@@ -1229,7 +1229,7 @@ Mission::prepare_mission_items(bool onboard, struct mission_item_s *mission_item
 		/* trying to find next position mission item */
 		while (read_mission_item(onboard, offset, next_position_mission_item)) {
 
-			if (item_contains_position(*next_position_mission_item)) {
+			if (itemContainsPosition(*next_position_mission_item)) {
 				*has_next_position_item = true;
 				break;
 			}
@@ -1242,7 +1242,7 @@ Mission::prepare_mission_items(bool onboard, struct mission_item_s *mission_item
 }
 
 bool
-Mission::read_mission_item(bool onboard, int offset, struct mission_item_s *mission_item)
+Mission::readMissionItem(bool onboard, int offset, struct mission_item_s *mission_item)
 {
 	/* select onboard/offboard mission */
 	int *mission_index_ptr;
@@ -1344,7 +1344,7 @@ Mission::read_mission_item(bool onboard, int offset, struct mission_item_s *miss
 }
 
 void
-Mission::save_offboard_mission_state()
+Mission::saveOffboardMissionState()
 {
 	mission_s mission_state = {};
 
@@ -1394,7 +1394,7 @@ Mission::save_offboard_mission_state()
 }
 
 void
-Mission::report_do_jump_mission_changed(int index, int do_jumps_remaining)
+Mission::reportDoJumpMissionChanged(int index, int do_jumps_remaining)
 {
 	/* inform about the change */
 	_navigator->get_mission_result()->item_do_jump_changed = true;
@@ -1404,7 +1404,7 @@ Mission::report_do_jump_mission_changed(int index, int do_jumps_remaining)
 }
 
 void
-Mission::set_mission_item_reached()
+Mission::setMissionItemReached()
 {
 	_navigator->get_mission_result()->reached = true;
 	_navigator->get_mission_result()->seq_reached = _current_offboard_mission_index;
@@ -1413,7 +1413,7 @@ Mission::set_mission_item_reached()
 }
 
 void
-Mission::set_current_offboard_mission_item()
+Mission::setCurrentOffboardMissionItem()
 {
 	_navigator->get_mission_result()->reached = false;
 	_navigator->get_mission_result()->finished = false;
@@ -1424,14 +1424,14 @@ Mission::set_current_offboard_mission_item()
 }
 
 void
-Mission::set_mission_finished()
+Mission::setMissionFinished()
 {
 	_navigator->get_mission_result()->finished = true;
 	_navigator->set_mission_result_updated();
 }
 
 void
-Mission::check_mission_valid(bool force)
+Mission::checkMissionValid(bool force)
 {
 	if ((!_home_inited && _navigator->home_position_valid()) || force) {
 
@@ -1449,7 +1449,7 @@ Mission::check_mission_valid(bool force)
 }
 
 void
-Mission::reset_offboard_mission(struct mission_s &mission)
+Mission::resetOffboardMission(struct mission_s &mission)
 {
 	dm_lock(DM_KEY_MISSION_STATE);
 
@@ -1498,14 +1498,14 @@ Mission::reset_offboard_mission(struct mission_s &mission)
 }
 
 bool
-Mission::need_to_reset_mission(bool active)
+Mission::needToResetMission(bool active)
 {
 	/* reset mission state when disarmed */
-	if (_navigator->get_vstatus()->arming_state != vehicle_status_s::ARMING_STATE_ARMED && _need_mission_reset) {
+	if (_navigator->get_vstatus()->arming_state != vehicle_status_s::arming_state_armed && _need_mission_reset) {
 		_need_mission_reset = false;
 		return true;
 
-	} else if (_navigator->get_vstatus()->arming_state == vehicle_status_s::ARMING_STATE_ARMED && active) {
+	} else if (_navigator->get_vstatus()->arming_state == vehicle_status_s::arming_state_armed && active) {
 		/* mission is running, need reset after disarm */
 		_need_mission_reset = true;
 	}
@@ -1514,7 +1514,7 @@ Mission::need_to_reset_mission(bool active)
 }
 
 void
-Mission::generate_waypoint_from_heading(struct position_setpoint_s *setpoint, float yaw)
+Mission::generateWaypointFromHeading(struct position_setpoint_s *setpoint, float yaw)
 {
 	waypoint_from_heading_and_distance(
 		_navigator->get_global_position()->lat,
@@ -1523,6 +1523,6 @@ Mission::generate_waypoint_from_heading(struct position_setpoint_s *setpoint, fl
 		1000000.0f,
 		&(setpoint->lat),
 		&(setpoint->lon));
-	setpoint->type = position_setpoint_s::SETPOINT_TYPE_POSITION;
+	setpoint->type = position_setpoint_s::setpoint_type_position;
 	setpoint->yaw = yaw;
 }

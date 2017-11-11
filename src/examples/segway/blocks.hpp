@@ -78,8 +78,8 @@ public:
 	virtual ~BlockWaypointGuidance();
 	void update(const vehicle_global_position_s &pos,
 		    const vehicle_attitude_s &att,
-		    const position_setpoint_s &missionCmd,
-		    const position_setpoint_s &lastMissionCmd);
+		    const position_setpoint_s &mission_cmd,
+		    const position_setpoint_s &last_mission_cmd);
 	float getPsiCmd() { return _psiCmd; }
 };
 
@@ -90,17 +90,17 @@ class __EXPORT BlockUorbEnabledAutopilot : public SuperBlock
 {
 protected:
 	// subscriptions
-	uORB::Subscription<manual_control_setpoint_s> _manual;
-	uORB::Subscription<parameter_update_s> _param_update;
-	uORB::Subscription<position_setpoint_triplet_s> _missionCmd;
-	uORB::Subscription<vehicle_attitude_s> _att;
-	uORB::Subscription<vehicle_attitude_setpoint_s> _attCmd;
-	uORB::Subscription<vehicle_global_position_s> _pos;
-	uORB::Subscription<vehicle_rates_setpoint_s> _ratesCmd;
-	uORB::Subscription<vehicle_status_s> _status;
+	u_orb::Subscription<manual_control_setpoint_s> _manual;
+	u_orb::Subscription<parameter_update_s> _param_update;
+	u_orb::Subscription<position_setpoint_triplet_s> _missionCmd;
+	u_orb::Subscription<vehicle_attitude_s> _att;
+	u_orb::Subscription<vehicle_attitude_setpoint_s> _attCmd;
+	u_orb::Subscription<vehicle_global_position_s> _pos;
+	u_orb::Subscription<vehicle_rates_setpoint_s> _ratesCmd;
+	u_orb::Subscription<vehicle_status_s> _status;
 
 	// publications
-	uORB::Publication<actuator_controls_s> _actuators;
+	u_orb::Publication<actuator_controls_s> _actuators;
 public:
 	BlockUorbEnabledAutopilot(SuperBlock *parent, const char *name);
 	virtual ~BlockUorbEnabledAutopilot() = default;

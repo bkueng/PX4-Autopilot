@@ -80,13 +80,13 @@ public:
     Mat3f transpose() const;
 };
 
-Vector3f operator*(const float sclIn1, const Vector3f &vecIn1);
-Vector3f operator+(const Vector3f &vecIn1, const Vector3f &vecIn2);
-Vector3f operator-(const Vector3f &vecIn1, const Vector3f &vecIn2);
-Vector3f operator*(const Mat3f &matIn, const Vector3f &vecIn);
-Mat3f operator*(const Mat3f &matIn1, const Mat3f &matIn2);
-Vector3f operator%(const Vector3f &vecIn1, const Vector3f &vecIn2);
-Vector3f operator*(const Vector3f &vecIn1, const float sclIn1);
+Vector3f operator*(const float scl_in1, const Vector3f &vec_in1);
+Vector3f operator+(const Vector3f &vec_in1, const Vector3f &vec_in2);
+Vector3f operator-(const Vector3f &vec_in1, const Vector3f &vec_in2);
+Vector3f operator*(const Mat3f &mat_in, const Vector3f &vec_in);
+Mat3f operator*(const Mat3f &mat_in1, const Mat3f &mat_in2);
+Vector3f operator%(const Vector3f &vec_in1, const Vector3f &vec_in2);
+Vector3f operator*(const Vector3f &vec_in1, const float scl_in1);
 Vector3f operator/(const Vector3f &vec, const float scalar);
 
 enum GPS_FIX {
@@ -128,8 +128,8 @@ struct ekf_status_report {
 
 void ekf_debug(const char *fmt, ...);
 
-void calcvelNED(float (&velNEDr)[3], float gpsCourse, float gpsGndSpd, float gpsVelD);
+void calcvel_ned(float (&vel_ne_dr)[3], float gps_course, float gps_gnd_spd, float gps_vel_d);
 
-void calcposNED(float (&posNEDr)[3], double lat, double lon, float hgt, double latReference, double lonReference, float hgtReference);
+void calcpos_ned(float (&pos_ne_dr)[3], double lat, double lon, float hgt, double lat_reference, double lon_reference, float hgt_reference);
 
-void calcLLH(float posNEDi[3], double &lat, double &lon, float &hgt, double latRef, double lonRef, float hgtRef);
+void calc_llh(float pos_ne_di[3], double &lat, double &lon, float &hgt, double lat_ref, double lon_ref, float hgt_ref);

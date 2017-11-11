@@ -77,12 +77,12 @@ private:
 	/**
 	 * Set the RCL item
 	 */
-	void		set_rcl_item();
+	void		setRclItem();
 
 	/**
 	 * Move to next RCL item
 	 */
-	void		advance_rcl();
+	void		advanceRcl();
 
 };
 #endif

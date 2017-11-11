@@ -106,9 +106,9 @@ MulticopterLandDetector::MulticopterLandDetector() :
 	_paramHandle.landSpeed = param_find("MPC_LAND_SPEED");
 
 	// Use Trigger time when transitioning from in-air (false) to landed (true) / ground contact (true).
-	_landed_hysteresis.set_hysteresis_time_from(false, LAND_DETECTOR_TRIGGER_TIME_US);
-	_maybe_landed_hysteresis.set_hysteresis_time_from(false, MAYBE_LAND_DETECTOR_TRIGGER_TIME_US);
-	_ground_contact_hysteresis.set_hysteresis_time_from(false, GROUND_CONTACT_TRIGGER_TIME_US);
+	_landed_hysteresis.set_hysteresis_time_from(false, land_detector_trigger_time_us);
+	_maybe_landed_hysteresis.set_hysteresis_time_from(false, maybe_land_detector_trigger_time_us);
+	_ground_contact_hysteresis.set_hysteresis_time_from(false, ground_contact_trigger_time_us);
 }
 
 void MulticopterLandDetector::_initialize_topics()
@@ -127,14 +127,14 @@ void MulticopterLandDetector::_initialize_topics()
 
 void MulticopterLandDetector::_update_topics()
 {
-	_orb_update(ORB_ID(vehicle_local_position), _vehicleLocalPositionSub, &_vehicleLocalPosition);
-	_orb_update(ORB_ID(vehicle_local_position_setpoint), _vehicleLocalPositionSetpointSub, &_vehicleLocalPositionSetpoint);
-	_orb_update(ORB_ID(vehicle_attitude), _attitudeSub, &_vehicleAttitude);
-	_orb_update(ORB_ID(actuator_controls_0), _actuatorsSub, &_actuators);
-	_orb_update(ORB_ID(actuator_armed), _armingSub, &_arming);
-	_orb_update(ORB_ID(sensor_bias), _sensor_bias_sub, &_sensors);
-	_orb_update(ORB_ID(vehicle_control_mode), _vehicle_control_mode_sub, &_control_mode);
-	_orb_update(ORB_ID(battery_status), _battery_sub, &_battery);
+	orbUpdate(ORB_ID(vehicle_local_position), _vehicleLocalPositionSub, &_vehicleLocalPosition);
+	orbUpdate(ORB_ID(vehicle_local_position_setpoint), _vehicleLocalPositionSetpointSub, &_vehicleLocalPositionSetpoint);
+	orbUpdate(ORB_ID(vehicle_attitude), _attitudeSub, &_vehicleAttitude);
+	orbUpdate(ORB_ID(actuator_controls_0), _actuatorsSub, &_actuators);
+	orbUpdate(ORB_ID(actuator_armed), _armingSub, &_arming);
+	orbUpdate(ORB_ID(sensor_bias), _sensor_bias_sub, &_sensors);
+	orbUpdate(ORB_ID(vehicle_control_mode), _vehicle_control_mode_sub, &_control_mode);
+	orbUpdate(ORB_ID(battery_status), _battery_sub, &_battery);
 }
 
 void MulticopterLandDetector::_update_params()
@@ -188,35 +188,35 @@ bool MulticopterLandDetector::_get_ground_contact_state()
 	// Check if we are moving vertically - this might see a spike after arming due to
 	// throttle-up vibration. If accelerating fast the throttle thresholds will still give
 	// an accurate in-air indication.
-	bool verticalMovement;
+	bool vertical_movement;
 
-	if (hrt_elapsed_time(&_landed_time) < LAND_DETECTOR_LAND_PHASE_TIME_US) {
+	if (hrt_elapsed_time(&_landed_time) < land_detector_land_phase_time_us) {
 
 		// Widen acceptance thresholds for landed state right after arming
 		// so that motor spool-up and other effects do not trigger false negatives.
-		verticalMovement = fabsf(_vehicleLocalPosition.vz) > _params.maxClimbRate  * 2.5f;
+		vertical_movement = fabsf(_vehicleLocalPosition.vz) > _params.maxClimbRate  * 2.5f;
 
 	} else {
 
 		// Adjust maxClimbRate if land_speed is lower than 2x maxClimbrate
-		float maxClimbRate = ((land_speed_threshold * 0.5f) < _params.maxClimbRate) ? (0.5f * land_speed_threshold) :
+		float max_climb_rate = ((land_speed_threshold * 0.5f) < _params.maxClimbRate) ? (0.5f * land_speed_threshold) :
 				     _params.maxClimbRate;
-		verticalMovement = fabsf(_vehicleLocalPosition.vz) > maxClimbRate;
+		vertical_movement = fabsf(_vehicleLocalPosition.vz) > max_climb_rate;
 	}
 
 	// Check if we are moving horizontally.
-	bool horizontalMovement = sqrtf(_vehicleLocalPosition.vx * _vehicleLocalPosition.vx
+	bool horizontal_movement = sqrtf(_vehicleLocalPosition.vx * _vehicleLocalPosition.vx
 					+ _vehicleLocalPosition.vy * _vehicleLocalPosition.vy) > _params.maxVelocity;
 
 	// if we have a valid velocity setpoint and the vehicle is demanded to go down but no vertical movement present,
 	// we then can assume that the vehicle hit ground
 	bool in_descend = _is_climb_rate_enabled()
 			  && (_vehicleLocalPositionSetpoint.vz >= land_speed_threshold);
-	bool hit_ground = in_descend && !verticalMovement;
+	bool hit_ground = in_descend && !vertical_movement;
 
 	// TODO: we need an accelerometer based check for vertical movement for flying without GPS
-	if ((_has_low_thrust() || hit_ground) && (!horizontalMovement || !_has_position_lock())
-	    && (!verticalMovement || !_has_altitude_lock())) {
+	if ((_has_low_thrust() || hit_ground) && (!horizontal_movement || !_has_position_lock())
+	    && (!vertical_movement || !_has_altitude_lock())) {
 		return true;
 	}
 
@@ -242,19 +242,19 @@ bool MulticopterLandDetector::_get_maybe_landed_state()
 		_min_trust_start = 0;
 	}
 
-	float landThresholdFactor = 1.0f;
+	float land_threshold_factor = 1.0f;
 
 	// Widen acceptance thresholds for landed state right after landed
-	if (hrt_elapsed_time(&_landed_time) < LAND_DETECTOR_LAND_PHASE_TIME_US) {
-		landThresholdFactor = 2.5f;
+	if (hrt_elapsed_time(&_landed_time) < land_detector_land_phase_time_us) {
+		land_threshold_factor = 2.5f;
 	}
 
 	// Next look if all rotation angles are not moving.
-	float maxRotationScaled = _params.maxRotation_rad_s * landThresholdFactor;
+	float max_rotation_scaled = _params.maxRotation_rad_s * land_threshold_factor;
 
-	bool rotating = (fabsf(_vehicleAttitude.rollspeed)  > maxRotationScaled) ||
-			(fabsf(_vehicleAttitude.pitchspeed) > maxRotationScaled) ||
-			(fabsf(_vehicleAttitude.yawspeed) > maxRotationScaled);
+	bool rotating = (fabsf(_vehicleAttitude.rollspeed)  > max_rotation_scaled) ||
+			(fabsf(_vehicleAttitude.pitchspeed) > max_rotation_scaled) ||
+			(fabsf(_vehicleAttitude.yawspeed) > max_rotation_scaled);
 
 	// Return status based on armed state and throttle if no position lock is available.
 	if (!_has_altitude_lock() && !rotating) {
@@ -297,34 +297,34 @@ float MulticopterLandDetector::_get_max_altitude()
 	/* ToDo: add a meaningful altitude */
 	float valid_altitude_max = _params.altitude_max;
 
-	if (_battery.warning == battery_status_s::BATTERY_WARNING_LOW) {
+	if (_battery.warning == battery_status_s::battery_warning_low) {
 		valid_altitude_max = _params.altitude_max * 0.75f;
 	}
 
-	if (_battery.warning == battery_status_s::BATTERY_WARNING_CRITICAL) {
+	if (_battery.warning == battery_status_s::battery_warning_critical) {
 		valid_altitude_max = _params.altitude_max * 0.5f;
 	}
 
-	if (_battery.warning == battery_status_s::BATTERY_WARNING_EMERGENCY) {
+	if (_battery.warning == battery_status_s::battery_warning_emergency) {
 		valid_altitude_max = _params.altitude_max * 0.25f;
 	}
 
 	return valid_altitude_max;
 }
 
-bool MulticopterLandDetector::_has_altitude_lock()
+bool MulticopterLandDetector::hasAltitudeLock()
 {
 	return _vehicleLocalPosition.timestamp != 0 &&
 	       hrt_elapsed_time(&_vehicleLocalPosition.timestamp) < 500000 &&
 	       _vehicleLocalPosition.z_valid;
 }
 
-bool MulticopterLandDetector::_has_position_lock()
+bool MulticopterLandDetector::hasPositionLock()
 {
 	return _has_altitude_lock() && _vehicleLocalPosition.xy_valid;
 }
 
-bool MulticopterLandDetector::_is_climb_rate_enabled()
+bool MulticopterLandDetector::isClimbRateEnabled()
 {
 	bool has_updated = (_vehicleLocalPositionSetpoint.timestamp != 0)
 			   && (hrt_elapsed_time(&_vehicleLocalPositionSetpoint.timestamp) < 500000);
@@ -332,7 +332,7 @@ bool MulticopterLandDetector::_is_climb_rate_enabled()
 	return (_control_mode.flag_control_climb_rate_enabled && has_updated && PX4_ISFINITE(_vehicleLocalPositionSetpoint.vz));
 }
 
-bool MulticopterLandDetector::_has_low_thrust()
+bool MulticopterLandDetector::hasLowThrust()
 {
 	// 30% of throttle range between min and hover
 	float sys_min_throttle = _params.minThrottle + (_params.hoverThrottle - _params.minThrottle) * 0.3f;
@@ -341,7 +341,7 @@ bool MulticopterLandDetector::_has_low_thrust()
 	return _actuators.control[3] <= sys_min_throttle;
 }
 
-bool MulticopterLandDetector::_has_minimal_thrust()
+bool MulticopterLandDetector::hasMinimalThrust()
 {
 	// 10% of throttle range between min and hover once we entered ground contact
 	float sys_min_throttle = _params.minThrottle + (_params.hoverThrottle - _params.minThrottle) * _params.throttleRange;

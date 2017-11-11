@@ -51,7 +51,7 @@ class Tailsitter : public VtolType
 {
 
 public:
-	Tailsitter(VtolAttitudeControl *_att_controller);
+	Tailsitter(VtolAttitudeControl *att_controller);
 	~Tailsitter();
 
 	virtual void update_vtol_state();
@@ -113,11 +113,11 @@ private:
 	/**
 	 * Speed estimation for propwash controlled surfaces.
 	 */
-	void calc_tot_airspeed();
+	void calcTotAirspeed();
 
 
 	/** is this one still needed? */
-	void scale_mc_output();
+	void scaleMcOutput();
 
 	/**
 	 * Update parameters.

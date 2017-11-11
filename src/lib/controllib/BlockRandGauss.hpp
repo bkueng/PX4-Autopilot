@@ -72,27 +72,27 @@ public:
 	virtual ~BlockRandGauss() {}
 	float update()
 	{
-		static float V1, V2, S;
+		static float v1, v2, s;
 		static int phase = 0;
-		float X;
+		float x;
 
 		if (phase == 0) {
 			do {
-				float U1 = (float)rand() / RAND_MAX;
-				float U2 = (float)rand() / RAND_MAX;
-				V1 = 2 * U1 - 1;
-				V2 = 2 * U2 - 1;
-				S = V1 * V1 + V2 * V2;
-			} while (S >= 1 || fabsf(S) < 1e-8f);
+				float u1 = (float)rand() / RAND_MAX;
+				float u2 = (float)rand() / RAND_MAX;
+				v1 = 2 * u1 - 1;
+				v2 = 2 * u2 - 1;
+				s = v1 * v1 + v2 * v2;
+			} while (s >= 1 || fabsf(s) < 1e-8f);
 
-			X = V1 * float(sqrtf(-2 * float(logf(S)) / S));
+			x = v1 * float(sqrtf(-2 * float(logf(s)) / s));
 
 		} else {
-			X = V2 * float(sqrtf(-2 * float(logf(S)) / S));
+			x = v2 * float(sqrtf(-2 * float(logf(s)) / s));
 		}
 
 		phase = 1 - phase;
-		return X * getStdDev() + getMean();
+		return x * getStdDev() + getMean();
 	}
 // accessors
 	float getMean() { return _mean.get(); }

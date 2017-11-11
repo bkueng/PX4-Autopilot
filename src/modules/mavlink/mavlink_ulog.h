@@ -72,7 +72,7 @@ public:
 	 * @param target_component ID for mavlink message
 	 * @return instance, or nullptr
 	 */
-	static MavlinkULog *try_start(int datarate, float max_rate_factor, uint8_t target_system, uint8_t target_component);
+	static MavlinkULog *tryStart(int datarate, float max_rate_factor, uint8_t target_system, uint8_t target_component);
 
 	/**
 	 * stop the stream. It also deletes the singleton object, so make sure cleanup
@@ -85,18 +85,18 @@ public:
 	 * periodic update method: check for ulog stream messages and handle retransmission.
 	 * @return 0 on success, <0 otherwise
 	 */
-	int handle_update(mavlink_channel_t channel);
+	int handleUpdate(mavlink_channel_t channel);
 
 	/** ack from mavlink for a data message */
-	void handle_ack(mavlink_logging_ack_t ack);
+	void handleAck(mavlink_logging_ack_t ack);
 
 	/** this is called when we got an vehicle_command_ack from the logger */
-	void start_ack_received();
+	void startAckReceived();
 
-	float current_data_rate() const { return _current_rate_factor; }
-	float maximum_data_rate() const { return _max_rate_factor; }
+	float currentDataRate() const { return _current_rate_factor; }
+	float maximumDataRate() const { return _max_rate_factor; }
 
-	int get_ulog_stream_fd() const { return _ulog_stream_sub; }
+	int getUlogStreamFd() const { return _ulog_stream_sub; }
 private:
 
 	MavlinkULog(int datarate, float max_rate_factor, uint8_t target_system, uint8_t target_component);
@@ -105,20 +105,20 @@ private:
 
 	static void lock()
 	{
-		do {} while (px4_sem_wait(&_lock) != 0);
+		do {} while (px4_sem_wait(&lock) != 0);
 	}
 
 	static void unlock()
 	{
-		px4_sem_post(&_lock);
+		px4_sem_post(&lock);
 	}
 
-	void publish_ack(uint16_t sequence);
+	void publishAck(uint16_t sequence);
 
-	static px4_sem_t _lock;
-	static bool _init;
-	static MavlinkULog *_instance;
-	static const float _rate_calculation_delta_t; ///< rate update interval
+	static px4_sem_t lock;
+	static bool init;
+	static MavlinkULog *instance;
+	static const float rate_calculation_delta_t; ///< rate update interval
 
 	int _ulog_stream_sub = -1;
 	orb_advert_t _ulog_stream_ack_pub = nullptr;

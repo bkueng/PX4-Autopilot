@@ -80,7 +80,7 @@ int InputMavlinkROI::initialize()
 	return 0;
 }
 
-int InputMavlinkROI::update_impl(unsigned int timeout_ms, ControlData **control_data, bool already_active)
+int InputMavlinkROI::update_impl(unsigned int timeout_ms, control_data **control_data, bool already_active)
 {
 	// already_active is unused, we don't care what happened previously.
 
@@ -110,27 +110,27 @@ int InputMavlinkROI::update_impl(unsigned int timeout_ms, ControlData **control_
 
 			_control_data.gimbal_shutter_retract = false;
 
-			if (vehicle_roi.mode == vehicle_roi_s::ROI_NONE) {
+			if (vehicle_roi.mode == vehicle_roi_s::roi_none) {
 
-				_control_data.type = ControlData::Type::Neutral;
+				_control_data.type = control_data::Type::Neutral;
 				*control_data = &_control_data;
 
-			} else if (vehicle_roi.mode == vehicle_roi_s::ROI_WPNEXT) {
+			} else if (vehicle_roi.mode == vehicle_roi_s::roi_wpnext) {
 				_read_control_data_from_position_setpoint_sub();
 				_control_data.type_data.lonlat.roll_angle = 0.f;
 				_control_data.type_data.lonlat.pitch_fixed_angle = -10.f;
 
 				*control_data = &_control_data;
 
-			} else if (vehicle_roi.mode == vehicle_roi_s::ROI_WPINDEX) {
+			} else if (vehicle_roi.mode == vehicle_roi_s::roi_wpindex) {
 				//TODO how to do this?
 
-			} else if (vehicle_roi.mode == vehicle_roi_s::ROI_LOCATION) {
+			} else if (vehicle_roi.mode == vehicle_roi_s::roi_location) {
 				control_data_set_lon_lat(vehicle_roi.lon, vehicle_roi.lat, vehicle_roi.alt);
 
 				*control_data = &_control_data;
 
-			} else if (vehicle_roi.mode == vehicle_roi_s::ROI_TARGET) {
+			} else if (vehicle_roi.mode == vehicle_roi_s::roi_target) {
 				//TODO is this even suported?
 			}
 
@@ -144,7 +144,7 @@ int InputMavlinkROI::update_impl(unsigned int timeout_ms, ControlData **control_
 
 		// check whether the position setpoint got updated
 		if (polls[1].revents & POLLIN) {
-			if (_cur_roi_mode == vehicle_roi_s::ROI_WPNEXT) {
+			if (_cur_roi_mode == vehicle_roi_s::roi_wpnext) {
 				_read_control_data_from_position_setpoint_sub();
 				*control_data = &_control_data;
 
@@ -158,7 +158,7 @@ int InputMavlinkROI::update_impl(unsigned int timeout_ms, ControlData **control_
 	return 0;
 }
 
-void InputMavlinkROI::_read_control_data_from_position_setpoint_sub()
+void InputMavlinkROI::readControlDataFromPositionSetpointSub()
 {
 	position_setpoint_triplet_s position_setpoint_triplet;
 	orb_copy(ORB_ID(position_setpoint_triplet), _position_setpoint_triplet_sub, &position_setpoint_triplet);
@@ -206,7 +206,7 @@ int InputMavlinkCmdMount::initialize()
 }
 
 
-int InputMavlinkCmdMount::update_impl(unsigned int timeout_ms, ControlData **control_data, bool already_active)
+int InputMavlinkCmdMount::update_impl(unsigned int timeout_ms, control_data **control_data, bool already_active)
 {
 	// Default to notify that there was no change.
 	*control_data = nullptr;
@@ -241,22 +241,22 @@ int InputMavlinkCmdMount::update_impl(unsigned int timeout_ms, ControlData **con
 
 			_control_data.gimbal_shutter_retract = false;
 
-			if (vehicle_command.command == vehicle_command_s::VEHICLE_CMD_DO_MOUNT_CONTROL) {
+			if (vehicle_command.command == vehicle_command_s::vehicle_cmd_do_mount_control) {
 
 				switch ((int)vehicle_command.param7) {
-				case vehicle_command_s::VEHICLE_MOUNT_MODE_RETRACT:
+				case vehicle_command_s::vehicle_mount_mode_retract:
 					_control_data.gimbal_shutter_retract = true;
 
 				/* FALLTHROUGH */
 
-				case vehicle_command_s::VEHICLE_MOUNT_MODE_NEUTRAL:
-					_control_data.type = ControlData::Type::Neutral;
+				case vehicle_command_s::vehicle_mount_mode_neutral:
+					_control_data.type = control_data::Type::Neutral;
 
 					*control_data = &_control_data;
 					break;
 
-				case vehicle_command_s::VEHICLE_MOUNT_MODE_MAVLINK_TARGETING:
-					_control_data.type = ControlData::Type::Angle;
+				case vehicle_command_s::vehicle_mount_mode_mavlink_targeting:
+					_control_data.type = control_data::Type::Angle;
 					_control_data.type_data.angle.is_speed[0] = false;
 					_control_data.type_data.angle.is_speed[1] = false;
 					_control_data.type_data.angle.is_speed[2] = false;
@@ -275,10 +275,10 @@ int InputMavlinkCmdMount::update_impl(unsigned int timeout_ms, ControlData **con
 					*control_data = &_control_data;
 					break;
 
-				case vehicle_command_s::VEHICLE_MOUNT_MODE_RC_TARGETING:
+				case vehicle_command_s::vehicle_mount_mode_rc_targeting:
 					break;
 
-				case vehicle_command_s::VEHICLE_MOUNT_MODE_GPS_POINT:
+				case vehicle_command_s::vehicle_mount_mode_gps_point:
 					control_data_set_lon_lat((double)vehicle_command.param2, (double)vehicle_command.param1, vehicle_command.param3);
 
 					*control_data = &_control_data;
@@ -287,11 +287,11 @@ int InputMavlinkCmdMount::update_impl(unsigned int timeout_ms, ControlData **con
 
 				_ack_vehicle_command(&vehicle_command);
 
-			} else if (vehicle_command.command == vehicle_command_s::VEHICLE_CMD_DO_MOUNT_CONFIGURE) {
+			} else if (vehicle_command.command == vehicle_command_s::vehicle_cmd_do_mount_configure) {
 				_stabilize[0] = (uint8_t) vehicle_command.param2 == 1;
 				_stabilize[1] = (uint8_t) vehicle_command.param3 == 1;
 				_stabilize[2] = (uint8_t) vehicle_command.param4 == 1;
-				_control_data.type = ControlData::Type::Neutral; //always switch to neutral position
+				_control_data.type = control_data::Type::Neutral; //always switch to neutral position
 
 				*control_data = &_control_data;
 				_ack_vehicle_command(&vehicle_command);
@@ -303,13 +303,13 @@ int InputMavlinkCmdMount::update_impl(unsigned int timeout_ms, ControlData **con
 	return 0;
 }
 
-void InputMavlinkCmdMount::_ack_vehicle_command(vehicle_command_s *cmd)
+void InputMavlinkCmdMount::ackVehicleCommand(vehicle_command_s *cmd)
 {
 	vehicle_command_ack_s vehicle_command_ack = {
 		.timestamp = hrt_absolute_time(),
 		.result_param2 = 0,
 		.command = cmd->command,
-		.result = vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED,
+		.result = vehicle_command_s::vehicle_cmd_result_accepted,
 		.from_external = false,
 		.result_param1 = 0,
 		.target_system = cmd->source_system,
@@ -318,7 +318,7 @@ void InputMavlinkCmdMount::_ack_vehicle_command(vehicle_command_s *cmd)
 
 	if (_vehicle_command_ack_pub == nullptr) {
 		_vehicle_command_ack_pub = orb_advertise_queue(ORB_ID(vehicle_command_ack), &vehicle_command_ack,
-					   vehicle_command_ack_s::ORB_QUEUE_LENGTH);
+					   vehicle_command_ack_s::orb_queue_length);
 
 	} else {
 		orb_publish(ORB_ID(vehicle_command_ack), _vehicle_command_ack_pub, &vehicle_command_ack);

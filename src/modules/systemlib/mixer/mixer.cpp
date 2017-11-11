@@ -66,7 +66,7 @@ Mixer::Mixer(ControlCallback control_cb, uintptr_t cb_handle) :
 }
 
 float
-Mixer::get_control(uint8_t group, uint8_t index)
+Mixer::getControl(uint8_t group, uint8_t index)
 {
 	float	value;
 
@@ -99,7 +99,7 @@ Mixer::scale(const mixer_scaler_s &scaler, float input)
 }
 
 int
-Mixer::scale_check(struct mixer_scaler_s &scaler)
+Mixer::scaleCheck(struct mixer_scaler_s &scaler)
 {
 	if (scaler.offset > 1.001f) {
 		return 1;
@@ -155,7 +155,7 @@ Mixer::skipline(const char *buf, unsigned &buflen)
 }
 
 bool
-Mixer::string_well_formed(const char *buf, unsigned &buflen)
+Mixer::stringWellFormed(const char *buf, unsigned &buflen)
 {
 	/* enforce that the mixer ends with a new line */
 	for (int i = buflen - 1; i >= 0; i--) {
@@ -207,12 +207,12 @@ NullMixer::groups_required(uint32_t &groups)
 }
 
 NullMixer *
-NullMixer::from_text(const char *buf, unsigned &buflen)
+NullMixer::fromText(const char *buf, unsigned &buflen)
 {
 	NullMixer *nm = nullptr;
 
 	/* enforce that the mixer ends with a new line */
-	if (!string_well_formed(buf, buflen)) {
+	if (!stringWellFormed(buf, buflen)) {
 		return nullptr;
 	}
 

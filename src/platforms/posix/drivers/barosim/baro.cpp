@@ -92,14 +92,14 @@ public:
 	/**
 	 * Diagnostics - print some basic information about the driver.
 	 */
-	void print_info();
+	void printInfo();
 
 protected:
 
 	ringbuffer::RingBuffer	*_reports;
 
 	/* last report */
-	struct baro_report	report;
+	struct baro_report	_report;
 
 	/* altitude conversion calibration */
 	unsigned		_msl_pressure;	/* in Pa */
@@ -115,7 +115,7 @@ protected:
 	 *
 	 * @return true if the sensor is not on the main MCU board
 	 */
-	bool			is_external() { return (_orb_class_instance == 0); /* XXX put this into the interface class */ }
+	bool			isExternal() { return (_orb_class_instance == 0); /* XXX put this into the interface class */ }
 
 	virtual void _measure() override;
 
@@ -135,7 +135,7 @@ extern "C" __EXPORT int barosim_main(int argc, char *argv[]);
 BAROSIM::BAROSIM(const char *path) :
 	VirtDevObj("BAROSIM", path, BARO_BASE_DEVICE_PATH, BAROSIM_MEASURE_INTERVAL_US),
 	_reports(nullptr),
-	report{},
+	_report{},
 	_msl_pressure(101325),
 	_baro_topic(nullptr),
 	_orb_class_instance(-1),
@@ -239,7 +239,7 @@ BAROSIM::collect()
 {
 	bool status;
 
-	simulator::RawBaroData raw_baro;
+	simulator::raw_baro_data raw_baro;
 
 	perf_begin(_sample_perf);
 
@@ -289,7 +289,7 @@ BAROSIM::collect()
 }
 
 void
-BAROSIM::print_info()
+BAROSIM::printInfo()
 {
 	perf_print_counter(_sample_perf);
 	perf_print_counter(_comms_errors);

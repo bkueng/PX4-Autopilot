@@ -127,10 +127,10 @@ public:
 	}
 
 private:
-	static const unsigned	_tune_max = 1024 * 8; // be reasonable about user tunes
+	static const unsigned	tune_max = 1024 * 8; // be reasonable about user tunes
 	const char		 *_default_tunes[TONE_NUMBER_OF_TUNES];
 	const char		 *_tune_names[TONE_NUMBER_OF_TUNES];
-	static const uint8_t	_note_tab[];
+	static const uint8_t	note_tab[];
 
 	unsigned		_default_tune_number; // number of currently playing default tune (0 for none)
 
@@ -151,58 +151,58 @@ private:
 	// Convert a note value in the range C1 to B7 into a divisor for
 	// the configured timer's clock.
 	//
-	unsigned		note_to_divisor(unsigned note);
+	unsigned		noteToDivisor(unsigned note);
 
 	// Calculate the duration in microseconds of play and silence for a
 	// note given the current tempo, length and mode and the number of
 	// dots following in the play string.
 	//
-	unsigned		note_duration(unsigned &silence, unsigned note_length, unsigned dots);
+	unsigned		noteDuration(unsigned &silence, unsigned note_length, unsigned dots);
 
 	// Calculate the duration in microseconds of a rest corresponding to
 	// a given note length.
 	//
-	unsigned		rest_duration(unsigned rest_length, unsigned dots);
+	unsigned		restDuration(unsigned rest_length, unsigned dots);
 
 	// Start playing the note
 	//
-	void			start_note(unsigned note);
+	void			startNote(unsigned note);
 
 	// Stop playing the current note and make the player 'safe'
 	//
-	void			stop_note();
+	void			stopNote();
 
 	// Start playing the tune
 	//
-	void			start_tune(const char *tune);
+	void			startTune(const char *tune);
 
 	// Parse the next note out of the string and play it
 	//
-	void			next_note();
+	void			nextNote();
 
 	// Find the next character in the string, discard any whitespace and
 	// return the canonical (uppercase) version.
 	//
-	int			next_char();
+	int			nextChar();
 
 	// Extract a number from the string, consuming all the digit characters.
 	//
-	unsigned		next_number();
+	unsigned		nextNumber();
 
 	// Consume dot characters from the string, returning the number consumed.
 	//
-	unsigned		next_dots();
+	unsigned		nextDots();
 
 	// hrt_call trampoline for next_note
 	//
-	static void		next_trampoline(void *arg);
+	static void		nextTrampoline(void *arg);
 
 	// Unused
 	virtual void _measure() {}
 };
 
 // semitone offsets from C for the characters 'A'-'G'
-const uint8_t ToneAlarm::_note_tab[] = {9, 11, 0, 2, 4, 5, 7};
+const uint8_t ToneAlarm::note_tab[] = {9, 11, 0, 2, 4, 5, 7};
 
 /*
  * Driver 'main' command.
@@ -251,9 +251,9 @@ ToneAlarm::ToneAlarm() :
 }
 
 unsigned
-ToneAlarm::note_to_divisor(unsigned note)
+ToneAlarm::noteToDivisor(unsigned note)
 {
-	const int TONE_ALARM_CLOCK = 120000000ul / 4;
+	const int tone_alarm_clock = 120000000ul / 4;
 
 	// compute the frequency first (Hz)
 	float freq = 880.0f * expf(logf(2.0f) * ((int)note - 46) / 12.0f);
@@ -261,13 +261,13 @@ ToneAlarm::note_to_divisor(unsigned note)
 	float period = 0.5f / freq;
 
 	// and the divisor, rounded to the nearest integer
-	unsigned divisor = (period * TONE_ALARM_CLOCK) + 0.5f;
+	unsigned divisor = (period * tone_alarm_clock) + 0.5f;
 
 	return divisor;
 }
 
 unsigned
-ToneAlarm::note_duration(unsigned &silence, unsigned note_length, unsigned dots)
+ToneAlarm::noteDuration(unsigned &silence, unsigned note_length, unsigned dots)
 {
 	unsigned whole_note_period = (60 * 1000000 * 4) / _tempo;
 
@@ -305,7 +305,7 @@ ToneAlarm::note_duration(unsigned &silence, unsigned note_length, unsigned dots)
 }
 
 unsigned
-ToneAlarm::rest_duration(unsigned rest_length, unsigned dots)
+ToneAlarm::restDuration(unsigned rest_length, unsigned dots)
 {
 	unsigned whole_note_period = (60 * 1000000 * 4) / _tempo;
 
@@ -330,7 +330,7 @@ static void do_something(unsigned x)
 }
 
 void
-ToneAlarm::start_note(unsigned note)
+ToneAlarm::startNote(unsigned note)
 {
 	// compute the divisor
 	unsigned divisor = note_to_divisor(note);
@@ -348,12 +348,12 @@ ToneAlarm::start_note(unsigned note)
 }
 
 void
-ToneAlarm::stop_note()
+ToneAlarm::stopNote()
 {
 }
 
 void
-ToneAlarm::start_tune(const char *tune)
+ToneAlarm::startTune(const char *tune)
 {
 	PX4_DEBUG("ToneAlarm::start_tune");
 	// kill any current playback
@@ -373,17 +373,17 @@ ToneAlarm::start_tune(const char *tune)
 
 	// schedule a callback to start playing
 	_note_call = {};
-	hrt_call_after(&_note_call, 0, (hrt_callout)next_trampoline, this);
+	hrt_call_after(&_note_call, 0, (hrt_callout)nextTrampoline, this);
 }
 
 void
-ToneAlarm::next_note()
+ToneAlarm::nextNote()
 {
 	// do we have an inter-note gap to wait for?
 	if (_silence_length > 0) {
 		stop_note();
 		_note_call = {};
-		hrt_call_after(&_note_call, (hrt_abstime)_silence_length, (hrt_callout)next_trampoline, this);
+		hrt_call_after(&_note_call, (hrt_abstime)_silence_length, (hrt_callout)nextTrampoline, this);
 		_silence_length = 0;
 		return;
 	}
@@ -483,7 +483,7 @@ ToneAlarm::next_note()
 			_note_call = {};
 			hrt_call_after(&_note_call,
 				       (hrt_abstime)rest_duration(next_number(), next_dots()),
-				       (hrt_callout)next_trampoline,
+				       (hrt_callout)nextTrampoline,
 				       this);
 			return;
 
@@ -512,7 +512,7 @@ ToneAlarm::next_note()
 				_note_call = {};
 				hrt_call_after(&_note_call,
 					       (hrt_abstime)rest_duration(_note_length, next_dots()),
-					       (hrt_callout)next_trampoline,
+					       (hrt_callout)nextTrampoline,
 					       this);
 				return;
 			}
@@ -520,7 +520,7 @@ ToneAlarm::next_note()
 			break;
 
 		case 'A'...'G':	// play a note in the current octave
-			note = _note_tab[c - 'A'] + (_octave * 12) + 1;
+			note = note_tab[c - 'A'] + (_octave * 12) + 1;
 			c = next_char();
 
 			switch (c) {
@@ -568,7 +568,7 @@ ToneAlarm::next_note()
 
 	// and arrange a callback when the note should stop
 	_note_call = {};
-	hrt_call_after(&_note_call, (hrt_abstime)duration, (hrt_callout)next_trampoline, this);
+	hrt_call_after(&_note_call, (hrt_abstime)duration, (hrt_callout)nextTrampoline, this);
 	return;
 
 	// tune looks bad (unexpected EOF, bad character, etc.)
@@ -591,7 +591,7 @@ tune_end:
 }
 
 int
-ToneAlarm::next_char()
+ToneAlarm::nextChar()
 {
 	while (isspace(*_next)) {
 		_next++;
@@ -601,7 +601,7 @@ ToneAlarm::next_char()
 }
 
 unsigned
-ToneAlarm::next_number()
+ToneAlarm::nextNumber()
 {
 	unsigned number = 0;
 	int c;
@@ -619,7 +619,7 @@ ToneAlarm::next_number()
 }
 
 unsigned
-ToneAlarm::next_dots()
+ToneAlarm::nextDots()
 {
 	unsigned dots = 0;
 
@@ -632,7 +632,7 @@ ToneAlarm::next_dots()
 }
 
 void
-ToneAlarm::next_trampoline(void *arg)
+ToneAlarm::nextTrampoline(void *arg)
 {
 	ToneAlarm *ta = (ToneAlarm *)arg;
 
@@ -691,7 +691,7 @@ ssize_t
 ToneAlarm::devWrite(const void *buffer, size_t len)
 {
 	// sanity-check the buffer for length and nul-termination
-	if (len > _tune_max) {
+	if (len > tune_max) {
 		return -EFBIG;
 	}
 

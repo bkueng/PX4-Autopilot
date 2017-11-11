@@ -278,47 +278,47 @@ private:
 	/**
 	 * Update our local parameter cache.
 	 */
-	void			parameters_update();
+	void			parametersUpdate();
 
 	/**
 	 * Check for parameter update and handle it.
 	 */
-	void		battery_status_poll();
-	void		parameter_update_poll();
-	void		sensor_bias_poll();
-	void		sensor_correction_poll();
-	void		vehicle_attitude_poll();
-	void		vehicle_attitude_setpoint_poll();
-	void		vehicle_control_mode_poll();
-	void		vehicle_manual_poll();
-	void		vehicle_motor_limits_poll();
-	void		vehicle_rates_setpoint_poll();
-	void		vehicle_status_poll();
+	void		batteryStatusPoll();
+	void		parameterUpdatePoll();
+	void		sensorBiasPoll();
+	void		sensorCorrectionPoll();
+	void		vehicleAttitudePoll();
+	void		vehicleAttitudeSetpointPoll();
+	void		vehicleControlModePoll();
+	void		vehicleManualPoll();
+	void		vehicleMotorLimitsPoll();
+	void		vehicleRatesSetpointPoll();
+	void		vehicleStatusPoll();
 
 	/**
 	 * Attitude controller.
 	 */
-	void		control_attitude(float dt);
+	void		controlAttitude(float dt);
 
 	/**
 	 * Attitude rates controller.
 	 */
-	void		control_attitude_rates(float dt);
+	void		controlAttitudeRates(float dt);
 
 	/**
 	 * Throttle PID attenuation.
 	 */
-	math::Vector<3> pid_attenuations(float tpa_breakpoint, float tpa_rate);
+	math::Vector<3> pidAttenuations(float tpa_breakpoint, float tpa_rate);
 
 	/**
 	 * Shim for calling task_main from task_create.
 	 */
-	static void	task_main_trampoline(int argc, char *argv[]);
+	static void	taskMainTrampoline(int argc, char *argv[]);
 
 	/**
 	 * Main attitude control task.
 	 */
-	void		task_main();
+	void		taskMain();
 };
 
 namespace mc_att_control
@@ -505,7 +505,7 @@ MulticopterAttitudeControl::~MulticopterAttitudeControl()
 }
 
 void
-MulticopterAttitudeControl::parameters_update()
+MulticopterAttitudeControl::parametersUpdate()
 {
 	float v;
 
@@ -628,7 +628,7 @@ MulticopterAttitudeControl::parameters_update()
 }
 
 void
-MulticopterAttitudeControl::parameter_update_poll()
+MulticopterAttitudeControl::parameterUpdatePoll()
 {
 	bool updated;
 
@@ -643,7 +643,7 @@ MulticopterAttitudeControl::parameter_update_poll()
 }
 
 void
-MulticopterAttitudeControl::vehicle_control_mode_poll()
+MulticopterAttitudeControl::vehicleControlModePoll()
 {
 	bool updated;
 
@@ -656,7 +656,7 @@ MulticopterAttitudeControl::vehicle_control_mode_poll()
 }
 
 void
-MulticopterAttitudeControl::vehicle_manual_poll()
+MulticopterAttitudeControl::vehicleManualPoll()
 {
 	bool updated;
 
@@ -669,7 +669,7 @@ MulticopterAttitudeControl::vehicle_manual_poll()
 }
 
 void
-MulticopterAttitudeControl::vehicle_attitude_setpoint_poll()
+MulticopterAttitudeControl::vehicleAttitudeSetpointPoll()
 {
 	/* check if there is a new setpoint */
 	bool updated;
@@ -681,7 +681,7 @@ MulticopterAttitudeControl::vehicle_attitude_setpoint_poll()
 }
 
 void
-MulticopterAttitudeControl::vehicle_rates_setpoint_poll()
+MulticopterAttitudeControl::vehicleRatesSetpointPoll()
 {
 	/* check if there is a new setpoint */
 	bool updated;
@@ -693,7 +693,7 @@ MulticopterAttitudeControl::vehicle_rates_setpoint_poll()
 }
 
 void
-MulticopterAttitudeControl::vehicle_status_poll()
+MulticopterAttitudeControl::vehicleStatusPoll()
 {
 	/* check if there is new status information */
 	bool vehicle_status_updated;
@@ -728,7 +728,7 @@ MulticopterAttitudeControl::vehicle_status_poll()
 }
 
 void
-MulticopterAttitudeControl::vehicle_motor_limits_poll()
+MulticopterAttitudeControl::vehicleMotorLimitsPoll()
 {
 	/* check if there is a new message */
 	bool updated;
@@ -743,7 +743,7 @@ MulticopterAttitudeControl::vehicle_motor_limits_poll()
 }
 
 void
-MulticopterAttitudeControl::battery_status_poll()
+MulticopterAttitudeControl::batteryStatusPoll()
 {
 	/* check if there is a new message */
 	bool updated;
@@ -755,7 +755,7 @@ MulticopterAttitudeControl::battery_status_poll()
 }
 
 void
-MulticopterAttitudeControl::vehicle_attitude_poll()
+MulticopterAttitudeControl::vehicleAttitudePoll()
 {
 	/* check if there is a new message */
 	bool updated;
@@ -767,7 +767,7 @@ MulticopterAttitudeControl::vehicle_attitude_poll()
 }
 
 void
-MulticopterAttitudeControl::sensor_correction_poll()
+MulticopterAttitudeControl::sensorCorrectionPoll()
 {
 	/* check if there is a new message */
 	bool updated;
@@ -784,7 +784,7 @@ MulticopterAttitudeControl::sensor_correction_poll()
 }
 
 void
-MulticopterAttitudeControl::sensor_bias_poll()
+MulticopterAttitudeControl::sensorBiasPoll()
 {
 	/* check if there is a new message */
 	bool updated;
@@ -802,7 +802,7 @@ MulticopterAttitudeControl::sensor_bias_poll()
  * Output: '_rates_sp' vector, '_thrust_sp'
  */
 void
-MulticopterAttitudeControl::control_attitude(float dt)
+MulticopterAttitudeControl::controlAttitude(float dt)
 {
 	vehicle_attitude_setpoint_poll();
 
@@ -810,89 +810,89 @@ MulticopterAttitudeControl::control_attitude(float dt)
 
 	/* construct attitude setpoint rotation matrix */
 	math::Quaternion q_sp(_v_att_sp.q_d[0], _v_att_sp.q_d[1], _v_att_sp.q_d[2], _v_att_sp.q_d[3]);
-	math::Matrix<3, 3> R_sp = q_sp.to_dcm();
+	math::Matrix<3, 3> r_sp = q_sp.to_dcm();
 
 	/* get current rotation matrix from control state quaternions */
 	math::Quaternion q_att(_v_att.q[0], _v_att.q[1], _v_att.q[2], _v_att.q[3]);
-	math::Matrix<3, 3> R = q_att.to_dcm();
+	math::Matrix<3, 3> r = q_att.to_dcm();
 
 	/* all input data is ready, run controller itself */
 
 	/* try to move thrust vector shortest way, because yaw response is slower than roll/pitch */
-	math::Vector<3> R_z(R(0, 2), R(1, 2), R(2, 2));
-	math::Vector<3> R_sp_z(R_sp(0, 2), R_sp(1, 2), R_sp(2, 2));
+	math::Vector<3> r_z(r(0, 2), r(1, 2), r(2, 2));
+	math::Vector<3> r_sp_z(r_sp(0, 2), r_sp(1, 2), r_sp(2, 2));
 
 	/* axis and sin(angle) of desired rotation (indexes: 0=pitch, 1=roll, 2=yaw).
 	 * This is for roll/pitch only (tilt), e_R(2) is 0 */
-	math::Vector<3> e_R = R.transposed() * (R_z % R_sp_z);
+	math::Vector<3> e_r = r.transposed() * (r_z % r_sp_z);
 
 	/* calculate angle error */
-	float e_R_z_sin = e_R.length(); // == sin(tilt angle error)
-	float e_R_z_cos = R_z * R_sp_z; // == cos(tilt angle error) == (R.transposed() * R_sp)(2, 2)
+	float e_r_z_sin = e_r.length(); // == sin(tilt angle error)
+	float e_r_z_cos = r_z * r_sp_z; // == cos(tilt angle error) == (R.transposed() * R_sp)(2, 2)
 
 	/* calculate rotation matrix after roll/pitch only rotation */
-	math::Matrix<3, 3> R_rp;
+	math::Matrix<3, 3> r_rp;
 
-	if (e_R_z_sin > 0.0f) {
+	if (e_r_z_sin > 0.0f) {
 		/* get axis-angle representation */
-		float e_R_z_angle = atan2f(e_R_z_sin, e_R_z_cos);
-		math::Vector<3> e_R_z_axis = e_R / e_R_z_sin;
+		float e_r_z_angle = atan2f(e_r_z_sin, e_r_z_cos);
+		math::Vector<3> e_r_z_axis = e_r / e_r_z_sin;
 
-		e_R = e_R_z_axis * e_R_z_angle;
+		e_r = e_r_z_axis * e_r_z_angle;
 
 		/* cross product matrix for e_R_axis */
-		math::Matrix<3, 3> e_R_cp;
-		e_R_cp.zero();
-		e_R_cp(0, 1) = -e_R_z_axis(2);
-		e_R_cp(0, 2) = e_R_z_axis(1);
-		e_R_cp(1, 0) = e_R_z_axis(2);
-		e_R_cp(1, 2) = -e_R_z_axis(0);
-		e_R_cp(2, 0) = -e_R_z_axis(1);
-		e_R_cp(2, 1) = e_R_z_axis(0);
+		math::Matrix<3, 3> e_r_cp;
+		e_r_cp.zero();
+		e_r_cp(0, 1) = -e_r_z_axis(2);
+		e_r_cp(0, 2) = e_r_z_axis(1);
+		e_r_cp(1, 0) = e_r_z_axis(2);
+		e_r_cp(1, 2) = -e_r_z_axis(0);
+		e_r_cp(2, 0) = -e_r_z_axis(1);
+		e_r_cp(2, 1) = e_r_z_axis(0);
 
 		/* rotation matrix for roll/pitch only rotation */
-		R_rp = R * (_I + e_R_cp * e_R_z_sin + e_R_cp * e_R_cp * (1.0f - e_R_z_cos));
+		r_rp = r * (_I + e_r_cp * e_r_z_sin + e_r_cp * e_r_cp * (1.0f - e_r_z_cos));
 
 	} else {
 		/* zero roll/pitch rotation */
-		R_rp = R;
+		r_rp = r;
 	}
 
 	/* R_rp and R_sp have the same Z axis, calculate yaw error */
-	math::Vector<3> R_sp_x(R_sp(0, 0), R_sp(1, 0), R_sp(2, 0));
-	math::Vector<3> R_rp_x(R_rp(0, 0), R_rp(1, 0), R_rp(2, 0));
+	math::Vector<3> r_sp_x(r_sp(0, 0), r_sp(1, 0), r_sp(2, 0));
+	math::Vector<3> r_rp_x(r_rp(0, 0), r_rp(1, 0), r_rp(2, 0));
 
 	/* calculate the weight for yaw control
 	 * Make the weight depend on the tilt angle error: the higher the error of roll and/or pitch, the lower
 	 * the weight that we use to control the yaw. This gives precedence to roll & pitch correction.
 	 * The weight is 1 if there is no tilt error.
 	 */
-	float yaw_w = e_R_z_cos * e_R_z_cos;
+	float yaw_w = e_r_z_cos * e_r_z_cos;
 
 	/* calculate the angle between R_rp_x and R_sp_x (yaw angle error), and apply the yaw weight */
-	e_R(2) = atan2f((R_rp_x % R_sp_x) * R_sp_z, R_rp_x * R_sp_x) * yaw_w;
+	e_r(2) = atan2f((r_rp_x % r_sp_x) * r_sp_z, r_rp_x * r_sp_x) * yaw_w;
 
-	if (e_R_z_cos < 0.0f) {
+	if (e_r_z_cos < 0.0f) {
 		/* for large thrust vector rotations use another rotation method:
 		 * calculate angle and axis for R -> R_sp rotation directly */
 		math::Quaternion q_error;
-		q_error.from_dcm(R.transposed() * R_sp);
-		math::Vector<3> e_R_d = q_error(0) >= 0.0f ? q_error.imag()  * 2.0f : -q_error.imag() * 2.0f;
+		q_error.from_dcm(r.transposed() * r_sp);
+		math::Vector<3> e_r_d = q_error(0) >= 0.0f ? q_error.imag()  * 2.0f : -q_error.imag() * 2.0f;
 
 		/* use fusion of Z axis based rotation and direct rotation */
-		float direct_w = e_R_z_cos * e_R_z_cos * yaw_w;
-		e_R = e_R * (1.0f - direct_w) + e_R_d * direct_w;
+		float direct_w = e_r_z_cos * e_r_z_cos * yaw_w;
+		e_r = e_r * (1.0f - direct_w) + e_r_d * direct_w;
 	}
 
 	/* calculate angular rates setpoint */
-	_rates_sp = _params.att_p.emult(e_R);
+	_rates_sp = _params.att_p.emult(e_r);
 
 
 	/* Feed forward the yaw setpoint rate. We need to transform the yaw from world into body frame.
 	 * The following is a simplification of:
 	 * R.transposed() * math::Vector<3>(0.f, 0.f, _v_att_sp.yaw_sp_move_rate * _params.yaw_ff)
 	 */
-	math::Vector<3> yaw_feedforward_rate(R(2, 0), R(2, 1), R(2, 2));
+	math::Vector<3> yaw_feedforward_rate(r(2, 0), r(2, 1), r(2, 2));
 	yaw_feedforward_rate *= _v_att_sp.yaw_sp_move_rate * _params.yaw_ff;
 
 	yaw_feedforward_rate(2) *= yaw_w;
@@ -930,18 +930,18 @@ MulticopterAttitudeControl::control_attitude(float dt)
  * Output: 'pidAttenuationPerAxis' vector
  */
 math::Vector<3>
-MulticopterAttitudeControl::pid_attenuations(float tpa_breakpoint, float tpa_rate)
+MulticopterAttitudeControl::pidAttenuations(float tpa_breakpoint, float tpa_rate)
 {
 	/* throttle pid attenuation factor */
 	float tpa = 1.0f - tpa_rate * (fabsf(_v_rates_sp.thrust) - tpa_breakpoint) / (1.0f - tpa_breakpoint);
 	tpa = fmaxf(TPA_RATE_LOWER_LIMIT, fminf(1.0f, tpa));
 
-	math::Vector<3> pidAttenuationPerAxis;
-	pidAttenuationPerAxis(AXIS_INDEX_ROLL) = tpa;
-	pidAttenuationPerAxis(AXIS_INDEX_PITCH) = tpa;
-	pidAttenuationPerAxis(AXIS_INDEX_YAW) = 1.0;
+	math::Vector<3> pid_attenuation_per_axis;
+	pid_attenuation_per_axis(AXIS_INDEX_ROLL) = tpa;
+	pid_attenuation_per_axis(AXIS_INDEX_PITCH) = tpa;
+	pid_attenuation_per_axis(AXIS_INDEX_YAW) = 1.0;
 
-	return pidAttenuationPerAxis;
+	return pid_attenuation_per_axis;
 }
 
 /*
@@ -950,7 +950,7 @@ MulticopterAttitudeControl::pid_attenuations(float tpa_breakpoint, float tpa_rat
  * Output: '_att_control' vector
  */
 void
-MulticopterAttitudeControl::control_attitude_rates(float dt)
+MulticopterAttitudeControl::controlAttitudeRates(float dt)
 {
 	/* reset integral if disarmed */
 	if (!_v_control_mode.flag_armed || !_vehicle_status.is_rotary_wing) {
@@ -1049,13 +1049,13 @@ MulticopterAttitudeControl::control_attitude_rates(float dt)
 }
 
 void
-MulticopterAttitudeControl::task_main_trampoline(int argc, char *argv[])
+MulticopterAttitudeControl::taskMainTrampoline(int argc, char *argv[])
 {
 	mc_att_control::g_control->task_main();
 }
 
 void
-MulticopterAttitudeControl::task_main()
+MulticopterAttitudeControl::taskMain()
 {
 
 	/*
@@ -1340,7 +1340,7 @@ MulticopterAttitudeControl::start()
 					   SCHED_DEFAULT,
 					   SCHED_PRIORITY_ATTITUDE_CONTROL,
 					   1700,
-					   (px4_main_t)&MulticopterAttitudeControl::task_main_trampoline,
+					   (px4_main_t)&MulticopterAttitudeControl::taskMainTrampoline,
 					   nullptr);
 
 	if (_control_task < 0) {

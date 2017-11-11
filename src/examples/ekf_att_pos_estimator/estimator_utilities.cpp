@@ -117,114 +117,114 @@ Mat3f Mat3f::transpose() const
     return ret;
 }
 
-void calcvelNED(float (&velNEDr)[3], float gpsCourse, float gpsGndSpd, float gpsVelD)
+void calcvel_ned(float (&vel_ne_dr)[3], float gps_course, float gps_gnd_spd, float gps_vel_d)
 {
-    velNEDr[0] = gpsGndSpd*cosf(gpsCourse);
-    velNEDr[1] = gpsGndSpd*sinf(gpsCourse);
-    velNEDr[2] = gpsVelD;
+    vel_ne_dr[0] = gps_gnd_spd*cosf(gps_course);
+    vel_ne_dr[1] = gps_gnd_spd*sinf(gps_course);
+    vel_ne_dr[2] = gps_vel_d;
 }
 
-void calcposNED(float (&posNEDr)[3], double lat, double lon, float hgt, double latReference, double lonReference, float hgtReference)
+void calcpos_ned(float (&pos_ne_dr)[3], double lat, double lon, float hgt, double lat_reference, double lon_reference, float hgt_reference)
 {
-    posNEDr[0] = earthRadius * (lat - latReference);
-    posNEDr[1] = earthRadius * cos(latReference) * (lon - lonReference);
-    posNEDr[2] = -(hgt - hgtReference);
+    pos_ne_dr[0] = earthRadius * (lat - lat_reference);
+    pos_ne_dr[1] = earthRadius * cos(lat_reference) * (lon - lon_reference);
+    pos_ne_dr[2] = -(hgt - hgt_reference);
 }
 
-void calcLLH(float posNEDi[3], double &lat, double &lon, float &hgt, double latRef, double lonRef, float hgtRef)
+void calc_llh(float pos_ne_di[3], double &lat, double &lon, float &hgt, double lat_ref, double lon_ref, float hgt_ref)
 {
-    lat = latRef + (double)posNEDi[0] * earthRadiusInv;
-    lon = lonRef + (double)posNEDi[1] * earthRadiusInv / cos(latRef);
-    hgt = hgtRef - posNEDi[2];
+    lat = lat_ref + (double)pos_ne_di[0] * earthRadiusInv;
+    lon = lon_ref + (double)pos_ne_di[1] * earthRadiusInv / cos(lat_ref);
+    hgt = hgt_ref - pos_ne_di[2];
 }
 
 // overload + operator to provide a vector addition
-Vector3f operator+(const Vector3f &vecIn1, const Vector3f &vecIn2)
+Vector3f operator+(const Vector3f &vec_in1, const Vector3f &vec_in2)
 {
-    Vector3f vecOut;
-    vecOut.x = vecIn1.x + vecIn2.x;
-    vecOut.y = vecIn1.y + vecIn2.y;
-    vecOut.z = vecIn1.z + vecIn2.z;
-    return vecOut;
+    Vector3f vec_out;
+    vec_out.x = vec_in1.x + vec_in2.x;
+    vec_out.y = vec_in1.y + vec_in2.y;
+    vec_out.z = vec_in1.z + vec_in2.z;
+    return vec_out;
 }
 
 // overload - operator to provide a vector subtraction
-Vector3f operator-(const Vector3f &vecIn1, const Vector3f &vecIn2)
+Vector3f operator-(const Vector3f &vec_in1, const Vector3f &vec_in2)
 {
-    Vector3f vecOut;
-    vecOut.x = vecIn1.x - vecIn2.x;
-    vecOut.y = vecIn1.y - vecIn2.y;
-    vecOut.z = vecIn1.z - vecIn2.z;
-    return vecOut;
+    Vector3f vec_out;
+    vec_out.x = vec_in1.x - vec_in2.x;
+    vec_out.y = vec_in1.y - vec_in2.y;
+    vec_out.z = vec_in1.z - vec_in2.z;
+    return vec_out;
 }
 
 // overload * operator to provide a matrix vector product
-Vector3f operator*(const Mat3f &matIn, const Vector3f &vecIn)
+Vector3f operator*(const Mat3f &mat_in, const Vector3f &vec_in)
 {
-    Vector3f vecOut;
-    vecOut.x = matIn.x.x*vecIn.x + matIn.x.y*vecIn.y + matIn.x.z*vecIn.z;
-    vecOut.y = matIn.y.x*vecIn.x + matIn.y.y*vecIn.y + matIn.y.z*vecIn.z;
-    vecOut.z = matIn.z.x*vecIn.x + matIn.z.y*vecIn.y + matIn.z.z*vecIn.z;
-    return vecOut;
+    Vector3f vec_out;
+    vec_out.x = mat_in.x.x*vec_in.x + mat_in.x.y*vec_in.y + mat_in.x.z*vec_in.z;
+    vec_out.y = mat_in.y.x*vec_in.x + mat_in.y.y*vec_in.y + mat_in.y.z*vec_in.z;
+    vec_out.z = mat_in.z.x*vec_in.x + mat_in.z.y*vec_in.y + mat_in.z.z*vec_in.z;
+    return vec_out;
 }
 
 // overload * operator to provide a matrix product
-Mat3f operator*(const Mat3f &matIn1, const Mat3f &matIn2)
+Mat3f operator*(const Mat3f &mat_in1, const Mat3f &mat_in2)
 {
-    Mat3f matOut;
-    matOut.x.x = matIn1.x.x*matIn2.x.x + matIn1.x.y*matIn2.y.x + matIn1.x.z*matIn2.z.x;
-    matOut.x.y = matIn1.x.x*matIn2.x.y + matIn1.x.y*matIn2.y.y + matIn1.x.z*matIn2.z.y;
-    matOut.x.z = matIn1.x.x*matIn2.x.z + matIn1.x.y*matIn2.y.z + matIn1.x.z*matIn2.z.z;
+    Mat3f mat_out;
+    mat_out.x.x = mat_in1.x.x*mat_in2.x.x + mat_in1.x.y*mat_in2.y.x + mat_in1.x.z*mat_in2.z.x;
+    mat_out.x.y = mat_in1.x.x*mat_in2.x.y + mat_in1.x.y*mat_in2.y.y + mat_in1.x.z*mat_in2.z.y;
+    mat_out.x.z = mat_in1.x.x*mat_in2.x.z + mat_in1.x.y*mat_in2.y.z + mat_in1.x.z*mat_in2.z.z;
 
-    matOut.y.x = matIn1.y.x*matIn2.x.x + matIn1.y.y*matIn2.y.x + matIn1.y.z*matIn2.z.x;
-    matOut.y.y = matIn1.y.x*matIn2.x.y + matIn1.y.y*matIn2.y.y + matIn1.y.z*matIn2.z.y;
-    matOut.y.z = matIn1.y.x*matIn2.x.z + matIn1.y.y*matIn2.y.z + matIn1.y.z*matIn2.z.z;
+    mat_out.y.x = mat_in1.y.x*mat_in2.x.x + mat_in1.y.y*mat_in2.y.x + mat_in1.y.z*mat_in2.z.x;
+    mat_out.y.y = mat_in1.y.x*mat_in2.x.y + mat_in1.y.y*mat_in2.y.y + mat_in1.y.z*mat_in2.z.y;
+    mat_out.y.z = mat_in1.y.x*mat_in2.x.z + mat_in1.y.y*mat_in2.y.z + mat_in1.y.z*mat_in2.z.z;
 
-    matOut.z.x = matIn1.z.x*matIn2.x.x + matIn1.z.y*matIn2.y.x + matIn1.z.z*matIn2.z.x;
-    matOut.z.y = matIn1.z.x*matIn2.x.y + matIn1.z.y*matIn2.y.y + matIn1.z.z*matIn2.z.y;
-    matOut.z.z = matIn1.z.x*matIn2.x.z + matIn1.z.y*matIn2.y.z + matIn1.z.z*matIn2.z.z;
+    mat_out.z.x = mat_in1.z.x*mat_in2.x.x + mat_in1.z.y*mat_in2.y.x + mat_in1.z.z*mat_in2.z.x;
+    mat_out.z.y = mat_in1.z.x*mat_in2.x.y + mat_in1.z.y*mat_in2.y.y + mat_in1.z.z*mat_in2.z.y;
+    mat_out.z.z = mat_in1.z.x*mat_in2.x.z + mat_in1.z.y*mat_in2.y.z + mat_in1.z.z*mat_in2.z.z;
 
-    return matOut;
+    return mat_out;
 }
 
 // overload % operator to provide a vector cross product
-Vector3f operator%(const Vector3f &vecIn1, const Vector3f &vecIn2)
+Vector3f operator%(const Vector3f &vec_in1, const Vector3f &vec_in2)
 {
-    Vector3f vecOut;
-    vecOut.x = vecIn1.y*vecIn2.z - vecIn1.z*vecIn2.y;
-    vecOut.y = vecIn1.z*vecIn2.x - vecIn1.x*vecIn2.z;
-    vecOut.z = vecIn1.x*vecIn2.y - vecIn1.y*vecIn2.x;
-    return vecOut;
+    Vector3f vec_out;
+    vec_out.x = vec_in1.y*vec_in2.z - vec_in1.z*vec_in2.y;
+    vec_out.y = vec_in1.z*vec_in2.x - vec_in1.x*vec_in2.z;
+    vec_out.z = vec_in1.x*vec_in2.y - vec_in1.y*vec_in2.x;
+    return vec_out;
 }
 
 // overload * operator to provide a vector scaler product
-Vector3f operator*(const Vector3f &vecIn1, const float sclIn1)
+Vector3f operator*(const Vector3f &vec_in1, const float scl_in1)
 {
-    Vector3f vecOut;
-    vecOut.x = vecIn1.x * sclIn1;
-    vecOut.y = vecIn1.y * sclIn1;
-    vecOut.z = vecIn1.z * sclIn1;
-    return vecOut;
+    Vector3f vec_out;
+    vec_out.x = vec_in1.x * scl_in1;
+    vec_out.y = vec_in1.y * scl_in1;
+    vec_out.z = vec_in1.z * scl_in1;
+    return vec_out;
 }
 
 // overload * operator to provide a vector scaler product
-Vector3f operator*(float sclIn1, const Vector3f &vecIn1)
+Vector3f operator*(float scl_in1, const Vector3f &vec_in1)
 {
-    Vector3f vecOut;
-    vecOut.x = vecIn1.x * sclIn1;
-    vecOut.y = vecIn1.y * sclIn1;
-    vecOut.z = vecIn1.z * sclIn1;
-    return vecOut;
+    Vector3f vec_out;
+    vec_out.x = vec_in1.x * scl_in1;
+    vec_out.y = vec_in1.y * scl_in1;
+    vec_out.z = vec_in1.z * scl_in1;
+    return vec_out;
 }
 
 // overload / operator to provide a vector scalar division
 Vector3f operator/(const Vector3f &vec, const float scalar)
 {
-    Vector3f vecOut;
-    vecOut.x = vec.x / scalar;
-    vecOut.y = vec.y / scalar;
-    vecOut.z = vec.z / scalar;
-    return vecOut;
+    Vector3f vec_out;
+    vec_out.x = vec.x / scalar;
+    vec_out.y = vec.y / scalar;
+    vec_out.z = vec.z / scalar;
+    return vec_out;
 }
 
 void swap_var(float &d1, float &d2)

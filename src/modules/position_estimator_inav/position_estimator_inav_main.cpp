@@ -236,11 +236,11 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 	float z_est[2] = { 0.0f, 0.0f };	// pos, vel
 
 	float est_buf[EST_BUF_SIZE][3][2];	// estimated position buffer
-	float R_buf[EST_BUF_SIZE][3][3];	// rotation matrix buffer
-	float R_gps[3][3];					// rotation matrix for GPS correction moment
+	float r_buf[EST_BUF_SIZE][3][3];	// rotation matrix buffer
+	float r_gps[3][3];					// rotation matrix for GPS correction moment
 	memset(est_buf, 0, sizeof(est_buf));
-	memset(R_buf, 0, sizeof(R_buf));
-	memset(R_gps, 0, sizeof(R_gps));
+	memset(r_buf, 0, sizeof(r_buf));
+	memset(r_gps, 0, sizeof(r_gps));
 	int buf_ptr = 0;
 
 	static const float min_eph_epv = 2.0f;	// min EPH/EPV, used for weight calculation
@@ -506,7 +506,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 			/* sensor combined */
 			orb_check(sensor_combined_sub, &updated);
 
-			matrix::Dcmf R = matrix::Quatf(att.q);
+			matrix::Dcmf r = matrix::Quatf(att.q);
 
 			if (updated) {
 				orb_copy(ORB_ID(sensor_combined), sensor_combined_sub, &sensor);
@@ -522,7 +522,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 						acc[i] = 0.0f;
 
 						for (int j = 0; j < 3; j++) {
-							acc[i] += R(i, j) * sensor.accelerometer_m_s2[j];
+							acc[i] += r(i, j) * sensor.accelerometer_m_s2[j];
 						}
 					}
 
@@ -550,7 +550,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 
 					orb_copy(ORB_ID(distance_sensor), distance_sensor_subs[i], &lidar);
 
-					if (lidar.orientation != distance_sensor_s::ROTATION_DOWNWARD_FACING) {
+					if (lidar.orientation != distance_sensor_s::rotation_downward_facing) {
 						updated = false;
 
 					} else {
@@ -564,7 +564,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 
 				if (params.enable_lidar_alt_est && lidar.current_distance > lidar.min_distance
 				    && lidar.current_distance < lidar.max_distance
-				    && (R(2, 2) > 0.7f)) {
+				    && (r(2, 2) > 0.7f)) {
 
 					if (!use_lidar_prev && use_lidar) {
 						lidar_first = true;
@@ -573,7 +573,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 					use_lidar_prev = use_lidar;
 
 					lidar_time = t;
-					dist_ground = lidar.current_distance * R(2, 2); //vertical distance
+					dist_ground = lidar.current_distance * r(2, 2); //vertical distance
 
 					if (lidar_first) {
 						lidar_first = false;
@@ -616,7 +616,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 				float flow_q = flow.quality / 255.0f;
 				float dist_bottom = lidar.current_distance;
 
-				if (dist_bottom > flow_min_dist && flow_q > params.flow_q_min && R(2, 2) > 0.7f) {
+				if (dist_bottom > flow_min_dist && flow_q > params.flow_q_min && r(2, 2) > 0.7f) {
 					/* distance to surface */
 					//float flow_dist = dist_bottom / PX4_R(att.R, 2, 2); //use this if using sonar
 					float flow_dist = dist_bottom; //use this if using lidar
@@ -626,7 +626,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 					float body_v_est[2] = { 0.0f, 0.0f };
 
 					for (int i = 0; i < 2; i++) {
-						body_v_est[i] = R(0, i) * x_est[1] + R(1, i) * y_est[1] + R(2, i) * z_est[1];
+						body_v_est[i] = r(0, i) * x_est[1] + r(1, i) * y_est[1] + r(2, i) * z_est[1];
 					}
 
 					/* set this flag if flow should be accurate according to current velocity and attitude rate estimate */
@@ -727,7 +727,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 					/* project measurements vector to NED basis, skip Z component */
 					for (int i = 0; i < 2; i++) {
 						for (int j = 0; j < 3; j++) {
-							flow_v[i] += R(i, j) * flow_m[j];
+							flow_v[i] += r(i, j) * flow_m[j];
 						}
 					}
 
@@ -736,7 +736,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 					corr_flow[1] = flow_v[1] - y_est[1];
 					/* adjust correction weight */
 					float flow_q_weight = (flow_q - params.flow_q_min) / (1.0f - params.flow_q_min);
-					w_flow = R(2, 2) * flow_q_weight / fmaxf(1.0f, flow_dist);
+					w_flow = r(2, 2) * flow_q_weight / fmaxf(1.0f, flow_dist);
 
 
 					/* if flow is not accurate, reduce weight for it */
@@ -951,7 +951,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 						}
 
 						/* save rotation matrix at this moment */
-						memcpy(R_gps, R_buf[est_i], sizeof(R_gps));
+						memcpy(r_gps, r_buf[est_i], sizeof(r_gps));
 
 						w_gps_xy = min_eph_epv / fmaxf(min_eph_epv, gps.eph);
 						w_gps_z = min_eph_epv / fmaxf(min_eph_epv, gps.epv);
@@ -967,7 +967,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 			}
 		}
 
-		matrix::Dcm<float> R = matrix::Quatf(att.q);
+		matrix::Dcm<float> r = matrix::Quatf(att.q);
 
 		/* check for timeout on FLOW topic */
 		if ((flow_valid || lidar_valid) && t > (flow_time + flow_topic_timeout)) {
@@ -1093,7 +1093,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 			float c = 0.0f;
 
 			for (int j = 0; j < 3; j++) {
-				c += R_gps[j][i] * accel_bias_corr[j];
+				c += r_gps[j][i] * accel_bias_corr[j];
 			}
 
 			if (PX4_ISFINITE(c)) {
@@ -1133,7 +1133,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 			float c = 0.0f;
 
 			for (int j = 0; j < 3; j++) {
-				c += R(j, i) * accel_bias_corr[j];
+				c += r(j, i) * accel_bias_corr[j];
 			}
 
 			if (PX4_ISFINITE(c)) {
@@ -1163,7 +1163,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 			float c = 0.0f;
 
 			for (int j = 0; j < 3; j++) {
-				c += R(j, i) * accel_bias_corr[j];
+				c += r(j, i) * accel_bias_corr[j];
 			}
 
 			if (PX4_ISFINITE(c)) {
@@ -1334,7 +1334,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 			est_buf[buf_ptr][2][1] = z_est[1];
 
 			/* push current rotation matrix to buffer */
-			memcpy(R_buf[buf_ptr], &R._data[0][0], sizeof(R._data));
+			memcpy(r_buf[buf_ptr], &r._data[0][0], sizeof(r._data));
 
 			buf_ptr++;
 
@@ -1354,7 +1354,7 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 			local_pos.vy = y_est[1];
 			local_pos.z = z_est[0];
 			local_pos.vz = z_est[1];
-			matrix::Eulerf euler(R);
+			matrix::Eulerf euler(r);
 			local_pos.yaw = euler.psi();
 			local_pos.dist_bottom_valid = dist_bottom_valid;
 			local_pos.eph = eph;

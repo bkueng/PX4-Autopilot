@@ -190,23 +190,23 @@ extern pwm_limit_t pwm_limit;
 /*
  * Mixer
  */
-extern void	mixer_tick(void);
-extern int	mixer_handle_text_create_mixer(void);
+extern void	mixer_tick();
+extern int	mixer_handle_text_create_mixer();
 extern int	mixer_handle_text(const void *buffer, size_t length);
 /* Set the failsafe values of all mixed channels (based on zero throttle, controls centered) */
-extern void	mixer_set_failsafe(void);
+extern void	mixer_set_failsafe();
 
 /**
  * Safety switch/LED.
  */
-extern void	safety_init(void);
-extern void	failsafe_led_init(void);
+extern void	safety_init();
+extern void	failsafe_led_init();
 
 /**
  * FMU communications
  */
-extern void	interface_init(void);
-extern void	interface_tick(void);
+extern void	interface_init();
+extern void	interface_tick();
 
 /**
  * Register space
@@ -217,7 +217,7 @@ extern int	registers_get(uint8_t page, uint8_t offset, uint16_t **values, unsign
 /**
  * Sensors/misc inputs
  */
-extern int	adc_init(void);
+extern int	adc_init();
 extern uint16_t	adc_measure(unsigned channel);
 
 /**
@@ -225,8 +225,8 @@ extern uint16_t	adc_measure(unsigned channel);
  *
  * Input functions return true when they receive an update from the RC controller.
  */
-extern void	controls_init(void);
-extern void	controls_tick(void);
+extern void	controls_init();
+extern void	controls_tick();
 
 /** global debug level for isr_debug() */
 extern volatile uint8_t debug_level;

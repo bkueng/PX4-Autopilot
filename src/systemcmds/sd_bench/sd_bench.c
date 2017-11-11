@@ -64,7 +64,7 @@ static inline unsigned int time_fsync(int fd);
 
 __EXPORT int	sd_bench_main(int argc, char *argv[]);
 
-static const char *BENCHMARK_FILE = PX4_ROOTFSDIR"/fs/microsd/benchmark.tmp";
+static const char *benchmark_file = PX4_ROOTFSDIR"/fs/microsd/benchmark.tmp";
 
 static int num_runs; ///< number of runs
 static int run_duration; ///< duration of a single run [ms]
@@ -73,13 +73,13 @@ static bool synchronized; ///< call fsync after each block?
 static void
 usage()
 {
-	PRINT_MODULE_DESCRIPTION("Test the speed of an SD Card");
+	print_module_description("Test the speed of an SD Card");
 
-	PRINT_MODULE_USAGE_NAME_SIMPLE("sd_bench", "command");
-	PRINT_MODULE_USAGE_PARAM_INT('b', 4096, 1, 1000000, "Block size for each read/write", true);
-	PRINT_MODULE_USAGE_PARAM_INT('r', 5, 1, 1000, "Number of runs", true);
-	PRINT_MODULE_USAGE_PARAM_INT('d', 2000, 1, 100000, "Duration of a run in ms", true);
-	PRINT_MODULE_USAGE_PARAM_FLAG('s', "Call fsync after each block (default=at end of each run)", true);
+	print_module_usage_name_simple("sd_bench", "command");
+	print_module_usage_param_int('b', 4096, 1, 1000000, "Block size for each read/write", true);
+	print_module_usage_param_int('r', 5, 1, 1000, "Number of runs", true);
+	print_module_usage_param_int('d', 2000, 1, 100000, "Duration of a run in ms", true);
+	print_module_usage_param_flag('s', "Call fsync after each block (default=at end of each run)", true);
 }
 
 int
@@ -123,10 +123,10 @@ sd_bench_main(int argc, char *argv[])
 		return -1;
 	}
 
-	int bench_fd = open(BENCHMARK_FILE, O_CREAT | O_WRONLY | O_TRUNC, PX4_O_MODE_666);
+	int bench_fd = open(benchmark_file, O_CREAT | O_WRONLY | O_TRUNC, PX4_O_MODE_666);
 
 	if (bench_fd < 0) {
-		PX4_ERR("Can't open benchmark file %s", BENCHMARK_FILE);
+		PX4_ERR("Can't open benchmark file %s", benchmark_file);
 		return -1;
 	}
 
@@ -148,7 +148,7 @@ sd_bench_main(int argc, char *argv[])
 
 	free(block);
 	close(bench_fd);
-	unlink(BENCHMARK_FILE);
+	unlink(benchmark_file);
 
 	return 0;
 }

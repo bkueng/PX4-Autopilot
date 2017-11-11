@@ -128,11 +128,11 @@ extern "C" {
 
 			} else {
 
-				const unsigned NAMELEN = 32;
-				char thread_name[NAMELEN] = {};
+				const unsigned namelen = 32;
+				char thread_name[namelen] = {};
 
 #ifndef __PX4_QURT
-				int nret = pthread_getname_np(pthread_self(), thread_name, NAMELEN);
+				int nret = pthread_getname_np(pthread_self(), thread_name, namelen);
 
 				if (nret || thread_name[0] == 0) {
 					PX4_WARN("failed getting thread name");
@@ -263,11 +263,11 @@ extern "C" {
 		int ret = -1;
 		unsigned int i;
 
-		const unsigned NAMELEN = 32;
-		char thread_name[NAMELEN] = {};
+		const unsigned namelen = 32;
+		char thread_name[namelen] = {};
 
 #ifndef __PX4_QURT
-		int nret = pthread_getname_np(pthread_self(), thread_name, NAMELEN);
+		int nret = pthread_getname_np(pthread_self(), thread_name, namelen);
 
 		if (nret || thread_name[0] == 0) {
 			PX4_WARN("failed getting thread name");

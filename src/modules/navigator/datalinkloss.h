@@ -87,12 +87,12 @@ private:
 	/**
 	 * Set the DLL item
 	 */
-	void		set_dll_item();
+	void		setDllItem();
 
 	/**
 	 * Move to next DLL item
 	 */
-	void		advance_dll();
+	void		advanceDll();
 
 };
 #endif

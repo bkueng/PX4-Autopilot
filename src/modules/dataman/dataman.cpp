@@ -73,22 +73,22 @@ __EXPORT int dataman_main(int argc, char *argv[]);
 __END_DECLS
 
 /* Private File based Operations */
-static ssize_t _file_write(dm_item_t item, unsigned index, dm_persitence_t persistence, const void *buf,
+static ssize_t file_write(dm_item_t item, unsigned index, dm_persitence_t persistence, const void *buf,
 			   size_t count);
-static ssize_t _file_read(dm_item_t item, unsigned index, void *buf, size_t count);
-static int  _file_clear(dm_item_t item);
-static int  _file_restart(dm_reset_reason reason);
-static int _file_initialize(unsigned max_offset);
-static void _file_shutdown();
+static ssize_t file_read(dm_item_t item, unsigned index, void *buf, size_t count);
+static int  file_clear(dm_item_t item);
+static int  file_restart(dm_reset_reason reason);
+static int file_initialize(unsigned max_offset);
+static void file_shutdown();
 
 /* Private Ram based Operations */
-static ssize_t _ram_write(dm_item_t item, unsigned index, dm_persitence_t persistence, const void *buf,
+static ssize_t ram_write(dm_item_t item, unsigned index, dm_persitence_t persistence, const void *buf,
 			  size_t count);
-static ssize_t _ram_read(dm_item_t item, unsigned index, void *buf, size_t count);
-static int  _ram_clear(dm_item_t item);
-static int  _ram_restart(dm_reset_reason reason);
-static int _ram_initialize(unsigned max_offset);
-static void _ram_shutdown();
+static ssize_t ram_read(dm_item_t item, unsigned index, void *buf, size_t count);
+static int  ram_clear(dm_item_t item);
+static int  ram_restart(dm_reset_reason reason);
+static int ram_initialize(unsigned max_offset);
+static void ram_shutdown();
 
 #if defined(FLASH_BASED_DATAMAN)
 /* Private Ram_Flash based Operations */
@@ -115,22 +115,22 @@ typedef struct dm_operations_t {
 } dm_operations_t;
 
 static dm_operations_t dm_file_operations = {
-	.write   = _file_write,
-	.read    = _file_read,
-	.clear   = _file_clear,
-	.restart = _file_restart,
-	.initialize = _file_initialize,
-	.shutdown = _file_shutdown,
+	.write   = file_write,
+	.read    = file_read,
+	.clear   = file_clear,
+	.restart = file_restart,
+	.initialize = file_initialize,
+	.shutdown = file_shutdown,
 	.wait = px4_sem_wait,
 };
 
 static dm_operations_t dm_ram_operations = {
-	.write   = _ram_write,
-	.read    = _ram_read,
-	.clear   = _ram_clear,
-	.restart = _ram_restart,
-	.initialize = _ram_initialize,
-	.shutdown = _ram_shutdown,
+	.write   = ram_write,
+	.read    = ram_read,
+	.clear   = ram_clear,
+	.restart = ram_restart,
+	.initialize = ram_initialize,
+	.shutdown = ram_shutdown,
 	.wait = px4_sem_wait,
 };
 
@@ -457,7 +457,7 @@ calculate_offset(dm_item_t item, unsigned index)
  */
 
 /* write to the data manager RAM buffer  */
-static ssize_t _ram_write(dm_item_t item, unsigned index, dm_persitence_t persistence, const void *buf,
+static ssize_t ram_write(dm_item_t item, unsigned index, dm_persitence_t persistence, const void *buf,
 			  size_t count)
 {
 
@@ -496,7 +496,7 @@ static ssize_t _ram_write(dm_item_t item, unsigned index, dm_persitence_t persis
 
 /* write to the data manager file */
 static ssize_t
-_file_write(dm_item_t item, unsigned index, dm_persitence_t persistence, const void *buf, size_t count)
+file_write(dm_item_t item, unsigned index, dm_persitence_t persistence, const void *buf, size_t count)
 {
 	unsigned char buffer[g_per_item_size[item]];
 	size_t len;
@@ -570,7 +570,7 @@ _ram_flash_write(dm_item_t item, unsigned index, dm_persitence_t persistence, co
 #endif
 
 /* Retrieve from the data manager RAM buffer*/
-static ssize_t _ram_read(dm_item_t item, unsigned index, void *buf, size_t count)
+static ssize_t ram_read(dm_item_t item, unsigned index, void *buf, size_t count)
 {
 	/* Get the offset for this item */
 	int offset = calculate_offset(item, index);
@@ -610,7 +610,7 @@ static ssize_t _ram_read(dm_item_t item, unsigned index, void *buf, size_t count
 
 /* Retrieve from the data manager file */
 static ssize_t
-_file_read(dm_item_t item, unsigned index, void *buf, size_t count)
+file_read(dm_item_t item, unsigned index, void *buf, size_t count)
 {
 	unsigned char buffer[g_per_item_size[item]];
 	int len, offset;
@@ -668,7 +668,7 @@ _ram_flash_read(dm_item_t item, unsigned index, void *buf, size_t count)
 }
 #endif
 
-static int  _ram_clear(dm_item_t item)
+static int  ram_clear(dm_item_t item)
 {
 	int i;
 	int result = 0;
@@ -698,7 +698,7 @@ static int  _ram_clear(dm_item_t item)
 }
 
 static int
-_file_clear(dm_item_t item)
+file_clear(dm_item_t item)
 {
 	int i, result = 0;
 
@@ -763,7 +763,7 @@ _ram_flash_clear(dm_item_t item)
 #endif
 
 /* Tell the data manager about the type of the last reset */
-static int  _ram_restart(dm_reset_reason reason)
+static int  ram_restart(dm_reset_reason reason)
 {
 	uint8_t *buffer = dm_operations_data.ram.data;
 
@@ -803,7 +803,7 @@ static int  _ram_restart(dm_reset_reason reason)
 }
 
 static int
-_file_restart(dm_reset_reason reason)
+file_restart(dm_reset_reason reason)
 {
 	unsigned offset = 0;
 	int result = 0;
@@ -883,7 +883,7 @@ _ram_flash_restart(dm_reset_reason reason)
 #endif
 
 static int
-_file_initialize(unsigned max_offset)
+file_initialize(unsigned max_offset)
 {
 	/* See if the data manage file exists and is a multiple of the sector size */
 	dm_operations_data.file.fd = open(k_data_manager_device_path, O_RDONLY | O_BINARY);
@@ -940,7 +940,7 @@ _file_initialize(unsigned max_offset)
 }
 
 static int
-_ram_initialize(unsigned max_offset)
+ram_initialize(unsigned max_offset)
 {
 	/* In memory */
 	dm_operations_data.ram.data = (uint8_t *)malloc(max_offset);
@@ -997,14 +997,14 @@ _ram_flash_initialize(unsigned max_offset)
 #endif
 
 static void
-_file_shutdown()
+file_shutdown()
 {
 	close(dm_operations_data.file.fd);
 	dm_operations_data.running = false;
 }
 
 static void
-_ram_shutdown()
+ram_shutdown()
 {
 	free(dm_operations_data.ram.data);
 	dm_operations_data.running = false;
@@ -1488,7 +1488,7 @@ stop()
 static void
 usage()
 {
-	PRINT_MODULE_DESCRIPTION(
+	print_module_description(
 		R"DESCR_STR(
 ### Description
 Module to provide persistent storage for the rest of the system in form of a simple database through a C API.
@@ -1512,12 +1512,12 @@ check for geofence violations.
 
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("dataman", "system");
+	print_module_usage_name("dataman", "system");
 	PRINT_MODULE_USAGE_COMMAND("start");
-	PRINT_MODULE_USAGE_PARAM_STRING('f', nullptr, "<file>", "Storage file", true);
-	PRINT_MODULE_USAGE_PARAM_FLAG('r', "Use RAM backend (NOT persistent)", true);
-	PRINT_MODULE_USAGE_PARAM_FLAG('i', "Use FLASH backend", true);
-	PRINT_MODULE_USAGE_PARAM_COMMENT("The options -f, -r and -i are mutually exclusive. If nothing is specified, a file 'dataman' is used");
+	print_module_usage_param_string('f', nullptr, "<file>", "Storage file", true);
+	print_module_usage_param_flag('r', "Use RAM backend (NOT persistent)", true);
+	print_module_usage_param_flag('i', "Use FLASH backend", true);
+	print_module_usage_param_comment("The options -f, -r and -i are mutually exclusive. If nothing is specified, a file 'dataman' is used");
 
 	PRINT_MODULE_USAGE_COMMAND_DESCR("poweronrestart", "Restart dataman (on power on)");
 	PRINT_MODULE_USAGE_COMMAND_DESCR("inflightrestart", "Restart dataman (in flight)");

@@ -59,19 +59,19 @@ public:
 	void update(float accel_x) override;
 	LaunchDetectionResult getLaunchDetected() const override;
 	void reset() override;
-	float getPitchMax(float pitchMaxDefault) override;
+	float getPitchMax(float pitch_max_default) override;
 
 private:
-	hrt_abstime last_timestamp{0};
-	float integrator{0.0f};
-	float motorDelayCounter{0.0f};
+	hrt_abstime _last_timestamp{0};
+	float _integrator{0.0f};
+	float _motorDelayCounter{0.0f};
 
-	LaunchDetectionResult state{LAUNCHDETECTION_RES_NONE};
+	LaunchDetectionResult _state{LAUNCHDETECTION_RES_NONE};
 
-	control::BlockParamFloat thresholdAccel;
-	control::BlockParamFloat thresholdTime;
-	control::BlockParamFloat motorDelay;
-	control::BlockParamFloat pitchMaxPreThrottle; /**< Upper pitch limit before throttle is turned on.
+	control::BlockParamFloat _thresholdAccel;
+	control::BlockParamFloat _thresholdTime;
+	control::BlockParamFloat _motorDelay;
+	control::BlockParamFloat _pitchMaxPreThrottle; /**< Upper pitch limit before throttle is turned on.
 						       Can be used to make sure that the AC does not climb
 						       too much while attached to a bungee */
 

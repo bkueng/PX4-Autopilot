@@ -84,7 +84,7 @@ public:
 	void sleep() { usleep(sleep_interval); }
 
 private:
-	uint64_t sleep_interval;
+	uint64_t _sleep_interval;
 
 };
 

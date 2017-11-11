@@ -57,7 +57,7 @@ uorb_tests_main(int argc, char *argv[])
 	 * Test the driver/device.
 	 */
 	if (argc == 1) {
-		uORBTest::UnitTest &t = uORBTest::UnitTest::instance();
+		u_orb_test::UnitTest &t = u_orb_test::UnitTest::instance();
 		int rc = t.test();
 
 		if (rc == OK) {
@@ -77,7 +77,7 @@ uorb_tests_main(int argc, char *argv[])
 	 */
 	if (argc > 1 && !strcmp(argv[1], "latency_test")) {
 
-		uORBTest::UnitTest &t = uORBTest::UnitTest::instance();
+		u_orb_test::UnitTest &t = u_orb_test::UnitTest::instance();
 
 		if (argc > 2 && !strcmp(argv[2], "medium")) {
 			return t.latency_test<struct orb_test_medium>(ORB_ID(orb_test_medium), true);

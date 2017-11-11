@@ -47,7 +47,7 @@
 
 #include "uORBCommunicator.hpp"
 
-namespace uORB
+namespace u_orb
 {
 class Manager;
 }
@@ -57,7 +57,7 @@ class Manager;
  * uORB nodes for each uORB topics and also implements the behavor of the
  * uORB Api's.
  */
-class uORB::Manager  : public uORBCommunicator::IChannelRxHandler
+class u_orb::Manager  : public u_orb_communicator::IChannelRxHandler
 {
 public:
 	// public interfaces for this class.
@@ -73,9 +73,9 @@ public:
 	 * Make sure initialize() is called first.
 	 * @return uORB::Manager*
 	 */
-	static uORB::Manager *get_instance()
+	static u_orb::Manager *getInstance()
 	{
-		return _Instance;
+		return instance;
 	}
 
 	/**
@@ -84,7 +84,7 @@ public:
 	 * Note: the first call to this is not thread-safe.
 	 * @return nullptr if initialization failed (and errno will be set)
 	 */
-	uORB::DeviceMaster *get_device_master(Flavor flavor);
+	u_orb::DeviceMaster *getDeviceMaster(Flavor flavor);
 
 	// ==== uORB interface methods ====
 	/**
@@ -112,7 +112,7 @@ public:
 	 *      ORB_DEFINE with no corresponding ORB_DECLARE)
 	 *      this function will return nullptr and set errno to ENOENT.
 	 */
-	orb_advert_t orb_advertise(const struct orb_metadata *meta, const void *data, unsigned int queue_size = 1)
+	orb_advert_t orbAdvertise(const struct orb_metadata *meta, const void *data, unsigned int queue_size = 1)
 	{
 		return orb_advertise_multi(meta, data, nullptr, ORB_PRIO_DEFAULT, queue_size);
 	}
@@ -151,7 +151,7 @@ public:
 	 *      ORB_DEFINE with no corresponding ORB_DECLARE)
 	 *      this function will return -1 and set errno to ENOENT.
 	 */
-	orb_advert_t orb_advertise_multi(const struct orb_metadata *meta, const void *data, int *instance,
+	orb_advert_t orbAdvertiseMulti(const struct orb_metadata *meta, const void *data, int *instance,
 					 int priority, unsigned int queue_size = 1);
 
 
@@ -161,7 +161,7 @@ public:
 	 * @param handle  handle returned by orb_advertise or orb_advertise_multi.
 	 * @return 0 on success
 	 */
-	int orb_unadvertise(orb_advert_t handle);
+	int orbUnadvertise(orb_advert_t handle);
 
 	/**
 	 * Publish new data to a topic.
@@ -176,7 +176,7 @@ public:
 	 * @param data    A pointer to the data to be published.
 	 * @return    OK on success, ERROR otherwise with errno set accordingly.
 	 */
-	int  orb_publish(const struct orb_metadata *meta, orb_advert_t handle, const void *data);
+	int  orbPublish(const struct orb_metadata *meta, orb_advert_t handle, const void *data);
 
 	/**
 	 * Subscribe to a topic.
@@ -203,7 +203,7 @@ public:
 	 * @return    ERROR on error, otherwise returns a handle
 	 *      that can be used to read and update the topic.
 	 */
-	int  orb_subscribe(const struct orb_metadata *meta);
+	int  orbSubscribe(const struct orb_metadata *meta);
 
 	/**
 	 * Subscribe to a multi-instance of a topic.
@@ -238,7 +238,7 @@ public:
 	 *      ORB_DEFINE_OPTIONAL with no corresponding ORB_DECLARE)
 	 *      this function will return -1 and set errno to ENOENT.
 	 */
-	int  orb_subscribe_multi(const struct orb_metadata *meta, unsigned instance);
+	int  orbSubscribeMulti(const struct orb_metadata *meta, unsigned instance);
 
 	/**
 	 * Unsubscribe from a topic.
@@ -246,7 +246,7 @@ public:
 	 * @param handle  A handle returned from orb_subscribe.
 	 * @return    OK on success, ERROR otherwise with errno set accordingly.
 	 */
-	int  orb_unsubscribe(int handle);
+	int  orbUnsubscribe(int handle);
 
 	/**
 	 * Fetch data from a topic.
@@ -264,7 +264,7 @@ public:
 	 *      using the data.
 	 * @return    OK on success, ERROR otherwise with errno set accordingly.
 	 */
-	int  orb_copy(const struct orb_metadata *meta, int handle, void *buffer);
+	int  orbCopy(const struct orb_metadata *meta, int handle, void *buffer);
 
 	/**
 	 * Check whether a topic has been published to since the last orb_copy.
@@ -284,7 +284,7 @@ public:
 	 * @return    OK if the check was successful, ERROR otherwise with
 	 *      errno set accordingly.
 	 */
-	int  orb_check(int handle, bool *updated);
+	int  orbCheck(int handle, bool *updated);
 
 	/**
 	 * Return the last time that the topic was updated. If a queue is used, it returns
@@ -295,7 +295,7 @@ public:
 	 *      never been updated. Time is measured in microseconds.
 	 * @return    OK on success, ERROR otherwise with errno set accordingly.
 	 */
-	int  orb_stat(int handle, uint64_t *time);
+	int  orbStat(int handle, uint64_t *time);
 
 	/**
 	 * Check if a topic has already been created and published (advertised)
@@ -304,7 +304,7 @@ public:
 	 * @param instance  ORB instance
 	 * @return    OK if the topic exists, ERROR otherwise.
 	 */
-	int  orb_exists(const struct orb_metadata *meta, int instance);
+	int  orbExists(const struct orb_metadata *meta, int instance);
 
 	/**
 	 * Return the priority of the topic
@@ -316,7 +316,7 @@ public:
 	 *      independent of the startup order of the associated publishers.
 	 * @return    OK on success, ERROR otherwise with errno set accordingly.
 	 */
-	int  orb_priority(int handle, int32_t *priority);
+	int  orbPriority(int handle, int32_t *priority);
 
 	/**
 	 * Set the minimum interval between which updates are seen for a subscription.
@@ -336,7 +336,7 @@ public:
 	 * @param interval  An interval period in milliseconds.
 	 * @return    OK on success, ERROR otherwise with ERRNO set accordingly.
 	 */
-	int  orb_set_interval(int handle, unsigned interval);
+	int  orbSetInterval(int handle, unsigned interval);
 
 
 	/**
@@ -348,7 +348,7 @@ public:
 	 * @param interval  The returned interval period in milliseconds.
 	 * @return    OK on success, ERROR otherwise with ERRNO set accordingly.
 	 */
-	int	orb_get_interval(int handle, unsigned *interval);
+	int	orbGetInterval(int handle, unsigned *interval);
 
 	/**
 	 * Method to set the uORBCommunicator::IChannel instance.
@@ -358,18 +358,18 @@ public:
 	 *  Currently this call only supports the use of one IChannel
 	 *  Future extensions may include more than one IChannel's.
 	 */
-	void set_uorb_communicator(uORBCommunicator::IChannel *comm_channel);
+	void setUorbCommunicator(u_orb_communicator::IChannel *comm_channel);
 
 	/**
 	 * Gets the uORB Communicator instance.
 	 */
-	uORBCommunicator::IChannel *get_uorb_communicator();
+	u_orb_communicator::IChannel *getUorbCommunicator();
 
 	/**
 	 * Utility method to check if there is a remote subscriber present
 	 * for a given topic
 	 */
-	bool is_remote_subscriber_present(const char *messageName);
+	bool isRemoteSubscriberPresent(const char *message_name);
 
 private: // class methods
 	/**
@@ -380,7 +380,7 @@ private: // class methods
 	 *       we tried to advertise.
 	 */
 	int
-	node_advertise
+	nodeAdvertise
 	(
 		const struct orb_metadata *meta,
 		int *instance = nullptr,
@@ -394,7 +394,7 @@ private: // class methods
 	 * advertisers.
 	 */
 	int
-	node_open
+	nodeOpen
 	(
 		Flavor f,
 		const struct orb_metadata *meta,
@@ -405,9 +405,9 @@ private: // class methods
 	);
 
 private: // data members
-	static Manager *_Instance;
+	static Manager *instance;
 	// the communicator channel instance.
-	uORBCommunicator::IChannel *_comm_channel;
+	u_orb_communicator::IChannel *_comm_channel;
 	ORBSet _remote_subscriber_topics;
 	ORBSet _remote_topics;
 
@@ -429,7 +429,7 @@ private: //class methods
 	 *  	handler.
 	 *  otherwise = failure.
 	 */
-	virtual int16_t process_remote_topic(const char *topic_name, bool isAdvertisement);
+	virtual int16_t process_remote_topic(const char *topic_name, bool is_advertisement);
 
 	/**
 	   * Interface to process a received AddSubscription from remote.
@@ -443,8 +443,8 @@ private: //class methods
 	   *    handler.
 	   *  otherwise = failure.
 	   */
-	virtual int16_t process_add_subscription(const char *messageName,
-			int32_t msgRateInHz);
+	virtual int16_t process_add_subscription(const char *message_name,
+			int32_t msg_rate_in_hz);
 
 	/**
 	 * Interface to process a received control msg to remove subscription
@@ -456,7 +456,7 @@ private: //class methods
 	 *    handler.
 	 *  otherwise = failure.
 	 */
-	virtual int16_t process_remove_subscription(const char *messageName);
+	virtual int16_t process_remove_subscription(const char *message_name);
 
 	/**
 	 * Interface to process the received data message.
@@ -472,7 +472,7 @@ private: //class methods
 	 *    handler.
 	 *  otherwise = failure.
 	 */
-	virtual int16_t process_received_message(const char *messageName,
+	virtual int16_t process_received_message(const char *message_name,
 			int32_t length, uint8_t *data);
 
 

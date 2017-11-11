@@ -65,11 +65,11 @@ public:
 
 private:
 
-	static constexpr int TARGET_TIMEOUT_MS = 2500;
-	static constexpr int TARGET_ACCEPTANCE_RADIUS_M = 5;
-	static constexpr int INTERPOLATION_PNTS = 20;
-	static constexpr float FF_K = .25F;
-	static constexpr float OFFSET_M = 8;
+	static constexpr int target_timeout_ms = 2500;
+	static constexpr int target_acceptance_radius_m = 5;
+	static constexpr int interpolation_pnts = 20;
+	static constexpr float ff_k = .25F;
+	static constexpr float offset_m = 8;
 
 	enum FollowTargetState {
 		TRACK_POSITION,
@@ -155,17 +155,17 @@ private:
 	};
 
 	math::Matrix<3, 3> _rot_matrix;
-	void track_target_position();
-	void track_target_velocity();
-	bool target_velocity_valid();
-	bool target_position_valid();
-	void reset_target_validity();
-	void update_position_sp(bool velocity_valid, bool position_valid, float yaw_rate);
-	void update_target_motion();
-	void update_target_velocity();
+	void trackTargetPosition();
+	void trackTargetVelocity();
+	bool targetVelocityValid();
+	bool targetPositionValid();
+	void resetTargetValidity();
+	void updatePositionSp(bool velocity_valid, bool position_valid, float yaw_rate);
+	void updateTargetMotion();
+	void updateTargetVelocity();
 
 	/**
 	 * Set follow_target item
 	 */
-	void set_follow_target_item(struct mission_item_s *item, float min_clearance, follow_target_s &target, float yaw);
+	void setFollowTargetItem(struct mission_item_s *item, float min_clearance, follow_target_s &target, float yaw);
 };

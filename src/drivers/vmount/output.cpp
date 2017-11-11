@@ -104,7 +104,7 @@ void OutputBase::publish()
 	orb_publish_auto(ORB_ID(mount_orientation), &_mount_orientation_pub, &mount_orientation, &instance, ORB_PRIO_DEFAULT);
 }
 
-float OutputBase::_calculate_pitch(double lon, double lat, float altitude,
+float OutputBase::calculatePitch(double lon, double lat, float altitude,
 				   const vehicle_global_position_s &global_position)
 {
 	if (!map_projection_initialized(&_projection_reference)) {
@@ -121,7 +121,7 @@ float OutputBase::_calculate_pitch(double lon, double lat, float altitude,
 	return atan2f(z, target_distance);
 }
 
-void OutputBase::_set_angle_setpoints(const ControlData *control_data)
+void OutputBase::setAngleSetpoints(const ControlData *control_data)
 {
 	_cur_control_data = control_data;
 
@@ -131,7 +131,7 @@ void OutputBase::_set_angle_setpoints(const ControlData *control_data)
 	}
 
 	switch (control_data->type) {
-	case ControlData::Type::Angle:
+	case control_data::Type::Angle:
 		for (int i = 0; i < 3; ++i) {
 			if (control_data->type_data.angle.is_speed[i]) {
 				_angle_speeds[i] = control_data->type_data.angle.angles[i];
@@ -143,11 +143,11 @@ void OutputBase::_set_angle_setpoints(const ControlData *control_data)
 
 		break;
 
-	case ControlData::Type::LonLat:
+	case control_data::Type::LonLat:
 		_handle_position_update(true);
 		break;
 
-	case ControlData::Type::Neutral:
+	case control_data::Type::Neutral:
 		_angle_setpoints[0] = 0.f;
 		_angle_setpoints[1] = 0.f;
 		_angle_setpoints[2] = 0.f;
@@ -155,11 +155,11 @@ void OutputBase::_set_angle_setpoints(const ControlData *control_data)
 	}
 }
 
-void OutputBase::_handle_position_update(bool force_update)
+void OutputBase::handlePositionUpdate(bool force_update)
 {
 	bool need_update = force_update;
 
-	if (!_cur_control_data || _cur_control_data->type != ControlData::Type::LonLat) {
+	if (!_cur_control_data || _cur_control_data->type != control_data::Type::LonLat) {
 		return;
 	}
 
@@ -194,7 +194,7 @@ void OutputBase::_handle_position_update(bool force_update)
 	_angle_setpoints[2] = yaw;
 }
 
-void OutputBase::_calculate_output_angles(const hrt_abstime &t)
+void OutputBase::calculateOutputAngles(const hrt_abstime &t)
 {
 	//take speed into account
 	float dt = (t - _last_update) / 1.e6f;

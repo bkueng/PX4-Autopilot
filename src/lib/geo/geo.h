@@ -250,7 +250,7 @@ __EXPORT float get_distance_to_next_waypoint(double lat_now, double lon_now, dou
  * @param lat_target latitude of target waypoint C in degrees (47.1234567°, not 471234567°)
  * @param lon_target longitude of target waypoint C in degrees (47.1234567°, not 471234567°)
  */
-__EXPORT void create_waypoint_from_line_and_dist(double lat_A, double lon_A, double lat_B, double lon_B, float dist,
+__EXPORT void create_waypoint_from_line_and_dist(double lat_a, double lon_a, double lat_b, double lon_b, float dist,
 		double *lat_target, double *lon_target);
 
 /**
@@ -307,9 +307,9 @@ __EXPORT float mavlink_wpm_distance_to_point_local(float x_now, float y_now, flo
 		float x_next, float y_next, float z_next,
 		float *dist_xy, float *dist_z);
 
-__EXPORT float _wrap_180(float bearing);
-__EXPORT float _wrap_360(float bearing);
-__EXPORT float _wrap_pi(float bearing);
-__EXPORT float _wrap_2pi(float bearing);
+__EXPORT float wrap_180(float bearing);
+__EXPORT float wrap_360(float bearing);
+__EXPORT float wrap_pi(float bearing);
+__EXPORT float wrap_2pi(float bearing);
 
 __END_DECLS

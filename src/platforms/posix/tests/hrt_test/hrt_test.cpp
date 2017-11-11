@@ -47,7 +47,7 @@
 #include <stdio.h>
 #include <cstring>
 
-px4::AppState HRTTest::appState;
+px4::AppState HRTTest::app_state;
 
 static struct hrt_call t1;
 static int update_interval = 1;
@@ -65,7 +65,7 @@ static void timer_expired(void *arg)
 
 int HRTTest::main()
 {
-	appState.setRunning(true);
+	app_state.setRunning(true);
 
 	hrt_abstime t = hrt_absolute_time();
 	usleep(1000000);

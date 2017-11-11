@@ -124,7 +124,7 @@ public:
 	/**
 	 * set row from vector
 	 */
-	void set_row(unsigned int row, const Vector<N> v)
+	void setRow(unsigned int row, const Vector<N> v)
 	{
 		for (unsigned i = 0; i < N; i++) {
 			data[row][i] = v.data[i];
@@ -134,7 +134,7 @@ public:
 	/**
 	 * set column from vector
 	 */
-	void set_col(unsigned int col, const Vector<M> v)
+	void setCol(unsigned int col, const Vector<M> v)
 	{
 		for (unsigned i = 0; i < M; i++) {
 			data[i][col] = v.data[i];
@@ -160,7 +160,7 @@ public:
 	/**
 	 * get rows number
 	 */
-	unsigned int get_rows() const
+	unsigned int getRows() const
 	{
 		return M;
 	}
@@ -168,7 +168,7 @@ public:
 	/**
 	 * get columns number
 	 */
-	unsigned int get_cols() const
+	unsigned int getCols() const
 	{
 		return N;
 	}
@@ -341,10 +341,10 @@ public:
 	template <unsigned int P>
 	Matrix<M, P> operator *(const Matrix<N, P> &m) const
 	{
-		matrix::Matrix<float, M, N> Me(this->arm_mat.pData);
-		matrix::Matrix<float, N, P> Him(m.arm_mat.pData);
-		matrix::Matrix<float, M, P> Product = Me * Him;
-		Matrix<M, P> res(Product.data());
+		matrix::Matrix<float, M, N> me(this->arm_mat.pData);
+		matrix::Matrix<float, N, P> him(m.arm_mat.pData);
+		matrix::Matrix<float, M, P> product = me * him;
+		Matrix<M, P> res(product.data());
 		return res;
 	}
 
@@ -353,8 +353,8 @@ public:
 	 */
 	Matrix<N, M> transposed() const
 	{
-		matrix::Matrix<float, M, N> Me(this->arm_mat.pData);
-		Matrix<N, M> res(Me.transpose().data());
+		matrix::Matrix<float, M, N> me(this->arm_mat.pData);
+		Matrix<N, M> res(me.transpose().data());
 		return res;
 	}
 
@@ -363,8 +363,8 @@ public:
 	 */
 	Matrix<M, N> inversed() const
 	{
-		matrix::SquareMatrix<float, M> Me = matrix::Matrix<float, M, N>(this->arm_mat.pData);
-		Matrix<M, N> res(Me.I().data());
+		matrix::SquareMatrix<float, M> me = matrix::Matrix<float, M, N>(this->arm_mat.pData);
+		Matrix<M, N> res(me.I().data());
 		return res;
 	}
 
@@ -431,10 +431,10 @@ public:
 	 */
 	Vector<M> operator *(const Vector<N> &v) const
 	{
-		matrix::Matrix<float, M, N> Me(this->arm_mat.pData);
-		matrix::Matrix<float, N, 1> Vec(v.arm_col.pData);
-		matrix::Matrix<float, M, 1> Product = Me * Vec;
-		Vector<M> res(Product.data());
+		matrix::Matrix<float, M, N> me(this->arm_mat.pData);
+		matrix::Matrix<float, N, 1> vec(v.arm_col.pData);
+		matrix::Matrix<float, M, 1> product = me * vec;
+		Vector<M> res(product.data());
 		return res;
 	}
 };
@@ -494,7 +494,7 @@ public:
 	 * create a rotation matrix from given euler angles
 	 * based on http://gentlenav.googlecode.com/files/EulerAngles.pdf
 	 */
-	void from_euler(float roll, float pitch, float yaw)
+	void fromEuler(float roll, float pitch, float yaw)
 	{
 		float cp = cosf(pitch);
 		float sp = sinf(pitch);
@@ -517,7 +517,7 @@ public:
 	/**
 	 * get euler angles from rotation matrix
 	 */
-	Vector<3> to_euler() const
+	Vector<3> toEuler() const
 	{
 		Vector<3> euler;
 		euler.data[1] = asinf(-data[2][0]);

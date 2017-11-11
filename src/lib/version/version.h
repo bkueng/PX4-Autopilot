@@ -61,7 +61,7 @@ __BEGIN_DECLS
 /**
  * get the board name as string (including the version if there are multiple)
  */
-static inline const char *px4_board_name(void)
+static inline const char *px4_board_name()
 {
 	return BOARD_NAME;
 }
@@ -69,7 +69,7 @@ static inline const char *px4_board_name(void)
 /**
  * get the board sub type
  */
-static inline const char *px4_board_sub_type(void)
+static inline const char *px4_board_sub_type()
 {
 	return board_get_hw_type_name();
 }
@@ -77,7 +77,7 @@ static inline const char *px4_board_sub_type(void)
 /**
  * get the board HW version
  */
-static inline int px4_board_hw_version(void)
+static inline int px4_board_hw_version()
 {
 	return board_get_hw_version();
 }
@@ -85,7 +85,7 @@ static inline int px4_board_hw_version(void)
 /**
  * get the board HW revision
  */
-static inline int px4_board_hw_revision(void)
+static inline int px4_board_hw_revision()
 {
 	return board_get_hw_revision();
 }
@@ -93,7 +93,7 @@ static inline int px4_board_hw_revision(void)
 /**
  * get the build URI (used for crash logging)
  */
-static inline const char *px4_build_uri(void)
+static inline const char *px4_build_uri()
 {
 	return STRINGIFY(BUILD_URI);
 }

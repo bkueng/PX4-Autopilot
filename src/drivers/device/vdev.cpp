@@ -92,7 +92,7 @@ CDev::~CDev()
 }
 
 int
-CDev::register_class_devname(const char *class_devname)
+CDev::registerClassDevname(const char *class_devname)
 {
 	DEVICE_DEBUG("CDev::register_class_devname %s", class_devname);
 
@@ -121,7 +121,7 @@ CDev::register_class_devname(const char *class_devname)
 }
 
 int
-CDev::register_driver(const char *name, void *data)
+CDev::registerDriver(const char *name, void *data)
 {
 	DEVICE_DEBUG("CDev::register_driver %s", name);
 	int ret = 0;
@@ -149,7 +149,7 @@ CDev::register_driver(const char *name, void *data)
 }
 
 int
-CDev::unregister_driver(const char *name)
+CDev::unregisterDriver(const char *name)
 {
 	DEVICE_DEBUG("CDev::unregister_driver %s", name);
 	int ret = -EINVAL;
@@ -171,7 +171,7 @@ CDev::unregister_driver(const char *name)
 }
 
 int
-CDev::unregister_class_devname(const char *class_devname, unsigned class_instance)
+CDev::unregisterClassDevname(const char *class_devname, unsigned class_instance)
 {
 	DEVICE_DEBUG("CDev::unregister_class_devname");
 	char name[32];
@@ -247,7 +247,7 @@ CDev::open(file_t *filep)
 }
 
 int
-CDev::open_first(file_t *filep)
+CDev::openFirst(file_t *filep)
 {
 	DEVICE_DEBUG("CDev::open_first");
 	return PX4_OK;
@@ -280,7 +280,7 @@ CDev::close(file_t *filep)
 }
 
 int
-CDev::close_last(file_t *filep)
+CDev::closeLast(file_t *filep)
 {
 	DEVICE_DEBUG("CDev::close_last");
 	return PX4_OK;
@@ -395,7 +395,7 @@ CDev::poll(file_t *filep, px4_pollfd_struct_t *fds, bool setup)
 }
 
 void
-CDev::poll_notify(pollevent_t events)
+CDev::pollNotify(pollevent_t events)
 {
 	DEVICE_DEBUG("CDev::poll_notify events = %0x", events);
 
@@ -412,7 +412,7 @@ CDev::poll_notify(pollevent_t events)
 }
 
 void
-CDev::poll_notify_one(px4_pollfd_struct_t *fds, pollevent_t events)
+CDev::pollNotifyOne(px4_pollfd_struct_t *fds, pollevent_t events)
 {
 	DEVICE_DEBUG("CDev::poll_notify_one");
 	int value;
@@ -431,7 +431,7 @@ CDev::poll_notify_one(px4_pollfd_struct_t *fds, pollevent_t events)
 }
 
 pollevent_t
-CDev::poll_state(file_t *filep)
+CDev::pollState(file_t *filep)
 {
 	DEVICE_DEBUG("CDev::poll_notify");
 	/* by default, no poll events to report */
@@ -439,7 +439,7 @@ CDev::poll_state(file_t *filep)
 }
 
 int
-CDev::store_poll_waiter(px4_pollfd_struct_t *fds)
+CDev::storePollWaiter(px4_pollfd_struct_t *fds)
 {
 	/*
 	 * Look for a free slot.
@@ -482,7 +482,7 @@ CDev::store_poll_waiter(px4_pollfd_struct_t *fds)
 }
 
 int
-CDev::remove_poll_waiter(px4_pollfd_struct_t *fds)
+CDev::removePollWaiter(px4_pollfd_struct_t *fds)
 {
 	DEVICE_DEBUG("CDev::remove_poll_waiter");
 

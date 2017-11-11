@@ -74,7 +74,7 @@
 using matrix::Eulerf;
 using matrix::Quatf;
 
-using uORB::Subscription;
+using u_orb::Subscription;
 
 /**
  * Fixedwing attitude control app start / stop handling function
@@ -108,7 +108,7 @@ public:
 	 *
 	 * @return	true if the mainloop is running
 	 */
-	bool		task_running() { return _task_running; }
+	bool		taskRunning() { return _task_running; }
 
 private:
 
@@ -287,60 +287,60 @@ private:
 	float _pitch{0.0f};
 	float _yaw{0.0f};
 
-	ECL_RollController				_roll_ctrl;
-	ECL_PitchController				_pitch_ctrl;
-	ECL_YawController				_yaw_ctrl;
-	ECL_WheelController			_wheel_ctrl;
+	EclRollController				_roll_ctrl;
+	EclPitchController				_pitch_ctrl;
+	EclYawController				_yaw_ctrl;
+	EclWheelController			_wheel_ctrl;
 
 	/**
 	 * Update our local parameter cache.
 	 */
-	int		parameters_update();
+	int		parametersUpdate();
 
 	/**
 	 * Check for changes in vehicle control mode.
 	 */
-	void		vehicle_control_mode_poll();
+	void		vehicleControlModePoll();
 
 	/**
 	 * Check for changes in manual inputs.
 	 */
-	void		vehicle_manual_poll();
+	void		vehicleManualPoll();
 
 	/**
 	 * Check for set triplet updates.
 	 */
-	void		vehicle_setpoint_poll();
+	void		vehicleSetpointPoll();
 
 	/**
 	 * Check for global position updates.
 	 */
-	void		global_pos_poll();
+	void		globalPosPoll();
 
 	/**
 	 * Check for vehicle status updates.
 	 */
-	void		vehicle_status_poll();
+	void		vehicleStatusPoll();
 
 	/**
 	 * Check for vehicle land detected updates.
 	 */
-	void		vehicle_land_detected_poll();
+	void		vehicleLandDetectedPoll();
 
 	/**
 	 * Check for battery status updates.
 	 */
-	void		battery_status_poll();
+	void		batteryStatusPoll();
 
 	/**
 	 * Shim for calling task_main from task_create.
 	 */
-	static void	task_main_trampoline(int argc, char *argv[]);
+	static void	taskMainTrampoline(int argc, char *argv[]);
 
 	/**
 	 * Main attitude controller collection task.
 	 */
-	void		task_main();
+	void		taskMain();
 
 };
 
@@ -496,7 +496,7 @@ FixedwingAttitudeControl::~FixedwingAttitudeControl()
 }
 
 int
-FixedwingAttitudeControl::parameters_update()
+FixedwingAttitudeControl::parametersUpdate()
 {
 
 	param_get(_parameter_handles.p_tc, &(_parameters.p_tc));
@@ -608,7 +608,7 @@ FixedwingAttitudeControl::parameters_update()
 }
 
 void
-FixedwingAttitudeControl::vehicle_control_mode_poll()
+FixedwingAttitudeControl::vehicleControlModePoll()
 {
 	bool vcontrol_mode_updated;
 
@@ -622,7 +622,7 @@ FixedwingAttitudeControl::vehicle_control_mode_poll()
 }
 
 void
-FixedwingAttitudeControl::vehicle_manual_poll()
+FixedwingAttitudeControl::vehicleManualPoll()
 {
 	bool manual_updated;
 
@@ -636,7 +636,7 @@ FixedwingAttitudeControl::vehicle_manual_poll()
 }
 
 void
-FixedwingAttitudeControl::vehicle_setpoint_poll()
+FixedwingAttitudeControl::vehicleSetpointPoll()
 {
 	/* check if there is a new setpoint */
 	bool att_sp_updated;
@@ -648,7 +648,7 @@ FixedwingAttitudeControl::vehicle_setpoint_poll()
 }
 
 void
-FixedwingAttitudeControl::global_pos_poll()
+FixedwingAttitudeControl::globalPosPoll()
 {
 	/* check if there is a new global position */
 	bool global_pos_updated;
@@ -660,7 +660,7 @@ FixedwingAttitudeControl::global_pos_poll()
 }
 
 void
-FixedwingAttitudeControl::vehicle_status_poll()
+FixedwingAttitudeControl::vehicleStatusPoll()
 {
 	/* check if there is new status information */
 	bool vehicle_status_updated;
@@ -690,7 +690,7 @@ FixedwingAttitudeControl::vehicle_status_poll()
 }
 
 void
-FixedwingAttitudeControl::vehicle_land_detected_poll()
+FixedwingAttitudeControl::vehicleLandDetectedPoll()
 {
 	/* check if there is new status information */
 	bool vehicle_land_detected_updated;
@@ -702,7 +702,7 @@ FixedwingAttitudeControl::vehicle_land_detected_poll()
 }
 
 void
-FixedwingAttitudeControl::battery_status_poll()
+FixedwingAttitudeControl::batteryStatusPoll()
 {
 	/* check if there is a new message */
 	bool updated;
@@ -714,13 +714,13 @@ FixedwingAttitudeControl::battery_status_poll()
 }
 
 void
-FixedwingAttitudeControl::task_main_trampoline(int argc, char *argv[])
+FixedwingAttitudeControl::taskMainTrampoline(int argc, char *argv[])
 {
 	att_control::g_control->task_main();
 }
 
 void
-FixedwingAttitudeControl::task_main()
+FixedwingAttitudeControl::taskMain()
 {
 	/*
 	 * do subscriptions
@@ -790,12 +790,12 @@ FixedwingAttitudeControl::task_main()
 		/* only run controller if attitude changed */
 		if (fds[0].revents & POLLIN) {
 			static uint64_t last_run = 0;
-			float deltaT = (hrt_absolute_time() - last_run) / 1000000.0f;
+			float delta_t = (hrt_absolute_time() - last_run) / 1000000.0f;
 			last_run = hrt_absolute_time();
 
 			/* guard against too large deltaT's */
-			if (deltaT > 1.0f) {
-				deltaT = 0.01f;
+			if (delta_t > 1.0f) {
+				delta_t = 0.01f;
 			}
 
 			/* load local copies */
@@ -828,26 +828,26 @@ FixedwingAttitudeControl::task_main()
 				 * Rxy	Ryy  Rzy		-Rzy  Ryy  Rxy
 				 * Rxz	Ryz  Rzz		-Rzz  Ryz  Rxz
 				 * */
-				math::Matrix<3, 3> R_adapted = _R;		//modified rotation matrix
+				math::Matrix<3, 3> r_adapted = _R;		//modified rotation matrix
 
 				/* move z to x */
-				R_adapted(0, 0) = _R(0, 2);
-				R_adapted(1, 0) = _R(1, 2);
-				R_adapted(2, 0) = _R(2, 2);
+				r_adapted(0, 0) = _R(0, 2);
+				r_adapted(1, 0) = _R(1, 2);
+				r_adapted(2, 0) = _R(2, 2);
 
 				/* move x to z */
-				R_adapted(0, 2) = _R(0, 0);
-				R_adapted(1, 2) = _R(1, 0);
-				R_adapted(2, 2) = _R(2, 0);
+				r_adapted(0, 2) = _R(0, 0);
+				r_adapted(1, 2) = _R(1, 0);
+				r_adapted(2, 2) = _R(2, 0);
 
 				/* change direction of pitch (convert to right handed system) */
-				R_adapted(0, 0) = -R_adapted(0, 0);
-				R_adapted(1, 0) = -R_adapted(1, 0);
-				R_adapted(2, 0) = -R_adapted(2, 0);
-				euler_angles = R_adapted.to_euler();  //adapted euler angles for fixed wing operation
+				r_adapted(0, 0) = -r_adapted(0, 0);
+				r_adapted(1, 0) = -r_adapted(1, 0);
+				r_adapted(2, 0) = -r_adapted(2, 0);
+				euler_angles = r_adapted.to_euler();  //adapted euler angles for fixed wing operation
 
 				/* fill in new attitude data */
-				_R = R_adapted;
+				_R = r_adapted;
 				_roll    = euler_angles(0);
 				_pitch   = euler_angles(1);
 				_yaw     = euler_angles(2);
@@ -904,7 +904,7 @@ FixedwingAttitudeControl::task_main()
 
 			// move the actual control value continuous with time, full flap travel in 1sec
 			if (fabsf(_flaps_applied - flap_control) > 0.01f) {
-				_flaps_applied += (_flaps_applied - flap_control) < 0 ? deltaT : -deltaT;
+				_flaps_applied += (_flaps_applied - flap_control) < 0 ? delta_t : -delta_t;
 
 			} else {
 				_flaps_applied = flap_control;
@@ -925,7 +925,7 @@ FixedwingAttitudeControl::task_main()
 
 			// move the actual control value continuous with time, full flap travel in 1sec
 			if (fabsf(_flaperons_applied - flaperon_control) > 0.01f) {
-				_flaperons_applied += (_flaperons_applied - flaperon_control) < 0 ? deltaT : -deltaT;
+				_flaperons_applied += (_flaperons_applied - flaperon_control) < 0 ? delta_t : -delta_t;
 
 			} else {
 				_flaperons_applied = flaperon_control;
@@ -1026,7 +1026,7 @@ FixedwingAttitudeControl::task_main()
 				float throttle_sp = _att_sp.thrust;
 
 				/* Prepare data for attitude controllers */
-				struct ECL_ControlData control_input = {};
+				struct ecl_control_data control_input = {};
 				control_input.roll = _roll;
 				control_input.pitch = _pitch;
 				control_input.yaw = _yaw;
@@ -1061,7 +1061,7 @@ FixedwingAttitudeControl::task_main()
 
 						/* Run attitude RATE controllers which need the desired attitudes from above, add trim */
 						float roll_u = _roll_ctrl.control_euler_rate(control_input);
-						_actuators.control[actuator_controls_s::INDEX_ROLL] = (PX4_ISFINITE(roll_u)) ? roll_u + _parameters.trim_roll :
+						_actuators.control[actuator_controls_s::index_roll] = (PX4_ISFINITE(roll_u)) ? roll_u + _parameters.trim_roll :
 								_parameters.trim_roll;
 
 						if (!PX4_ISFINITE(roll_u)) {
@@ -1074,7 +1074,7 @@ FixedwingAttitudeControl::task_main()
 						}
 
 						float pitch_u = _pitch_ctrl.control_euler_rate(control_input);
-						_actuators.control[actuator_controls_s::INDEX_PITCH] = (PX4_ISFINITE(pitch_u)) ? pitch_u + _parameters.trim_pitch :
+						_actuators.control[actuator_controls_s::index_pitch] = (PX4_ISFINITE(pitch_u)) ? pitch_u + _parameters.trim_pitch :
 								_parameters.trim_pitch;
 
 						if (!PX4_ISFINITE(pitch_u)) {
@@ -1106,12 +1106,12 @@ FixedwingAttitudeControl::task_main()
 							yaw_u = _yaw_ctrl.control_euler_rate(control_input);
 						}
 
-						_actuators.control[actuator_controls_s::INDEX_YAW] = (PX4_ISFINITE(yaw_u)) ? yaw_u + _parameters.trim_yaw :
+						_actuators.control[actuator_controls_s::index_yaw] = (PX4_ISFINITE(yaw_u)) ? yaw_u + _parameters.trim_yaw :
 								_parameters.trim_yaw;
 
 						/* add in manual rudder control in manual modes */
 						if (_vcontrol_mode.flag_control_manual_enabled) {
-							_actuators.control[actuator_controls_s::INDEX_YAW] += _manual.r;
+							_actuators.control[actuator_controls_s::index_yaw] += _manual.r;
 						}
 
 						if (!PX4_ISFINITE(yaw_u)) {
@@ -1125,15 +1125,15 @@ FixedwingAttitudeControl::task_main()
 						}
 
 						/* throttle passed through if it is finite and if no engine failure was detected */
-						_actuators.control[actuator_controls_s::INDEX_THROTTLE] = (PX4_ISFINITE(throttle_sp) &&
+						_actuators.control[actuator_controls_s::index_throttle] = (PX4_ISFINITE(throttle_sp) &&
 								!(_vehicle_status.engine_failure ||
 								  _vehicle_status.engine_failure_cmd)) ?
 								throttle_sp : 0.0f;
 
 						/* scale effort by battery status */
 						if (_parameters.bat_scale_en && _battery_status.scale > 0.0f &&
-						    _actuators.control[actuator_controls_s::INDEX_THROTTLE] > 0.1f) {
-							_actuators.control[actuator_controls_s::INDEX_THROTTLE] *= _battery_status.scale;
+						    _actuators.control[actuator_controls_s::index_throttle] > 0.1f) {
+							_actuators.control[actuator_controls_s::index_throttle] *= _battery_status.scale;
 						}
 
 
@@ -1158,18 +1158,18 @@ FixedwingAttitudeControl::task_main()
 					_yaw_ctrl.set_bodyrate_setpoint(_manual.r * _parameters.acro_max_z_rate_rad);
 
 					float roll_u = _roll_ctrl.control_bodyrate(control_input);
-					_actuators.control[actuator_controls_s::INDEX_ROLL] = (PX4_ISFINITE(roll_u)) ? roll_u + _parameters.trim_roll :
+					_actuators.control[actuator_controls_s::index_roll] = (PX4_ISFINITE(roll_u)) ? roll_u + _parameters.trim_roll :
 							_parameters.trim_roll;
 
 					float pitch_u = _pitch_ctrl.control_bodyrate(control_input);
-					_actuators.control[actuator_controls_s::INDEX_PITCH] = (PX4_ISFINITE(pitch_u)) ? pitch_u + _parameters.trim_pitch :
+					_actuators.control[actuator_controls_s::index_pitch] = (PX4_ISFINITE(pitch_u)) ? pitch_u + _parameters.trim_pitch :
 							_parameters.trim_pitch;
 
 					float yaw_u = _yaw_ctrl.control_bodyrate(control_input);
-					_actuators.control[actuator_controls_s::INDEX_YAW] = (PX4_ISFINITE(yaw_u)) ? yaw_u + _parameters.trim_yaw :
+					_actuators.control[actuator_controls_s::index_yaw] = (PX4_ISFINITE(yaw_u)) ? yaw_u + _parameters.trim_yaw :
 							_parameters.trim_yaw;
 
-					_actuators.control[actuator_controls_s::INDEX_THROTTLE] = (PX4_ISFINITE(throttle_sp) &&
+					_actuators.control[actuator_controls_s::index_throttle] = (PX4_ISFINITE(throttle_sp) &&
 							//!(_vehicle_status.engine_failure ||
 							!_vehicle_status.engine_failure_cmd) ?
 							throttle_sp : 0.0f;
@@ -1196,21 +1196,21 @@ FixedwingAttitudeControl::task_main()
 
 			} else {
 				/* manual/direct control */
-				_actuators.control[actuator_controls_s::INDEX_ROLL] = _manual.y * _parameters.man_roll_scale + _parameters.trim_roll;
-				_actuators.control[actuator_controls_s::INDEX_PITCH] = -_manual.x * _parameters.man_pitch_scale +
+				_actuators.control[actuator_controls_s::index_roll] = _manual.y * _parameters.man_roll_scale + _parameters.trim_roll;
+				_actuators.control[actuator_controls_s::index_pitch] = -_manual.x * _parameters.man_pitch_scale +
 						_parameters.trim_pitch;
-				_actuators.control[actuator_controls_s::INDEX_YAW] = _manual.r * _parameters.man_yaw_scale + _parameters.trim_yaw;
-				_actuators.control[actuator_controls_s::INDEX_THROTTLE] = _manual.z;
+				_actuators.control[actuator_controls_s::index_yaw] = _manual.r * _parameters.man_yaw_scale + _parameters.trim_yaw;
+				_actuators.control[actuator_controls_s::index_throttle] = _manual.z;
 			}
 
 			// Add feed-forward from roll control output to yaw control output
 			// This can be used to counteract the adverse yaw effect when rolling the plane
-			_actuators.control[actuator_controls_s::INDEX_YAW] += _parameters.roll_to_yaw_ff * math::constrain(
-						_actuators.control[actuator_controls_s::INDEX_ROLL], -1.0f, 1.0f);
+			_actuators.control[actuator_controls_s::index_yaw] += _parameters.roll_to_yaw_ff * math::constrain(
+						_actuators.control[actuator_controls_s::index_roll], -1.0f, 1.0f);
 
-			_actuators.control[actuator_controls_s::INDEX_FLAPS] = _flaps_applied;
+			_actuators.control[actuator_controls_s::index_flaps] = _flaps_applied;
 			_actuators.control[5] = _manual.aux1;
-			_actuators.control[actuator_controls_s::INDEX_AIRBRAKES] = _flaperons_applied;
+			_actuators.control[actuator_controls_s::index_airbrakes] = _flaperons_applied;
 			// FIXME: this should use _vcontrol_mode.landing_gear_pos in the future
 			_actuators.control[7] = _manual.aux3;
 
@@ -1263,7 +1263,7 @@ FixedwingAttitudeControl::start()
 					   SCHED_DEFAULT,
 					   SCHED_PRIORITY_ATTITUDE_CONTROL,
 					   1500,
-					   (px4_main_t)&FixedwingAttitudeControl::task_main_trampoline,
+					   (px4_main_t)&FixedwingAttitudeControl::taskMainTrampoline,
 					   nullptr);
 
 	if (_control_task < 0) {

@@ -60,7 +60,7 @@ MavlinkStream::~MavlinkStream()
  * Set messages interval in ms
  */
 void
-MavlinkStream::set_interval(const int interval)
+MavlinkStream::setInterval(const int interval)
 {
 	_interval = interval;
 }

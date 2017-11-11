@@ -51,9 +51,9 @@ public:
 
 	/** bitfield to specify a backend */
 	typedef uint8_t Backend;
-	static constexpr Backend BackendFile = 1 << 0;
-	static constexpr Backend BackendMavlink = 1 << 1;
-	static constexpr Backend BackendAll = BackendFile | BackendMavlink;
+	static constexpr Backend backend_file = 1 << 0;
+	static constexpr Backend backend_mavlink = 1 << 1;
+	static constexpr Backend backend_all = backend_file | backend_mavlink;
 
 	LogWriter(Backend configured_backend, size_t file_buffer_size, unsigned int queue_size);
 	~LogWriter();
@@ -63,25 +63,25 @@ public:
 	Backend backend() const { return _backend; }
 
 	/** stop all running threads and wait for them to exit */
-	void thread_stop();
+	void threadStop();
 
-	void start_log_file(const char *filename);
+	void startLogFile(const char *filename);
 
-	void stop_log_file();
+	void stopLogFile();
 
-	void start_log_mavlink();
+	void startLogMavlink();
 
-	void stop_log_mavlink();
+	void stopLogMavlink();
 
 	/**
 	 * whether logging is currently active or not (any of the selected backends).
 	 */
-	bool is_started() const;
+	bool isStarted() const;
 
 	/**
 	 * whether logging is currently active or not for a specific backend.
 	 */
-	bool is_started(Backend query_backend) const;
+	bool isStarted(Backend query_backend) const;
 
 	/**
 	 * Write a single ulog message (including header). The caller must call lock() before calling this.
@@ -89,15 +89,15 @@ public:
 	 * @return 0 on success (or if no logging started),
 	 *         -1 if not enough space in the buffer left (file backend), -2 mavlink backend failed
 	 */
-	int write_message(void *ptr, size_t size, uint64_t dropout_start = 0);
+	int writeMessage(void *ptr, size_t size, uint64_t dropout_start = 0);
 
 	/**
 	 * Select a backend, so that future calls to write_message() only write to the selected
 	 * sel_backend, until unselect_write_backend() is called.
 	 * @param backend
 	 */
-	void select_write_backend(Backend sel_backend);
-	void unselect_write_backend() { select_write_backend(BackendAll); }
+	void selectWriteBackend(Backend sel_backend);
+	void unselectWriteBackend() { select_write_backend(backend_all); }
 
 	/* file logging methods */
 
@@ -116,21 +116,21 @@ public:
 		if (_log_writer_file) { _log_writer_file->notify(); }
 	}
 
-	size_t get_total_written_file() const
+	size_t getTotalWrittenFile() const
 	{
 		if (_log_writer_file) { return _log_writer_file->get_total_written(); }
 
 		return 0;
 	}
 
-	size_t get_buffer_size_file() const
+	size_t getBufferSizeFile() const
 	{
 		if (_log_writer_file) { return _log_writer_file->get_buffer_size(); }
 
 		return 0;
 	}
 
-	size_t get_buffer_fill_count_file() const
+	size_t getBufferFillCountFile() const
 	{
 		if (_log_writer_file) { return _log_writer_file->get_buffer_fill_count(); }
 
@@ -142,14 +142,14 @@ public:
 	 * Indicate to the underlying backend whether future write_message() calls need a reliable
 	 * transfer. Needed for header integrity.
 	 */
-	void set_need_reliable_transfer(bool need_reliable)
+	void setNeedReliableTransfer(bool need_reliable)
 	{
 		if (_log_writer_file) { _log_writer_file->set_need_reliable_transfer(need_reliable); }
 
 		if (_log_writer_mavlink) { _log_writer_mavlink->set_need_reliable_transfer(need_reliable); }
 	}
 
-	bool need_reliable_transfer() const
+	bool needReliableTransfer() const
 	{
 		if (_log_writer_file) { return _log_writer_file->need_reliable_transfer(); }
 

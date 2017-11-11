@@ -94,7 +94,7 @@ static int	do_find(const char *name);
 
 static void print_usage()
 {
-	PRINT_MODULE_DESCRIPTION(
+	print_module_description(
 		R"DESCR_STR(
 ### Description
 Command to access and manipulate parameters via shell or script.
@@ -115,44 +115,44 @@ $ param set SYS_AUTOCONFIG 1
 $ reboot
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("param", "command");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("load", "Load params from a file (overwrite all)");
-	PRINT_MODULE_USAGE_ARG("<file>", "File name (use default if not given)", true);
-	PRINT_MODULE_USAGE_COMMAND_DESCR("import", "Import params from a file");
-	PRINT_MODULE_USAGE_ARG("<file>", "File name (use default if not given)", true);
-	PRINT_MODULE_USAGE_COMMAND_DESCR("save", "Save params to a file");
-	PRINT_MODULE_USAGE_ARG("<file>", "File name (use default if not given)", true);
+	print_module_usage_name("param", "command");
+	print_module_usage_command_descr("load", "Load params from a file (overwrite all)");
+	print_module_usage_arg("<file>", "File name (use default if not given)", true);
+	print_module_usage_command_descr("import", "Import params from a file");
+	print_module_usage_arg("<file>", "File name (use default if not given)", true);
+	print_module_usage_command_descr("save", "Save params to a file");
+	print_module_usage_arg("<file>", "File name (use default if not given)", true);
 
-	PRINT_MODULE_USAGE_COMMAND_DESCR("select", "Select default file");
-	PRINT_MODULE_USAGE_ARG("<file>", "File name (use <root>/eeprom/parameters if not given)", true);
+	print_module_usage_command_descr("select", "Select default file");
+	print_module_usage_arg("<file>", "File name (use <root>/eeprom/parameters if not given)", true);
 
-	PRINT_MODULE_USAGE_COMMAND_DESCR("show", "Show parameter values");
-	PRINT_MODULE_USAGE_PARAM_FLAG('c', "Show only changed params", true);
-	PRINT_MODULE_USAGE_ARG("<filter>", "Filter by param name (wildcard at end allowed, eg. sys_*)", true);
+	print_module_usage_command_descr("show", "Show parameter values");
+	print_module_usage_param_flag('c', "Show only changed params", true);
+	print_module_usage_arg("<filter>", "Filter by param name (wildcard at end allowed, eg. sys_*)", true);
 
-	PRINT_MODULE_USAGE_COMMAND_DESCR("set", "Set parameter to a value");
-	PRINT_MODULE_USAGE_ARG("<param_name> <value>", "Parameter name and value to set", false);
-	PRINT_MODULE_USAGE_ARG("fail", "If provided, let the command fail if param is not found", true);
+	print_module_usage_command_descr("set", "Set parameter to a value");
+	print_module_usage_arg("<param_name> <value>", "Parameter name and value to set", false);
+	print_module_usage_arg("fail", "If provided, let the command fail if param is not found", true);
 
-	PRINT_MODULE_USAGE_COMMAND_DESCR("compare", "Compare a param with a value. Command will succeed if equal");
-	PRINT_MODULE_USAGE_ARG("<param_name> <value>", "Parameter name and value to compare", false);
+	print_module_usage_command_descr("compare", "Compare a param with a value. Command will succeed if equal");
+	print_module_usage_arg("<param_name> <value>", "Parameter name and value to compare", false);
 
-	PRINT_MODULE_USAGE_COMMAND_DESCR("greater",
+	print_module_usage_command_descr("greater",
 					 "Compare a param with a value. Command will succeed if param is greater than the value");
-	PRINT_MODULE_USAGE_ARG("<param_name> <value>", "Parameter name and value to compare", false);
+	print_module_usage_arg("<param_name> <value>", "Parameter name and value to compare", false);
 
-	PRINT_MODULE_USAGE_COMMAND_DESCR("reset", "Reset params to default");
-	PRINT_MODULE_USAGE_ARG("<exclude1> [<exclude2>]", "Do not reset matching params (wildcard at end allowed)", true);
-	PRINT_MODULE_USAGE_COMMAND_DESCR("reset_nostart",
+	print_module_usage_command_descr("reset", "Reset params to default");
+	print_module_usage_arg("<exclude1> [<exclude2>]", "Do not reset matching params (wildcard at end allowed)", true);
+	print_module_usage_command_descr("reset_nostart",
 					 "Reset params to default, but keep SYS_AUTOSTART and SYS_AUTOCONFIG");
-	PRINT_MODULE_USAGE_ARG("<exclude1> [<exclude2>]", "Do not reset matching params (wildcard at end allowed)", true);
+	print_module_usage_arg("<exclude1> [<exclude2>]", "Do not reset matching params (wildcard at end allowed)", true);
 
-	PRINT_MODULE_USAGE_COMMAND_DESCR("index", "Show param for a given index");
-	PRINT_MODULE_USAGE_ARG("<index>", "Index: an integer >= 0", false);
-	PRINT_MODULE_USAGE_COMMAND_DESCR("index_used", "Show used param for a given index");
-	PRINT_MODULE_USAGE_ARG("<index>", "Index: an integer >= 0", false);
-	PRINT_MODULE_USAGE_COMMAND_DESCR("find", "Show index of a param");
-	PRINT_MODULE_USAGE_ARG("<param>", "param name", false);
+	print_module_usage_command_descr("index", "Show param for a given index");
+	print_module_usage_arg("<index>", "Index: an integer >= 0", false);
+	print_module_usage_command_descr("index_used", "Show used param for a given index");
+	print_module_usage_arg("<index>", "Index: an integer >= 0", false);
+	print_module_usage_command_descr("find", "Show index of a param");
+	print_module_usage_arg("<param>", "param name", false);
 }
 
 int

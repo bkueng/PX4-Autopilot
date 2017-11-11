@@ -107,7 +107,7 @@ GroundRoverAttitudeControl::~GroundRoverAttitudeControl()
 }
 
 void
-GroundRoverAttitudeControl::parameters_update()
+GroundRoverAttitudeControl::parametersUpdate()
 {
 	param_get(_parameter_handles.w_p, &(_parameters.w_p));
 	param_get(_parameter_handles.w_i, &(_parameters.w_i));
@@ -130,7 +130,7 @@ GroundRoverAttitudeControl::parameters_update()
 }
 
 void
-GroundRoverAttitudeControl::vehicle_control_mode_poll()
+GroundRoverAttitudeControl::vehicleControlModePoll()
 {
 	bool updated = false;
 	orb_check(_vcontrol_mode_sub, &updated);
@@ -141,7 +141,7 @@ GroundRoverAttitudeControl::vehicle_control_mode_poll()
 }
 
 void
-GroundRoverAttitudeControl::manual_control_setpoint_poll()
+GroundRoverAttitudeControl::manualControlSetpointPoll()
 {
 	bool updated = false;
 	orb_check(_manual_sub, &updated);
@@ -152,7 +152,7 @@ GroundRoverAttitudeControl::manual_control_setpoint_poll()
 }
 
 void
-GroundRoverAttitudeControl::vehicle_attitude_setpoint_poll()
+GroundRoverAttitudeControl::vehicleAttitudeSetpointPoll()
 {
 	bool updated = false;
 	orb_check(_att_sp_sub, &updated);
@@ -163,7 +163,7 @@ GroundRoverAttitudeControl::vehicle_attitude_setpoint_poll()
 }
 
 void
-GroundRoverAttitudeControl::battery_status_poll()
+GroundRoverAttitudeControl::batteryStatusPoll()
 {
 	/* check if there is a new message */
 	bool updated;
@@ -175,13 +175,13 @@ GroundRoverAttitudeControl::battery_status_poll()
 }
 
 void
-GroundRoverAttitudeControl::task_main_trampoline(int argc, char *argv[])
+GroundRoverAttitudeControl::taskMainTrampoline(int argc, char *argv[])
 {
 	att_gnd_control::g_control->task_main();
 }
 
 void
-GroundRoverAttitudeControl::task_main()
+GroundRoverAttitudeControl::taskMain()
 {
 	_att_sp_sub = orb_subscribe(ORB_ID(vehicle_attitude_setpoint));
 	_att_sub = orb_subscribe(ORB_ID(vehicle_attitude));
@@ -241,14 +241,14 @@ GroundRoverAttitudeControl::task_main()
 		/* only run controller if attitude changed */
 		if (fds[1].revents & POLLIN) {
 			static uint64_t last_run = 0;
-			float deltaT = (hrt_absolute_time() - last_run) / 1000000.0f;
+			float delta_t = (hrt_absolute_time() - last_run) / 1000000.0f;
 			last_run = hrt_absolute_time();
 
 			/* guard against too large deltaT's */
-			if (deltaT > 1.0f ||
-			    fabsf(deltaT) < 0.00001f ||
-			    !PX4_ISFINITE(deltaT)) {
-				deltaT = 0.01f;
+			if (delta_t > 1.0f ||
+			    fabsf(delta_t) < 0.00001f ||
+			    !PX4_ISFINITE(delta_t)) {
+				delta_t = 0.01f;
 			}
 
 			/* load local copies */
@@ -267,7 +267,7 @@ GroundRoverAttitudeControl::task_main()
 					Eulerf euler_angles(matrix::Quatf(_att.q));
 
 					/* Calculate the control output for the steering as yaw */
-					float yaw_u = pid_calculate(&_steering_ctrl, _att_sp.yaw_body, euler_angles.psi(), _att.yawspeed, deltaT);
+					float yaw_u = pid_calculate(&_steering_ctrl, _att_sp.yaw_body, euler_angles.psi(), _att.yawspeed, delta_t);
 
 					float angle_diff = 0.0f;
 
@@ -289,10 +289,10 @@ GroundRoverAttitudeControl::task_main()
 					math::constrain(yaw_u, -1.0f, 1.0f);
 
 					if (PX4_ISFINITE(yaw_u)) {
-						_actuators.control[actuator_controls_s::INDEX_YAW] = yaw_u + _parameters.trim_yaw;
+						_actuators.control[actuator_controls_s::index_yaw] = yaw_u + _parameters.trim_yaw;
 
 					} else {
-						_actuators.control[actuator_controls_s::INDEX_YAW] = _parameters.trim_yaw;
+						_actuators.control[actuator_controls_s::index_yaw] = _parameters.trim_yaw;
 
 						perf_count(_nonfinite_output_perf);
 
@@ -302,22 +302,22 @@ GroundRoverAttitudeControl::task_main()
 					}
 
 					/* throttle passed through if it is finite and if no engine failure was detected */
-					_actuators.control[actuator_controls_s::INDEX_THROTTLE] = _att_sp.thrust;
+					_actuators.control[actuator_controls_s::index_throttle] = _att_sp.thrust;
 
 					/* scale effort by battery status */
 					if (_parameters.bat_scale_en && _battery_status.scale > 0.0f &&
-					    _actuators.control[actuator_controls_s::INDEX_THROTTLE] > 0.1f) {
+					    _actuators.control[actuator_controls_s::index_throttle] > 0.1f) {
 
-						_actuators.control[actuator_controls_s::INDEX_THROTTLE] *= _battery_status.scale;
+						_actuators.control[actuator_controls_s::index_throttle] *= _battery_status.scale;
 					}
 				}
 
 			} else {
 				/* manual/direct control */
-				_actuators.control[actuator_controls_s::INDEX_ROLL] = _manual.y;
-				_actuators.control[actuator_controls_s::INDEX_PITCH] = -_manual.x;
-				_actuators.control[actuator_controls_s::INDEX_YAW] = _manual.r * _parameters.man_yaw_scale + _parameters.trim_yaw;
-				_actuators.control[actuator_controls_s::INDEX_THROTTLE] = _manual.z;
+				_actuators.control[actuator_controls_s::index_roll] = _manual.y;
+				_actuators.control[actuator_controls_s::index_pitch] = -_manual.x;
+				_actuators.control[actuator_controls_s::index_yaw] = _manual.r * _parameters.man_yaw_scale + _parameters.trim_yaw;
+				_actuators.control[actuator_controls_s::index_throttle] = _manual.z;
 			}
 
 			/* lazily publish the setpoint only once available */
@@ -358,7 +358,7 @@ GroundRoverAttitudeControl::start()
 					   SCHED_DEFAULT,
 					   SCHED_PRIORITY_MAX - 5,
 					   1500,
-					   (px4_main_t)&GroundRoverAttitudeControl::task_main_trampoline,
+					   (px4_main_t)&GroundRoverAttitudeControl::taskMainTrampoline,
 					   nullptr);
 
 	if (_control_task < 0) {

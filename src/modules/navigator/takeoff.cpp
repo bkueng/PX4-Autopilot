@@ -99,7 +99,7 @@ Takeoff::on_active()
 }
 
 void
-Takeoff::set_takeoff_position()
+Takeoff::setTakeoffPosition()
 {
 	struct position_setpoint_triplet_s *rep = _navigator->get_takeoff_triplet();
 

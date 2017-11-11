@@ -56,7 +56,7 @@ int hrt_test_main(int argc, char *argv[])
 
 	if (!strcmp(argv[1], "start")) {
 
-		if (HRTTest::appState.isRunning()) {
+		if (HRTTest::app_state.isRunning()) {
 			PX4_INFO("already running\n");
 			/* this is not an error */
 			return 0;
@@ -73,12 +73,12 @@ int hrt_test_main(int argc, char *argv[])
 	}
 
 	if (!strcmp(argv[1], "stop")) {
-		HRTTest::appState.requestExit();
+		HRTTest::app_state.requestExit();
 		return 0;
 	}
 
 	if (!strcmp(argv[1], "status")) {
-		if (HRTTest::appState.isRunning()) {
+		if (HRTTest::app_state.isRunning()) {
 			PX4_INFO("is running\n");
 
 		} else {

@@ -49,7 +49,7 @@
 namespace vmount
 {
 
-struct OutputConfig {
+struct output_config {
 	float gimbal_retracted_mode_value;	/**< Mixer output value for selecting gimbal retracted mode */
 	float gimbal_normal_mode_value;		/**< Mixer output value for selecting gimbal normal mode */
 
@@ -89,13 +89,13 @@ public:
 	virtual int update(const ControlData *control_data) = 0;
 
 	/** report status to stdout */
-	virtual void print_status() = 0;
+	virtual void printStatus() = 0;
 
 	/** Publish _angle_outputs as a mount_orientation message. */
 	void publish();
 
 protected:
-	float _calculate_pitch(double lon, double lat, float altitude,
+	float calculatePitch(double lon, double lat, float altitude,
 			       const vehicle_global_position_s &global_position);
 
 	map_projection_reference_s _projection_reference = {}; ///< reference to convert (lon, lat) to local [m]
@@ -103,10 +103,10 @@ protected:
 	const OutputConfig &_config;
 
 	/** set angle setpoints, speeds & stabilize flags */
-	void _set_angle_setpoints(const ControlData *control_data);
+	void setAngleSetpoints(const ControlData *control_data);
 
 	/** check if vehicle position changed and update the setpoint angles if in gps mode */
-	void _handle_position_update(bool force_update = false);
+	void handlePositionUpdate(bool force_update = false);
 
 	const ControlData *_cur_control_data = nullptr;
 	float _angle_setpoints[3] = { 0.f, 0.f, 0.f }; ///< [rad]
@@ -114,12 +114,12 @@ protected:
 	bool _stabilize[3] = { false, false, false };
 
 	/** calculate the _angle_outputs (with speed) and stabilize if needed */
-	void _calculate_output_angles(const hrt_abstime &t);
+	void calculateOutputAngles(const hrt_abstime &t);
 
 	float _angle_outputs[3] = { 0.f, 0.f, 0.f }; ///< calculated output angles (roll, pitch, yaw) [rad]
 	hrt_abstime _last_update;
 
-	int _get_vehicle_attitude_sub() const { return _vehicle_attitude_sub; }
+	int getVehicleAttitudeSub() const { return _vehicle_attitude_sub; }
 
 private:
 	int _vehicle_attitude_sub = -1;

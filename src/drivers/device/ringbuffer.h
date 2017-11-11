@@ -160,7 +160,7 @@ public:
 	/*
 	 * printf() some info on the buffer
 	 */
-	void			print_info(const char *name);
+	void			printInfo(const char *name);
 
 private:
 	unsigned		_num_items;
@@ -169,7 +169,7 @@ private:
 	volatile unsigned	_head;	/**< insertion point in _item_size units */
 	volatile unsigned	_tail;	/**< removal point in _item_size units */
 
-	unsigned		_next(unsigned index);
+	unsigned		next(unsigned index);
 
 	/* we don't want this class to be copied */
 	RingBuffer(const RingBuffer &);

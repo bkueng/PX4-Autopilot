@@ -76,15 +76,15 @@ inline bool operator&(SDLogProfileMask a, SDLogProfileMask b)
 	return static_cast<int32_t>(a) & static_cast<int32_t>(b);
 }
 
-struct LoggerSubscription {
+struct logger_subscription {
 	int fd[ORB_MULTI_MAX_INSTANCES]; ///< uorb subscription. The first fd is also used to store the interval if
 	/// not subscribed yet (-interval - 1)
 	uint16_t msg_ids[ORB_MULTI_MAX_INSTANCES];
 	const orb_metadata *metadata = nullptr;
 
-	LoggerSubscription() {}
+	logger_subscription() {}
 
-	LoggerSubscription(int fd_, const orb_metadata *metadata_) :
+	logger_subscription(int fd_, const orb_metadata *metadata_) :
 		metadata(metadata_)
 	{
 		fd[0] = fd_;
@@ -108,16 +108,16 @@ public:
 	~Logger();
 
 	/** @see ModuleBase */
-	static int task_spawn(int argc, char *argv[]);
+	static int taskSpawn(int argc, char *argv[]);
 
 	/** @see ModuleBase */
 	static Logger *instantiate(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int custom_command(int argc, char *argv[]);
+	static int customCommand(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int print_usage(const char *reason = nullptr);
+	static int printUsage(const char *reason = nullptr);
 
 	/** @see ModuleBase::run() */
 	void run() override;
@@ -139,7 +139,7 @@ public:
 	 * @param interval limit rate if >0, otherwise log as fast as the topic is updated.
 	 * @return true on success
 	 */
-	bool add_topic(const char *name, unsigned interval = 0);
+	bool addTopic(const char *name, unsigned interval = 0);
 
 	/**
 	 * add a logged topic (called by add_topic() above).
@@ -147,49 +147,49 @@ public:
 	 * and sets the file descriptor of LoggerSubscription accordingly
 	 * @return the newly added subscription on success, nullptr otherwise
 	 */
-	LoggerSubscription *add_topic(const orb_metadata *topic);
+	logger_subscription *addTopic(const orb_metadata *topic);
 
 	/**
 	 * request the logger thread to stop (this method does not block).
 	 * @return true if the logger is stopped, false if (still) running
 	 */
-	static bool request_stop_static();
+	static bool requestStopStatic();
 
-	void print_statistics();
+	void printStatistics();
 
-	void set_arm_override(bool override) { _arm_override = override; }
+	void setArmOverride(bool override) { _arm_override = override; }
 
 private:
 
 	/**
 	 * Write an ADD_LOGGED_MSG to the log for a all current subscriptions and instances
 	 */
-	void write_all_add_logged_msg();
+	void writeAllAddLoggedMsg();
 
 	/**
 	 * Write an ADD_LOGGED_MSG to the log for a given subscription and instance.
 	 * _writer.lock() must be held when calling this.
 	 */
-	void write_add_logged_msg(LoggerSubscription &subscription, int instance);
+	void writeAddLoggedMsg(logger_subscription &subscription, int instance);
 
 	/**
 	 * Create logging directory
 	 * @param tt if not null, use it for the directory name
 	 * @return 0 on success
 	 */
-	int create_log_dir(tm *tt);
+	int createLogDir(tm *tt);
 
 	/** recursively remove a directory
 	 * @return 0 on success, <0 otherwise
 	 */
-	int remove_directory(const char *dir);
+	int removeDirectory(const char *dir);
 
-	static bool file_exist(const char *filename);
+	static bool fileExist(const char *filename);
 
 	/**
 	 * Get log file name with directory (create it if necessary)
 	 */
-	int get_log_file_name(char *file_name, size_t file_name_size);
+	int getLogFileName(char *file_name, size_t file_name_size);
 
 	/**
 	 * Check if there is enough free space left on the SD Card.
@@ -197,77 +197,77 @@ private:
 	 * and if that fails return 1
 	 * @return 0 on success, 1 if not enough space, <0 on error
 	 */
-	int check_free_space();
+	int checkFreeSpace();
 
-	void start_log_file();
+	void startLogFile();
 
-	void stop_log_file();
+	void stopLogFile();
 
-	void start_log_mavlink();
+	void startLogMavlink();
 
-	void stop_log_mavlink();
+	void stopLogMavlink();
 
 	/** check if mavlink logging can be started */
-	bool can_start_mavlink_log() const
+	bool canStartMavlinkLog() const
 	{
-		return !_writer.is_started(LogWriter::BackendMavlink) && (_writer.backend() & LogWriter::BackendMavlink) != 0;
+		return !_writer.is_started(LogWriter::backend_mavlink) && (_writer.backend() & LogWriter::backend_mavlink) != 0;
 	}
 
 	/** get the configured backend as string */
-	const char *configured_backend_mode() const;
+	const char *configuredBackendMode() const;
 
 	/**
 	 * write the file header with file magic and timestamp.
 	 */
-	void write_header();
+	void writeHeader();
 
-	void write_formats();
+	void writeFormats();
 
 	/**
 	 * write performance counters
 	 * @param preflight preflight if true, postflight otherwise
 	 */
-	void write_perf_data(bool preflight);
+	void writePerfData(bool preflight);
 
 	/**
 	 * callback to write the performance counters
 	 */
-	static void perf_iterate_callback(perf_counter_t handle, void *user);
+	static void perfIterateCallback(perf_counter_t handle, void *user);
 
 	/**
 	 * callback for print_load_buffer() to print the process load
 	 */
-	static void print_load_callback(void *user);
+	static void printLoadCallback(void *user);
 
-	void write_version();
+	void writeVersion();
 
-	void write_info(const char *name, const char *value);
-	void write_info_multiple(const char *name, const char *value, bool is_continued);
-	void write_info(const char *name, int32_t value);
-	void write_info(const char *name, uint32_t value);
+	void writeInfo(const char *name, const char *value);
+	void writeInfoMultiple(const char *name, const char *value, bool is_continued);
+	void writeInfo(const char *name, int32_t value);
+	void writeInfo(const char *name, uint32_t value);
 
 	/** generic common template method for write_info variants */
 	template<typename T>
-	void write_info_template(const char *name, T value, const char *type_str);
+	void writeInfoTemplate(const char *name, T value, const char *type_str);
 
-	void write_parameters();
+	void writeParameters();
 
-	void write_changed_parameters();
+	void writeChangedParameters();
 
-	inline bool copy_if_updated_multi(LoggerSubscription &sub, int multi_instance, void *buffer, bool try_to_subscribe);
+	inline bool copyIfUpdatedMulti(logger_subscription &sub, int multi_instance, void *buffer, bool try_to_subscribe);
 
 	/**
 	 * Check if a topic instance exists and subscribe to it
 	 * @return true when topic exists and subscription successful
 	 */
-	bool try_to_subscribe_topic(LoggerSubscription &sub, int multi_instance);
+	bool tryToSubscribeTopic(logger_subscription &sub, int multi_instance);
 
 	/**
 	 * Write exactly one ulog message to the logger and handle dropouts.
 	 * Must be called with _writer.lock() held.
 	 * @return true if data written, false otherwise (on overflow)
 	 */
-	bool write_message(void *ptr, size_t size);
+	bool writeMessage(void *ptr, size_t size);
 
 	/**
 	 * Get the time for log file name
@@ -275,42 +275,42 @@ private:
 	 * @param boot_time use time when booted instead of current time
 	 * @return true on success, false otherwise (eg. if no gps)
 	 */
-	bool get_log_time(struct tm *tt, bool boot_time = false);
+	bool getLogTime(struct tm *tt, bool boot_time = false);
 
 	/**
 	 * Parse a file containing a list of uORB topics to log, calling add_topic for each
 	 * @param fname name of file
 	 * @return number of topics added
 	 */
-	int add_topics_from_file(const char *fname);
+	int addTopicsFromFile(const char *fname);
 
-	void add_default_topics();
-	void add_estimator_replay_topics();
-	void add_thermal_calibration_topics();
-	void add_system_identification_topics();
-	void add_high_rate_topics();
-	void add_debug_topics();
-	void add_sensor_comparison_topics();
+	void addDefaultTopics();
+	void addEstimatorReplayTopics();
+	void addThermalCalibrationTopics();
+	void addSystemIdentificationTopics();
+	void addHighRateTopics();
+	void addDebugTopics();
+	void addSensorComparisonTopics();
 
-	void ack_vehicle_command(orb_advert_t &vehicle_command_ack_pub, vehicle_command_s *cmd, uint32_t result);
+	void ackVehicleCommand(orb_advert_t &vehicle_command_ack_pub, vehicle_command_s *cmd, uint32_t result);
 
 	/**
 	 * initialize the output for the process load, so that ~1 second later it will be written to the log
 	 */
-	void initialize_load_output();
+	void initializeLoadOutput();
 
 	/**
 	 * write the process load, which was previously initialized with initialize_load_output()
 	 */
-	void write_load_output(bool preflight);
+	void writeLoadOutput(bool preflight);
 
 
-	static constexpr size_t 	MAX_TOPICS_NUM = 64; /**< Maximum number of logged topics */
-	static constexpr unsigned	MAX_NO_LOGFILE = 999;	/**< Maximum number of log files */
+	static constexpr size_t 	max_topics_num = 64; /**< Maximum number of logged topics */
+	static constexpr unsigned	max_no_logfile = 999;	/**< Maximum number of log files */
 #if defined(__PX4_POSIX_EAGLE) || defined(__PX4_POSIX_EXCELSIOR)
 	static constexpr const char	*LOG_ROOT = PX4_ROOTFSDIR"/log";
 #else
-	static constexpr const char 	*LOG_ROOT = PX4_ROOTFSDIR"/fs/microsd/log";
+	static constexpr const char 	*log_root = PX4_ROOTFSDIR"/fs/microsd/log";
 #endif
 
 	uint8_t						*_msg_buffer{nullptr};
@@ -333,7 +333,7 @@ private:
 	const bool 					_log_on_start;
 	const bool 					_log_until_shutdown;
 	const bool					_log_name_timestamp;
-	Array<LoggerSubscription, MAX_TOPICS_NUM>	_subscriptions;
+	Array<logger_subscription, max_topics_num>	_subscriptions;
 	LogWriter					_writer;
 	uint32_t					_log_interval{0};
 	const orb_metadata				*_polling_topic_meta{nullptr}; ///< if non-null, poll on this topic instead of sleeping

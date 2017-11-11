@@ -117,25 +117,25 @@ public:
 	static int main(int argc, char *argv[])
 	{
 		if (argc <= 1 || strcmp(argv[1], "help") == 0 || strcmp(argv[1], "-h") == 0) {
-			return T::print_usage();
+			return T::printUsage();
 		}
 
 		if (strcmp(argv[1], "start") == 0) {
 			// we pass the 'start' argument too, because later on px4_getopt() will ignore the first argument
-			return start_command_base(argc - 1, argv + 1);
+			return startCommandBase(argc - 1, argv + 1);
 		}
 
 		if (strcmp(argv[1], "stop") == 0) {
-			return stop_command();
+			return stopCommand();
 		}
 
 		if (strcmp(argv[1], "status") == 0) {
-			return status_command();
+			return statusCommand();
 		}
 
-		lock_module(); // we better lock here, as the method could access _object
-		int ret = T::custom_command(argc - 1, argv + 1);
-		unlock_module();
+		lockModule(); // we better lock here, as the method could access _object
+		int ret = T::customCommand(argc - 1, argv + 1);
+		unlockModule();
 
 		return ret;
 	}
@@ -149,7 +149,7 @@ public:
 	 * @param argc start argument(s)
 	 * @param argv start argument(s)
 	 */
-	static void run_trampoline(int argc, char *argv[])
+	static void runTrampoline(int argc, char *argv[])
 	{
 
 #ifdef __PX4_NUTTX
@@ -158,40 +158,40 @@ public:
 		argv += 1;
 #endif
 
-		_object = T::instantiate(argc, argv);
+		object = T::instantiate(argc, argv);
 
-		if (_object) {
-			T *object = (T *)_object;
-			object->run();
+		if (object) {
+			T *object_ = (T *)object;
+			object_->run();
 
 		} else {
 			PX4_ERR("failed to instantiate object");
 		}
 
-		exit_and_cleanup();
+		exitAndCleanup();
 	}
 
 	/**
 	 * handle 'command start': check if already running and call T::task_spawn() if it's not
 	 */
-	static int start_command_base(int argc, char *argv[])
+	static int startCommandBase(int argc, char *argv[])
 	{
 		int ret = 0;
-		lock_module();
+		lockModule();
 
-		if (is_running()) {
+		if (isRunning()) {
 			ret = -1;
 			PX4_ERR("Task already running");
 
 		} else {
-			ret = T::task_spawn(argc, argv);
+			ret = T::taskSpawn(argc, argv);
 
 			if (ret < 0) {
 				PX4_ERR("Task start failed (%i)", ret);
 			}
 		}
 
-		unlock_module();
+		unlockModule();
 		return ret;
 	}
 
@@ -199,50 +199,50 @@ public:
 	 * handle 'command stop': check if already running and if it is, request the module to stop
 	 * and wait for it.
 	 */
-	static int stop_command()
+	static int stopCommand()
 	{
 		int ret = 0;
-		lock_module();
+		lockModule();
 
-		if (is_running()) {
-			if (_object) {
-				T *object = (T *)_object;
-				object->request_stop();
+		if (isRunning()) {
+			if (object) {
+				T *object_ = (T *)object;
+				object_->request_stop();
 
 				unsigned int i = 0;
 
 				do {
-					unlock_module();
+					unlockModule();
 					usleep(20000); // 20 ms
-					lock_module();
+					lockModule();
 
-					if (++i > 100 && _task_id != -1) { // wait at most 2 sec
-						if (_task_id != task_id_is_work_queue) {
-							px4_task_delete(_task_id);
+					if (++i > 100 && task_id != -1) { // wait at most 2 sec
+						if (task_id != task_id_is_work_queue) {
+							px4_task_delete(task_id);
 						}
 
-						_task_id = -1;
+						task_id = -1;
 
-						if (_object) {
-							delete _object;
-							_object = nullptr;
+						if (object) {
+							delete object;
+							object = nullptr;
 						}
 
 						ret = -1;
 						break;
 					}
-				} while (_task_id != -1);
+				} while (task_id != -1);
 
 			} else {
 				// very unlikely event and can only happen on work queues:
 				// the starting thread does not wait for the work queue to initialize,
 				// and inside the work queue, the allocation of _object fails
 				// and exit_and_cleanup() is not called.
-				_task_id = -1;
+				task_id = -1;
 			}
 		}
 
-		unlock_module();
+		unlockModule();
 		return ret;
 	}
 
@@ -251,20 +251,20 @@ public:
 	 * handle 'command status': check if running and call print_status() if it is
 	 * @return 0 on success, -1 if not running
 	 */
-	static int status_command()
+	static int statusCommand()
 	{
 		int ret = -1;
-		lock_module();
+		lockModule();
 
-		if (is_running() && _object) {
-			T *object = (T *)_object;
-			ret = object->print_status();
+		if (isRunning() && object) {
+			T *object_ = (T *)object;
+			ret = object_->print_status();
 
 		} else {
 			PX4_INFO("not running");
 		}
 
-		unlock_module();
+		unlockModule();
 		return ret;
 	}
 
@@ -273,7 +273,7 @@ public:
 	 * more specific information.
 	 * @return 0 on success
 	 */
-	virtual int print_status()
+	virtual int printStatus()
 	{
 		PX4_INFO("running");
 		return 0;
@@ -288,43 +288,43 @@ public:
 	/**
 	 * @return true if the module is running
 	 */
-	static bool is_running() { return _task_id != -1; }
+	static bool isRunning() { return task_id != -1; }
 
 protected:
 
 	/** Tell the module to stop (used from outside or inside the module thread) */
-	virtual void request_stop() { _task_should_exit = true; }
+	virtual void requestStop() { _task_should_exit = true; }
 
 	/** check if the module should stop (used within the module thread) */
-	bool should_exit() const { return _task_should_exit; }
+	bool shouldExit() const { return _task_should_exit; }
 
 	/**
 	 * Exit the module and delete the object. Called from within the module's thread.
 	 * For work queue modules, this needs to be called from the derived class in the
 	 * cycle method, when should_exit() returns true.
 	 */
-	static void exit_and_cleanup()
+	static void exitAndCleanup()
 	{
 		// we need to take the lock here:
 		// - if startup fails and we're faster than the parent thread, it will set
 		//   _task_id and subsequently it will look like the task is running
 		// - deleting the object must take place inside the lock
-		lock_module();
+		lockModule();
 
-		if (_object) {
-			delete _object;
-			_object = nullptr;
+		if (object) {
+			delete object;
+			object = nullptr;
 		}
 
-		_task_id = -1; // signal a potentially waiting thread for the module to exit that it can continue
-		unlock_module();
+		task_id = -1; // signal a potentially waiting thread for the module to exit that it can continue
+		unlockModule();
 	}
 
 	/**
 	 * Wait until _object got initialized (from the new thread). This can be called from task_spawn().
 	 * @return 0 on success, -1 on timeout.
 	 */
-	static int wait_until_running()
+	static int waitUntilRunning()
 	{
 		int i = 0;
 
@@ -332,7 +332,7 @@ protected:
 			/* wait up to 1s */
 			usleep(2500);
 
-		} while (!_object && ++i < 400);
+		} while (!object && ++i < 400);
 
 		if (i == 400) {
 			PX4_ERR("Timed out while waiting for thread to start");
@@ -343,14 +343,14 @@ protected:
 	}
 
 	/** get the module's object instance (this is null if it's not running) */
-	static T *get_instance()
+	static T *getInstance()
 	{
-		return (T *)_object;
+		return (T *)object;
 	}
 
 	// there will be one instance for each template type
-	static volatile T *_object; ///< instance if the module is running
-	static int _task_id;        ///< task handle: -1 = invalid, otherwise task is assumed to be running
+	static volatile T *object; ///< instance if the module is running
+	static int task_id;        ///< task handle: -1 = invalid, otherwise task is assumed to be running
 
 	static constexpr const int task_id_is_work_queue = -2; ///< special value if task runs on the work queue
 
@@ -358,15 +358,15 @@ private:
 
 	volatile bool _task_should_exit = false;
 
-	static void lock_module() { pthread_mutex_lock(&px4_modules_mutex); }
-	static void unlock_module() { pthread_mutex_unlock(&px4_modules_mutex); }
+	static void lockModule() { pthread_mutex_lock(&px4_modules_mutex); }
+	static void unlockModule() { pthread_mutex_unlock(&px4_modules_mutex); }
 };
 
 template<class T>
-volatile T *ModuleBase<T>::_object = nullptr;
+volatile T *ModuleBase<T>::object = nullptr;
 
 template<class T>
-int ModuleBase<T>::_task_id = -1;
+int ModuleBase<T>::task_id = -1;
 
 
 #endif /* __cplusplus */
@@ -397,7 +397,7 @@ static inline void PRINT_MODULE_DESCRIPTION(const char *description) {}
  * In addition to the Markdown syntax, a line beginning with '$ ' can be used to mark a command:
  * $ module start -p param
  */
-__EXPORT void PRINT_MODULE_DESCRIPTION(const char *description);
+__EXPORT void print_module_description(const char *description);
 #endif
 
 /**
@@ -405,18 +405,18 @@ __EXPORT void PRINT_MODULE_DESCRIPTION(const char *description);
  * @param executable_name: command name used in scripts & CLI
  * @param category one of: driver, estimator, controller, system, communication, command
  */
-__EXPORT void PRINT_MODULE_USAGE_NAME(const char *executable_name, const char *category);
+__EXPORT void print_module_usage_name(const char *executable_name, const char *category);
 
 /**
  * Print the name for a command without any sub-commands (@see PRINT_MODULE_USAGE_NAME())
  */
-__EXPORT void PRINT_MODULE_USAGE_NAME_SIMPLE(const char *executable_name, const char *category);
+__EXPORT void print_module_usage_name_simple(const char *executable_name, const char *category);
 
 
 /**
  * Print a command with a short description what it does
  */
-__EXPORT void PRINT_MODULE_USAGE_COMMAND_DESCR(const char *name, const char *description);
+__EXPORT void print_module_usage_command_descr(const char *name, const char *description);
 
 #define PRINT_MODULE_USAGE_COMMAND(name) \
 	PRINT_MODULE_USAGE_COMMAND_DESCR(name, NULL);
@@ -440,21 +440,21 @@ __EXPORT void PRINT_MODULE_USAGE_COMMAND_DESCR(const char *name, const char *des
  * @param description
  * @param is_optional true if this parameter is optional
  */
-__EXPORT void PRINT_MODULE_USAGE_PARAM_INT(char option_char, int default_val, int min_val, int max_val,
+__EXPORT void print_module_usage_param_int(char option_char, int default_val, int min_val, int max_val,
 		const char *description, bool is_optional);
 
 /**
  * print a float parameter
  * @see PRINT_MODULE_USAGE_PARAM_INT()
  */
-__EXPORT void PRINT_MODULE_USAGE_PARAM_FLOAT(char option_char, float default_val, float min_val, float max_val,
+__EXPORT void print_module_usage_param_float(char option_char, float default_val, float min_val, float max_val,
 		const char *description, bool is_optional);
 
 /**
  * print a flag parameter, without any value
  * @see PRINT_MODULE_USAGE_PARAM_INT()
  */
-__EXPORT void PRINT_MODULE_USAGE_PARAM_FLAG(char option_char, const char *description, bool is_optional);
+__EXPORT void print_module_usage_param_flag(char option_char, const char *description, bool is_optional);
 
 /**
  * print a string parameter
@@ -469,7 +469,7 @@ __EXPORT void PRINT_MODULE_USAGE_PARAM_FLAG(char option_char, const char *descri
  * @param description
  * @param is_optional true if this parameter is optional
  */
-__EXPORT void PRINT_MODULE_USAGE_PARAM_STRING(char option_char, const char *default_val, const char *values,
+__EXPORT void print_module_usage_param_string(char option_char, const char *default_val, const char *values,
 		const char *description, bool is_optional);
 
 /**
@@ -477,7 +477,7 @@ __EXPORT void PRINT_MODULE_USAGE_PARAM_STRING(char option_char, const char *defa
  * a parameter applies to several or all commands.
  * @param comment
  */
-__EXPORT void PRINT_MODULE_USAGE_PARAM_COMMENT(const char *comment);
+__EXPORT void print_module_usage_param_comment(const char *comment);
 
 
 /**
@@ -487,7 +487,7 @@ __EXPORT void PRINT_MODULE_USAGE_PARAM_COMMENT(const char *comment);
  * @param description
  * @param is_optional true if this parameter is optional
  */
-__EXPORT void PRINT_MODULE_USAGE_ARG(const char *values, const char *description, bool is_optional);
+__EXPORT void print_module_usage_arg(const char *values, const char *description, bool is_optional);
 
 
 __END_DECLS

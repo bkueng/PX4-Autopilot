@@ -358,14 +358,14 @@ void Tailsitter::waiting_on_tecs()
 	_v_att_sp->thrust = _thrust_transition;
 }
 
-void Tailsitter::calc_tot_airspeed()
+void Tailsitter::calcTotAirspeed()
 {
 	float airspeed = math::max(1.0f, _airspeed->indicated_airspeed_m_s);	// prevent numerical drama
 	// calculate momentary power of one engine
-	float P = _batt_status->voltage_filtered_v * _batt_status->current_a / _params->vtol_motor_count;
-	P = math::constrain(P, 1.0f, _params->power_max);
+	float p = _batt_status->voltage_filtered_v * _batt_status->current_a / _params->vtol_motor_count;
+	p = math::constrain(p, 1.0f, _params->power_max);
 	// calculate prop efficiency
-	float power_factor = 1.0f - P * _params->prop_eff / _params->power_max;
+	float power_factor = 1.0f - p * _params->prop_eff / _params->power_max;
 	float eta = (1.0f / (1 + expf(-0.4f * power_factor * airspeed)) - 0.5f) * 2.0f;
 	eta = math::constrain(eta, 0.001f, 1.0f);	// live on the safe side
 	// calculate induced airspeed by propeller
@@ -376,7 +376,7 @@ void Tailsitter::calc_tot_airspeed()
 	_airspeed_tot = _params->arsp_lp_gain * (_airspeed_tot - airspeed_raw) + airspeed_raw;
 }
 
-void Tailsitter::scale_mc_output()
+void Tailsitter::scaleMcOutput()
 {
 	// scale around tuning airspeed
 	float airspeed;
@@ -439,12 +439,12 @@ void Tailsitter::fill_actuator_outputs()
 	switch (_vtol_mode) {
 	case ROTARY_WING:
 		_actuators_out_0->timestamp = _actuators_mc_in->timestamp;
-		_actuators_out_0->control[actuator_controls_s::INDEX_ROLL] = _actuators_mc_in->control[actuator_controls_s::INDEX_ROLL];
-		_actuators_out_0->control[actuator_controls_s::INDEX_PITCH] =
-			_actuators_mc_in->control[actuator_controls_s::INDEX_PITCH];
-		_actuators_out_0->control[actuator_controls_s::INDEX_YAW] = _actuators_mc_in->control[actuator_controls_s::INDEX_YAW];
-		_actuators_out_0->control[actuator_controls_s::INDEX_THROTTLE] =
-			_actuators_mc_in->control[actuator_controls_s::INDEX_THROTTLE];
+		_actuators_out_0->control[actuator_controls_s::index_roll] = _actuators_mc_in->control[actuator_controls_s::index_roll];
+		_actuators_out_0->control[actuator_controls_s::index_pitch] =
+			_actuators_mc_in->control[actuator_controls_s::index_pitch];
+		_actuators_out_0->control[actuator_controls_s::index_yaw] = _actuators_mc_in->control[actuator_controls_s::index_yaw];
+		_actuators_out_0->control[actuator_controls_s::index_throttle] =
+			_actuators_mc_in->control[actuator_controls_s::index_throttle];
 
 		_actuators_out_1->timestamp = _actuators_mc_in->timestamp;
 
@@ -454,10 +454,10 @@ void Tailsitter::fill_actuator_outputs()
 
 		} else {
 			// NOTE: There is no mistake in the line below, multicopter yaw axis is controlled by elevon roll actuation!
-			_actuators_out_1->control[actuator_controls_s::INDEX_ROLL] =
-				_actuators_mc_in->control[actuator_controls_s::INDEX_YAW];	//roll elevon
-			_actuators_out_1->control[actuator_controls_s::INDEX_PITCH] =
-				_actuators_mc_in->control[actuator_controls_s::INDEX_PITCH];	//pitch elevon
+			_actuators_out_1->control[actuator_controls_s::index_roll] =
+				_actuators_mc_in->control[actuator_controls_s::index_yaw];	//roll elevon
+			_actuators_out_1->control[actuator_controls_s::index_pitch] =
+				_actuators_mc_in->control[actuator_controls_s::index_pitch];	//pitch elevon
 		}
 
 		break;
@@ -465,20 +465,20 @@ void Tailsitter::fill_actuator_outputs()
 	case FIXED_WING:
 		// in fixed wing mode we use engines only for providing thrust, no moments are generated
 		_actuators_out_0->timestamp = _actuators_fw_in->timestamp;
-		_actuators_out_0->control[actuator_controls_s::INDEX_ROLL] = 0;
-		_actuators_out_0->control[actuator_controls_s::INDEX_PITCH] = 0;
-		_actuators_out_0->control[actuator_controls_s::INDEX_YAW] = 0;
-		_actuators_out_0->control[actuator_controls_s::INDEX_THROTTLE] =
-			_actuators_fw_in->control[actuator_controls_s::INDEX_THROTTLE];
+		_actuators_out_0->control[actuator_controls_s::index_roll] = 0;
+		_actuators_out_0->control[actuator_controls_s::index_pitch] = 0;
+		_actuators_out_0->control[actuator_controls_s::index_yaw] = 0;
+		_actuators_out_0->control[actuator_controls_s::index_throttle] =
+			_actuators_fw_in->control[actuator_controls_s::index_throttle];
 
-		_actuators_out_1->control[actuator_controls_s::INDEX_ROLL] =
-			-_actuators_fw_in->control[actuator_controls_s::INDEX_ROLL];	// roll elevon
-		_actuators_out_1->control[actuator_controls_s::INDEX_PITCH] =
-			_actuators_fw_in->control[actuator_controls_s::INDEX_PITCH] + _params->fw_pitch_trim;	// pitch elevon
-		_actuators_out_1->control[actuator_controls_s::INDEX_YAW] =
-			_actuators_fw_in->control[actuator_controls_s::INDEX_YAW];	// yaw
-		_actuators_out_1->control[actuator_controls_s::INDEX_THROTTLE] =
-			_actuators_fw_in->control[actuator_controls_s::INDEX_THROTTLE];	// throttle
+		_actuators_out_1->control[actuator_controls_s::index_roll] =
+			-_actuators_fw_in->control[actuator_controls_s::index_roll];	// roll elevon
+		_actuators_out_1->control[actuator_controls_s::index_pitch] =
+			_actuators_fw_in->control[actuator_controls_s::index_pitch] + _params->fw_pitch_trim;	// pitch elevon
+		_actuators_out_1->control[actuator_controls_s::index_yaw] =
+			_actuators_fw_in->control[actuator_controls_s::index_yaw];	// yaw
+		_actuators_out_1->control[actuator_controls_s::index_throttle] =
+			_actuators_fw_in->control[actuator_controls_s::index_throttle];	// throttle
 		break;
 
 	case TRANSITION_TO_FW:
@@ -486,23 +486,23 @@ void Tailsitter::fill_actuator_outputs()
 		// in transition engines are mixed by weight (BACK TRANSITION ONLY)
 		_actuators_out_0->timestamp = _actuators_mc_in->timestamp;
 		_actuators_out_1->timestamp = _actuators_mc_in->timestamp;
-		_actuators_out_0->control[actuator_controls_s::INDEX_ROLL] = _actuators_mc_in->control[actuator_controls_s::INDEX_ROLL]
+		_actuators_out_0->control[actuator_controls_s::index_roll] = _actuators_mc_in->control[actuator_controls_s::index_roll]
 				* _mc_roll_weight;
-		_actuators_out_0->control[actuator_controls_s::INDEX_PITCH] =
-			_actuators_mc_in->control[actuator_controls_s::INDEX_PITCH] * _mc_pitch_weight;
-		_actuators_out_0->control[actuator_controls_s::INDEX_YAW] = _actuators_mc_in->control[actuator_controls_s::INDEX_YAW] *
+		_actuators_out_0->control[actuator_controls_s::index_pitch] =
+			_actuators_mc_in->control[actuator_controls_s::index_pitch] * _mc_pitch_weight;
+		_actuators_out_0->control[actuator_controls_s::index_yaw] = _actuators_mc_in->control[actuator_controls_s::index_yaw] *
 				_mc_yaw_weight;
-		_actuators_out_0->control[actuator_controls_s::INDEX_THROTTLE] =
-			_actuators_mc_in->control[actuator_controls_s::INDEX_THROTTLE];
+		_actuators_out_0->control[actuator_controls_s::index_throttle] =
+			_actuators_mc_in->control[actuator_controls_s::index_throttle];
 
 		// NOTE: There is no mistake in the line below, multicopter yaw axis is controlled by elevon roll actuation!
-		_actuators_out_1->control[actuator_controls_s::INDEX_ROLL] = -_actuators_fw_in->control[actuator_controls_s::INDEX_ROLL]
+		_actuators_out_1->control[actuator_controls_s::index_roll] = -_actuators_fw_in->control[actuator_controls_s::index_roll]
 				* (1 - _mc_yaw_weight);
-		_actuators_out_1->control[actuator_controls_s::INDEX_PITCH] =
-			_actuators_mc_in->control[actuator_controls_s::INDEX_PITCH] * _mc_pitch_weight;
+		_actuators_out_1->control[actuator_controls_s::index_pitch] =
+			_actuators_mc_in->control[actuator_controls_s::index_pitch] * _mc_pitch_weight;
 		// **LATER** + (_actuators_fw_in->control[actuator_controls_s::INDEX_PITCH] + _params->fw_pitch_trim) *(1 - _mc_pitch_weight);
-		_actuators_out_1->control[actuator_controls_s::INDEX_THROTTLE] =
-			_actuators_fw_in->control[actuator_controls_s::INDEX_THROTTLE];
+		_actuators_out_1->control[actuator_controls_s::index_throttle] =
+			_actuators_fw_in->control[actuator_controls_s::index_throttle];
 		break;
 
 	case EXTERNAL:

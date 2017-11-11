@@ -42,7 +42,7 @@
 
 using namespace status;
 
-void StatusDisplay::set_leds()
+void StatusDisplay::setLeds()
 {
 	// Put your LED handling here
 }

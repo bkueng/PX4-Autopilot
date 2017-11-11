@@ -149,43 +149,43 @@ int sphere_fit_least_squares(const float x[], const float y[], const float z[],
 	float z_sum2 = z_sumsq / size;    //sum( Z[n]^2 )
 	float z_sum3 = z_sumcube / size;    //sum( Z[n]^3 )
 
-	float XY = xy_sum / size;        //sum( X[n] * Y[n] )
-	float XZ = xz_sum / size;        //sum( X[n] * Z[n] )
-	float YZ = yz_sum / size;        //sum( Y[n] * Z[n] )
-	float X2Y = x2y_sum / size;    //sum( X[n]^2 * Y[n] )
-	float X2Z = x2z_sum / size;    //sum( X[n]^2 * Z[n] )
-	float Y2X = y2x_sum / size;    //sum( Y[n]^2 * X[n] )
-	float Y2Z = y2z_sum / size;    //sum( Y[n]^2 * Z[n] )
-	float Z2X = z2x_sum / size;    //sum( Z[n]^2 * X[n] )
-	float Z2Y = z2y_sum / size;    //sum( Z[n]^2 * Y[n] )
+	float xy = xy_sum / size;        //sum( X[n] * Y[n] )
+	float xz = xz_sum / size;        //sum( X[n] * Z[n] )
+	float yz = yz_sum / size;        //sum( Y[n] * Z[n] )
+	float x2_y = x2y_sum / size;    //sum( X[n]^2 * Y[n] )
+	float x2_z = x2z_sum / size;    //sum( X[n]^2 * Z[n] )
+	float y2_x = y2x_sum / size;    //sum( Y[n]^2 * X[n] )
+	float y2_z = y2z_sum / size;    //sum( Y[n]^2 * Z[n] )
+	float z2_x = z2x_sum / size;    //sum( Z[n]^2 * X[n] )
+	float z2_y = z2y_sum / size;    //sum( Z[n]^2 * Y[n] )
 
 	//Reduction of multiplications
-	float F0 = x_sum2 + y_sum2 + z_sum2;
-	float F1 =  0.5f * F0;
-	float F2 = -8.0f * (x_sum3 + Y2X + Z2X);
-	float F3 = -8.0f * (X2Y + y_sum3 + Z2Y);
-	float F4 = -8.0f * (X2Z + Y2Z + z_sum3);
+	float f0 = x_sum2 + y_sum2 + z_sum2;
+	float f1 =  0.5f * f0;
+	float f2 = -8.0f * (x_sum3 + y2_x + z2_x);
+	float f3 = -8.0f * (x2_y + y_sum3 + z2_y);
+	float f4 = -8.0f * (x2_z + y2_z + z_sum3);
 
 	//Set initial conditions:
-	float A = x_sum;
-	float B = y_sum;
-	float C = z_sum;
+	float a = x_sum;
+	float b = y_sum;
+	float c = z_sum;
 
 	//First iteration computation:
-	float A2 = A * A;
-	float B2 = B * B;
-	float C2 = C * C;
-	float QS = A2 + B2 + C2;
-	float QB = -2.0f * (A * x_sum + B * y_sum + C * z_sum);
+	float a2 = a * a;
+	float b2 = b * b;
+	float c2 = c * c;
+	float qs = a2 + b2 + c2;
+	float qb = -2.0f * (a * x_sum + b * y_sum + c * z_sum);
 
 	//Set initial conditions:
-	float Rsq = F0 + QB + QS;
+	float rsq = f0 + qb + qs;
 
 	//First iteration computation:
-	float Q0 = 0.5f * (QS - Rsq);
-	float Q1 = F1 + Q0;
-	float Q2 = 8.0f * (QS - Rsq + QB + F0);
-	float aA, aB, aC, nA, nB, nC, dA, dB, dC;
+	float q0 = 0.5f * (qs - rsq);
+	float q1 = f1 + q0;
+	float q2 = 8.0f * (qs - rsq + qb + f0);
+	float a_a, a_b, a_c, n_a, n_b, n_c, d_a, d_b, d_c;
 
 	//Iterate N times, ignore stop condition.
 	unsigned int n = 0;
@@ -194,44 +194,44 @@ int sphere_fit_least_squares(const float x[], const float y[], const float z[],
 		n++;
 
 		//Compute denominator:
-		aA = Q2 + 16.0f * (A2 - 2.0f * A * x_sum + x_sum2);
-		aB = Q2 + 16.0f * (B2 - 2.0f * B * y_sum + y_sum2);
-		aC = Q2 + 16.0f * (C2 - 2.0f * C * z_sum + z_sum2);
-		aA = (fabsf(aA) < FLT_EPSILON) ? 1.0f : aA;
-		aB = (fabsf(aB) < FLT_EPSILON) ? 1.0f : aB;
-		aC = (fabsf(aC) < FLT_EPSILON) ? 1.0f : aC;
+		a_a = q2 + 16.0f * (a2 - 2.0f * a * x_sum + x_sum2);
+		a_b = q2 + 16.0f * (b2 - 2.0f * b * y_sum + y_sum2);
+		a_c = q2 + 16.0f * (c2 - 2.0f * c * z_sum + z_sum2);
+		a_a = (fabsf(a_a) < FLT_EPSILON) ? 1.0f : a_a;
+		a_b = (fabsf(a_b) < FLT_EPSILON) ? 1.0f : a_b;
+		a_c = (fabsf(a_c) < FLT_EPSILON) ? 1.0f : a_c;
 
 		//Compute next iteration
-		nA = A - ((F2 + 16.0f * (B * XY + C * XZ + x_sum * (-A2 - Q0) + A * (x_sum2 + Q1 - C * z_sum - B * y_sum))) / aA);
-		nB = B - ((F3 + 16.0f * (A * XY + C * YZ + y_sum * (-B2 - Q0) + B * (y_sum2 + Q1 - A * x_sum - C * z_sum))) / aB);
-		nC = C - ((F4 + 16.0f * (A * XZ + B * YZ + z_sum * (-C2 - Q0) + C * (z_sum2 + Q1 - A * x_sum - B * y_sum))) / aC);
+		n_a = a - ((f2 + 16.0f * (b * xy + c * xz + x_sum * (-a2 - q0) + a * (x_sum2 + q1 - c * z_sum - b * y_sum))) / a_a);
+		n_b = b - ((f3 + 16.0f * (a * xy + c * yz + y_sum * (-b2 - q0) + b * (y_sum2 + q1 - a * x_sum - c * z_sum))) / a_b);
+		n_c = c - ((f4 + 16.0f * (a * xz + b * yz + z_sum * (-c2 - q0) + c * (z_sum2 + q1 - a * x_sum - b * y_sum))) / a_c);
 
 		//Check for stop condition
-		dA = (nA - A);
-		dB = (nB - B);
-		dC = (nC - C);
+		d_a = (n_a - a);
+		d_b = (n_b - b);
+		d_c = (n_c - c);
 
-		if ((dA * dA + dB * dB + dC * dC) <= delta) { break; }
+		if ((d_a * d_a + d_b * d_b + d_c * d_c) <= delta) { break; }
 
 		//Compute next iteration's values
-		A = nA;
-		B = nB;
-		C = nC;
-		A2 = A * A;
-		B2 = B * B;
-		C2 = C * C;
-		QS = A2 + B2 + C2;
-		QB = -2.0f * (A * x_sum + B * y_sum + C * z_sum);
-		Rsq = F0 + QB + QS;
-		Q0 = 0.5f * (QS - Rsq);
-		Q1 = F1 + Q0;
-		Q2 = 8.0f * (QS - Rsq + QB + F0);
+		a = n_a;
+		b = n_b;
+		c = n_c;
+		a2 = a * a;
+		b2 = b * b;
+		c2 = c * c;
+		qs = a2 + b2 + c2;
+		qb = -2.0f * (a * x_sum + b * y_sum + c * z_sum);
+		rsq = f0 + qb + qs;
+		q0 = 0.5f * (qs - rsq);
+		q1 = f1 + q0;
+		q2 = 8.0f * (qs - rsq + qb + f0);
 	}
 
-	*sphere_x = A;
-	*sphere_y = B;
-	*sphere_z = C;
-	*sphere_radius = sqrtf(Rsq);
+	*sphere_x = a;
+	*sphere_y = b;
+	*sphere_z = c;
+	*sphere_radius = sqrtf(rsq);
 
 	return 0;
 }
@@ -240,19 +240,19 @@ int ellipsoid_fit_least_squares(const float x[], const float y[], const float z[
 				unsigned int size, unsigned int max_iterations, float delta, float *offset_x, float *offset_y, float *offset_z,
 				float *sphere_radius, float *diag_x, float *diag_y, float *diag_z, float *offdiag_x, float *offdiag_y, float *offdiag_z)
 {
-	float _fitness = 1.0e30f, _sphere_lambda = 1.0f, _ellipsoid_lambda = 1.0f;
+	float fitness = 1.0e30f, sphere_lambda = 1.0f, ellipsoid_lambda = 1.0f;
 
 	for (int i = 0; i < max_iterations; i++) {
-		run_lm_sphere_fit(x, y, z, _fitness, _sphere_lambda,
+		run_lm_sphere_fit(x, y, z, fitness, sphere_lambda,
 				  size, offset_x, offset_y, offset_z,
 				  sphere_radius, diag_x, diag_y, diag_z, offdiag_x, offdiag_y, offdiag_z);
 
 	}
 
-	_fitness = 1.0e30f;
+	fitness = 1.0e30f;
 
 	for (int i = 0; i < max_iterations; i++) {
-		run_lm_ellipsoid_fit(x, y, z, _fitness, _ellipsoid_lambda,
+		run_lm_ellipsoid_fit(x, y, z, fitness, ellipsoid_lambda,
 				     size, offset_x, offset_y, offset_z,
 				     sphere_radius, diag_x, diag_y, diag_z, offdiag_x, offdiag_y, offdiag_z);
 	}
@@ -260,50 +260,50 @@ int ellipsoid_fit_least_squares(const float x[], const float y[], const float z[
 	return 0;
 }
 
-int run_lm_sphere_fit(const float x[], const float y[], const float z[], float &_fitness, float &_sphere_lambda,
+int run_lm_sphere_fit(const float x[], const float y[], const float z[], float &fitness, float &sphere_lambda,
 		      unsigned int size, float *offset_x, float *offset_y, float *offset_z,
 		      float *sphere_radius, float *diag_x, float *diag_y, float *diag_z, float *offdiag_x, float *offdiag_y, float *offdiag_z)
 {
 	//Run Sphere Fit using Levenberg Marquardt LSq Fit
 	const float lma_damping = 10.0f;
-	float _samples_collected = size;
-	float fitness = _fitness;
+	float samples_collected = size;
+	float fitness = fitness;
 	float fit1 = 0.0f, fit2 = 0.0f;
 
-	float JTJ[16];
-	float JTJ2[16];
-	float JTFI[4];
+	float jtj[16];
+	float jt_j2[16];
+	float jtfi[4];
 	float residual = 0.0f;
-	memset(JTJ, 0, sizeof(JTJ));
-	memset(JTJ2, 0, sizeof(JTJ2));
-	memset(JTFI, 0, sizeof(JTFI));
+	memset(jtj, 0, sizeof(jtj));
+	memset(jt_j2, 0, sizeof(jt_j2));
+	memset(jtfi, 0, sizeof(jtfi));
 
 	// Gauss Newton Part common for all kind of extensions including LM
-	for (uint16_t k = 0; k < _samples_collected; k++) {
+	for (uint16_t k = 0; k < samples_collected; k++) {
 
 		float sphere_jacob[4];
 		//Calculate Jacobian
-		float A = (*diag_x    * (x[k] - *offset_x)) + (*offdiag_x * (y[k] - *offset_y)) + (*offdiag_y * (z[k] - *offset_z));
-		float B = (*offdiag_x * (x[k] - *offset_x)) + (*diag_y    * (y[k] - *offset_y)) + (*offdiag_z * (z[k] - *offset_z));
-		float C = (*offdiag_y * (x[k] - *offset_x)) + (*offdiag_z * (y[k] - *offset_y)) + (*diag_z    * (z[k] - *offset_z));
-		float length = sqrtf(A * A + B * B + C * C);
+		float a = (*diag_x    * (x[k] - *offset_x)) + (*offdiag_x * (y[k] - *offset_y)) + (*offdiag_y * (z[k] - *offset_z));
+		float b = (*offdiag_x * (x[k] - *offset_x)) + (*diag_y    * (y[k] - *offset_y)) + (*offdiag_z * (z[k] - *offset_z));
+		float c = (*offdiag_y * (x[k] - *offset_x)) + (*offdiag_z * (y[k] - *offset_y)) + (*diag_z    * (z[k] - *offset_z));
+		float length = sqrtf(a * a + b * b + c * c);
 
 		// 0: partial derivative (radius wrt fitness fn) fn operated on sample
 		sphere_jacob[0] = 1.0f;
 		// 1-3: partial derivative (offsets wrt fitness fn) fn operated on sample
-		sphere_jacob[1] = 1.0f * (((*diag_x    * A) + (*offdiag_x * B) + (*offdiag_y * C)) / length);
-		sphere_jacob[2] = 1.0f * (((*offdiag_x * A) + (*diag_y    * B) + (*offdiag_z * C)) / length);
-		sphere_jacob[3] = 1.0f * (((*offdiag_y * A) + (*offdiag_z * B) + (*diag_z    * C)) / length);
+		sphere_jacob[1] = 1.0f * (((*diag_x    * a) + (*offdiag_x * b) + (*offdiag_y * c)) / length);
+		sphere_jacob[2] = 1.0f * (((*offdiag_x * a) + (*diag_y    * b) + (*offdiag_z * c)) / length);
+		sphere_jacob[3] = 1.0f * (((*offdiag_y * a) + (*offdiag_z * b) + (*diag_z    * c)) / length);
 		residual = *sphere_radius - length;
 
 		for (uint8_t i = 0; i < 4; i++) {
 			// compute JTJ
 			for (uint8_t j = 0; j < 4; j++) {
-				JTJ[i * 4 + j] += sphere_jacob[i] * sphere_jacob[j];
-				JTJ2[i * 4 + j] += sphere_jacob[i] * sphere_jacob[j]; //a backup JTJ for LM
+				jtj[i * 4 + j] += sphere_jacob[i] * sphere_jacob[j];
+				jt_j2[i * 4 + j] += sphere_jacob[i] * sphere_jacob[j]; //a backup JTJ for LM
 			}
 
-			JTFI[i] += sphere_jacob[i] * residual;
+			jtfi[i] += sphere_jacob[i] * residual;
 		}
 	}
 
@@ -315,67 +315,67 @@ int run_lm_sphere_fit(const float x[], const float y[], const float z[], float &
 	memcpy(fit2_params, fit1_params, sizeof(fit1_params));
 
 	for (uint8_t i = 0; i < 4; i++) {
-		JTJ[i * 4 + i] += _sphere_lambda;
-		JTJ2[i * 4 + i] += _sphere_lambda / lma_damping;
+		jtj[i * 4 + i] += sphere_lambda;
+		jt_j2[i * 4 + i] += sphere_lambda / lma_damping;
 	}
 
-	if (!inverse4x4(JTJ, JTJ)) {
+	if (!inverse4x4(jtj, jtj)) {
 		return -1;
 	}
 
-	if (!inverse4x4(JTJ2, JTJ2)) {
+	if (!inverse4x4(jt_j2, jt_j2)) {
 		return -1;
 	}
 
 	for (uint8_t row = 0; row < 4; row++) {
 		for (uint8_t col = 0; col < 4; col++) {
-			fit1_params[row] -= JTFI[col] * JTJ[row * 4 + col];
-			fit2_params[row] -= JTFI[col] * JTJ2[row * 4 + col];
+			fit1_params[row] -= jtfi[col] * jtj[row * 4 + col];
+			fit2_params[row] -= jtfi[col] * jt_j2[row * 4 + col];
 		}
 	}
 
 	//Calculate mean squared residuals
-	for (uint16_t k = 0; k < _samples_collected; k++) {
-		float A = (*diag_x    * (x[k] - fit1_params[1])) + (*offdiag_x * (y[k] - fit1_params[2])) + (*offdiag_y *
+	for (uint16_t k = 0; k < samples_collected; k++) {
+		float a = (*diag_x    * (x[k] - fit1_params[1])) + (*offdiag_x * (y[k] - fit1_params[2])) + (*offdiag_y *
 				(z[k] + fit1_params[3]));
-		float B = (*offdiag_x * (x[k] - fit1_params[1])) + (*diag_y    * (y[k] - fit1_params[2])) + (*offdiag_z *
+		float b = (*offdiag_x * (x[k] - fit1_params[1])) + (*diag_y    * (y[k] - fit1_params[2])) + (*offdiag_z *
 				(z[k] + fit1_params[3]));
-		float C = (*offdiag_y * (x[k] - fit1_params[1])) + (*offdiag_z * (y[k] - fit1_params[2])) + (*diag_z    *
+		float c = (*offdiag_y * (x[k] - fit1_params[1])) + (*offdiag_z * (y[k] - fit1_params[2])) + (*diag_z    *
 				(z[k] - fit1_params[3]));
-		float length = sqrtf(A * A + B * B + C * C);
+		float length = sqrtf(a * a + b * b + c * c);
 		residual = fit1_params[0] - length;
 		fit1 += residual * residual;
 
-		A = (*diag_x    * (x[k] - fit2_params[1])) + (*offdiag_x * (y[k] - fit2_params[2])) + (*offdiag_y *
+		a = (*diag_x    * (x[k] - fit2_params[1])) + (*offdiag_x * (y[k] - fit2_params[2])) + (*offdiag_y *
 				(z[k] - fit2_params[3]));
-		B = (*offdiag_x * (x[k] - fit2_params[1])) + (*diag_y    * (y[k] - fit2_params[2])) + (*offdiag_z *
+		b = (*offdiag_x * (x[k] - fit2_params[1])) + (*diag_y    * (y[k] - fit2_params[2])) + (*offdiag_z *
 				(z[k] - fit2_params[3]));
-		C = (*offdiag_y * (x[k] - fit2_params[1])) + (*offdiag_z * (y[k] - fit2_params[2])) + (*diag_z    *
+		c = (*offdiag_y * (x[k] - fit2_params[1])) + (*offdiag_z * (y[k] - fit2_params[2])) + (*diag_z    *
 				(z[k] - fit2_params[3]));
-		length = sqrtf(A * A + B * B + C * C);
+		length = sqrtf(a * a + b * b + c * c);
 		residual = fit2_params[0] - length;
 		fit2 += residual * residual;
 	}
 
-	fit1 = sqrtf(fit1) / _samples_collected;
-	fit2 = sqrtf(fit2) / _samples_collected;
+	fit1 = sqrtf(fit1) / samples_collected;
+	fit2 = sqrtf(fit2) / samples_collected;
 
-	if (fit1 > _fitness && fit2 > _fitness) {
-		_sphere_lambda *= lma_damping;
+	if (fit1 > fitness && fit2 > fitness) {
+		sphere_lambda *= lma_damping;
 
-	} else if (fit2 < _fitness && fit2 < fit1) {
-		_sphere_lambda /= lma_damping;
+	} else if (fit2 < fitness && fit2 < fit1) {
+		sphere_lambda /= lma_damping;
 		memcpy(fit1_params, fit2_params, sizeof(fit1_params));
 		fitness = fit2;
 
-	} else if (fit1 < _fitness) {
+	} else if (fit1 < fitness) {
 		fitness = fit1;
 	}
 
 	//--------------------Levenberg-Marquardt-part-ends-here--------------------------------//
 
-	if (PX4_ISFINITE(fitness) && fitness < _fitness) {
-		_fitness = fitness;
+	if (PX4_ISFINITE(fitness) && fitness < fitness) {
+		fitness = fitness;
 		*sphere_radius = fit1_params[0];
 		*offset_x = fit1_params[1];
 		*offset_y = fit1_params[2];
@@ -387,56 +387,56 @@ int run_lm_sphere_fit(const float x[], const float y[], const float z[], float &
 	}
 }
 
-int run_lm_ellipsoid_fit(const float x[], const float y[], const float z[], float &_fitness, float &_sphere_lambda,
+int run_lm_ellipsoid_fit(const float x[], const float y[], const float z[], float &fitness, float &sphere_lambda,
 			 unsigned int size, float *offset_x, float *offset_y, float *offset_z,
 			 float *sphere_radius, float *diag_x, float *diag_y, float *diag_z, float *offdiag_x, float *offdiag_y, float *offdiag_z)
 {
 	//Run Sphere Fit using Levenberg Marquardt LSq Fit
 	const float lma_damping = 10.0f;
-	float _samples_collected = size;
-	float fitness = _fitness;
+	float samples_collected = size;
+	float fitness = fitness;
 	float fit1 = 0.0f, fit2 = 0.0f;
 
-	float JTJ[81];
-	float JTJ2[81];
-	float JTFI[9];
+	float jtj[81];
+	float jt_j2[81];
+	float jtfi[9];
 	float residual = 0.0f;
-	memset(JTJ, 0, sizeof(JTJ));
-	memset(JTJ2, 0, sizeof(JTJ2));
-	memset(JTFI, 0, sizeof(JTFI));
+	memset(jtj, 0, sizeof(jtj));
+	memset(jt_j2, 0, sizeof(jt_j2));
+	memset(jtfi, 0, sizeof(jtfi));
 	float ellipsoid_jacob[9];
 
 	// Gauss Newton Part common for all kind of extensions including LM
-	for (uint16_t k = 0; k < _samples_collected; k++) {
+	for (uint16_t k = 0; k < samples_collected; k++) {
 
 		//Calculate Jacobian
-		float A = (*diag_x    * (x[k] - *offset_x)) + (*offdiag_x * (y[k] - *offset_y)) + (*offdiag_y * (z[k] - *offset_z));
-		float B = (*offdiag_x * (x[k] - *offset_x)) + (*diag_y    * (y[k] - *offset_y)) + (*offdiag_z * (z[k] - *offset_z));
-		float C = (*offdiag_y * (x[k] - *offset_x)) + (*offdiag_z * (y[k] - *offset_y)) + (*diag_z    * (z[k] - *offset_z));
-		float length = sqrtf(A * A + B * B + C * C);
+		float a = (*diag_x    * (x[k] - *offset_x)) + (*offdiag_x * (y[k] - *offset_y)) + (*offdiag_y * (z[k] - *offset_z));
+		float b = (*offdiag_x * (x[k] - *offset_x)) + (*diag_y    * (y[k] - *offset_y)) + (*offdiag_z * (z[k] - *offset_z));
+		float c = (*offdiag_y * (x[k] - *offset_x)) + (*offdiag_z * (y[k] - *offset_y)) + (*diag_z    * (z[k] - *offset_z));
+		float length = sqrtf(a * a + b * b + c * c);
 		residual = *sphere_radius - length;
 		fit1 += residual * residual;
 		// 0-2: partial derivative (offset wrt fitness fn) fn operated on sample
-		ellipsoid_jacob[0] = 1.0f * (((*diag_x    * A) + (*offdiag_x * B) + (*offdiag_y * C)) / length);
-		ellipsoid_jacob[1] = 1.0f * (((*offdiag_x * A) + (*diag_y    * B) + (*offdiag_z * C)) / length);
-		ellipsoid_jacob[2] = 1.0f * (((*offdiag_y * A) + (*offdiag_z * B) + (*diag_z    * C)) / length);
+		ellipsoid_jacob[0] = 1.0f * (((*diag_x    * a) + (*offdiag_x * b) + (*offdiag_y * c)) / length);
+		ellipsoid_jacob[1] = 1.0f * (((*offdiag_x * a) + (*diag_y    * b) + (*offdiag_z * c)) / length);
+		ellipsoid_jacob[2] = 1.0f * (((*offdiag_y * a) + (*offdiag_z * b) + (*diag_z    * c)) / length);
 		// 3-5: partial derivative (diag offset wrt fitness fn) fn operated on sample
-		ellipsoid_jacob[3] = -1.0f * ((x[k] + *offset_x) * A) / length;
-		ellipsoid_jacob[4] = -1.0f * ((y[k] + *offset_y) * B) / length;
-		ellipsoid_jacob[5] = -1.0f * ((z[k] + *offset_z) * C) / length;
+		ellipsoid_jacob[3] = -1.0f * ((x[k] + *offset_x) * a) / length;
+		ellipsoid_jacob[4] = -1.0f * ((y[k] + *offset_y) * b) / length;
+		ellipsoid_jacob[5] = -1.0f * ((z[k] + *offset_z) * c) / length;
 		// 6-8: partial derivative (off-diag offset wrt fitness fn) fn operated on sample
-		ellipsoid_jacob[6] = -1.0f * (((y[k] + *offset_y) * A) + ((x[k] + *offset_x) * B)) / length;
-		ellipsoid_jacob[7] = -1.0f * (((z[k] + *offset_z) * A) + ((x[k] + *offset_x) * C)) / length;
-		ellipsoid_jacob[8] = -1.0f * (((z[k] + *offset_z) * B) + ((y[k] + *offset_y) * C)) / length;
+		ellipsoid_jacob[6] = -1.0f * (((y[k] + *offset_y) * a) + ((x[k] + *offset_x) * b)) / length;
+		ellipsoid_jacob[7] = -1.0f * (((z[k] + *offset_z) * a) + ((x[k] + *offset_x) * c)) / length;
+		ellipsoid_jacob[8] = -1.0f * (((z[k] + *offset_z) * b) + ((y[k] + *offset_y) * c)) / length;
 
 		for (uint8_t i = 0; i < 9; i++) {
 			// compute JTJ
 			for (uint8_t j = 0; j < 9; j++) {
-				JTJ[i * 9 + j] += ellipsoid_jacob[i] * ellipsoid_jacob[j];
-				JTJ2[i * 9 + j] += ellipsoid_jacob[i] * ellipsoid_jacob[j]; //a backup JTJ for LM
+				jtj[i * 9 + j] += ellipsoid_jacob[i] * ellipsoid_jacob[j];
+				jt_j2[i * 9 + j] += ellipsoid_jacob[i] * ellipsoid_jacob[j]; //a backup JTJ for LM
 			}
 
-			JTFI[i] += ellipsoid_jacob[i] * residual;
+			jtfi[i] += ellipsoid_jacob[i] * residual;
 		}
 	}
 
@@ -448,16 +448,16 @@ int run_lm_ellipsoid_fit(const float x[], const float y[], const float z[], floa
 	memcpy(fit2_params, fit1_params, sizeof(fit1_params));
 
 	for (uint8_t i = 0; i < 9; i++) {
-		JTJ[i * 9 + i] += _sphere_lambda;
-		JTJ2[i * 9 + i] += _sphere_lambda / lma_damping;
+		jtj[i * 9 + i] += sphere_lambda;
+		jt_j2[i * 9 + i] += sphere_lambda / lma_damping;
 	}
 
 
-	if (!mat_inverse(JTJ, JTJ, 9)) {
+	if (!mat_inverse(jtj, jtj, 9)) {
 		return -1;
 	}
 
-	if (!mat_inverse(JTJ2, JTJ2, 9)) {
+	if (!mat_inverse(jt_j2, jt_j2, 9)) {
 		return -1;
 	}
 
@@ -465,52 +465,52 @@ int run_lm_ellipsoid_fit(const float x[], const float y[], const float z[], floa
 
 	for (uint8_t row = 0; row < 9; row++) {
 		for (uint8_t col = 0; col < 9; col++) {
-			fit1_params[row] -= JTFI[col] * JTJ[row * 9 + col];
-			fit2_params[row] -= JTFI[col] * JTJ2[row * 9 + col];
+			fit1_params[row] -= jtfi[col] * jtj[row * 9 + col];
+			fit2_params[row] -= jtfi[col] * jt_j2[row * 9 + col];
 		}
 	}
 
 	//Calculate mean squared residuals
-	for (uint16_t k = 0; k < _samples_collected; k++) {
-		float A = (fit1_params[3]    * (x[k] - fit1_params[0])) + (fit1_params[6] * (y[k] - fit1_params[1])) + (fit1_params[7] *
+	for (uint16_t k = 0; k < samples_collected; k++) {
+		float a = (fit1_params[3]    * (x[k] - fit1_params[0])) + (fit1_params[6] * (y[k] - fit1_params[1])) + (fit1_params[7] *
 				(z[k] - fit1_params[2]));
-		float B = (fit1_params[6] * (x[k] - fit1_params[0])) + (fit1_params[4]   * (y[k] - fit1_params[1])) + (fit1_params[8] *
+		float b = (fit1_params[6] * (x[k] - fit1_params[0])) + (fit1_params[4]   * (y[k] - fit1_params[1])) + (fit1_params[8] *
 				(z[k] - fit1_params[2]));
-		float C = (fit1_params[7] * (x[k] - fit1_params[0])) + (fit1_params[8] * (y[k] - fit1_params[1])) + (fit1_params[5]    *
+		float c = (fit1_params[7] * (x[k] - fit1_params[0])) + (fit1_params[8] * (y[k] - fit1_params[1])) + (fit1_params[5]    *
 				(z[k] - fit1_params[2]));
-		float length = sqrtf(A * A + B * B + C * C);
+		float length = sqrtf(a * a + b * b + c * c);
 		residual = *sphere_radius - length;
 		fit1 += residual * residual;
 
-		A = (fit2_params[3]    * (x[k] - fit2_params[0])) + (fit2_params[6] * (y[k] - fit2_params[1])) + (fit2_params[7] *
+		a = (fit2_params[3]    * (x[k] - fit2_params[0])) + (fit2_params[6] * (y[k] - fit2_params[1])) + (fit2_params[7] *
 				(z[k] - fit2_params[2]));
-		B = (fit2_params[6] * (x[k] - fit2_params[0])) + (fit2_params[4]   * (y[k] - fit2_params[1])) + (fit2_params[8] *
+		b = (fit2_params[6] * (x[k] - fit2_params[0])) + (fit2_params[4]   * (y[k] - fit2_params[1])) + (fit2_params[8] *
 				(z[k] - fit2_params[2]));
-		C = (fit2_params[7] * (x[k] - fit2_params[0])) + (fit2_params[8] * (y[k] - fit2_params[1])) + (fit2_params[5]    *
+		c = (fit2_params[7] * (x[k] - fit2_params[0])) + (fit2_params[8] * (y[k] - fit2_params[1])) + (fit2_params[5]    *
 				(z[k] - fit2_params[2]));
-		length = sqrtf(A * A + B * B + C * C);
+		length = sqrtf(a * a + b * b + c * c);
 		residual = *sphere_radius - length;
 		fit2 += residual * residual;
 	}
 
-	fit1 = sqrtf(fit1) / _samples_collected;
-	fit2 = sqrtf(fit2) / _samples_collected;
+	fit1 = sqrtf(fit1) / samples_collected;
+	fit2 = sqrtf(fit2) / samples_collected;
 
-	if (fit1 > _fitness && fit2 > _fitness) {
-		_sphere_lambda *= lma_damping;
+	if (fit1 > fitness && fit2 > fitness) {
+		sphere_lambda *= lma_damping;
 
-	} else if (fit2 < _fitness && fit2 < fit1) {
-		_sphere_lambda /= lma_damping;
+	} else if (fit2 < fitness && fit2 < fit1) {
+		sphere_lambda /= lma_damping;
 		memcpy(fit1_params, fit2_params, sizeof(fit1_params));
 		fitness = fit2;
 
-	} else if (fit1 < _fitness) {
+	} else if (fit1 < fitness) {
 		fitness = fit1;
 	}
 
 	//--------------------Levenberg-Marquardt-part-ends-here--------------------------------//
-	if (PX4_ISFINITE(fitness) && fitness < _fitness) {
-		_fitness = fitness;
+	if (PX4_ISFINITE(fitness) && fitness < fitness) {
+		fitness = fitness;
 		*offset_x = fit1_params[0];
 		*offset_y = fit1_params[1];
 		*offset_z = fit1_params[2];
@@ -671,7 +671,7 @@ enum detect_orientation_return detect_orientation(orb_advert_t *mavlink_log_pub,
 
 const char *detect_orientation_str(enum detect_orientation_return orientation)
 {
-	static const char *rgOrientationStrs[] = {
+	static const char *rg_orientation_strs[] = {
 		"back",		// tail down
 		"front",	// nose down
 		"left",
@@ -681,7 +681,7 @@ const char *detect_orientation_str(enum detect_orientation_return orientation)
 		"error"
 	};
 
-	return rgOrientationStrs[orientation];
+	return rg_orientation_strs[orientation];
 }
 
 calibrate_return calibrate_from_orientation(orb_advert_t *mavlink_log_pub,
@@ -732,17 +732,17 @@ calibrate_return calibrate_from_orientation(orb_advert_t *mavlink_log_pub,
 		}
 
 		/* inform user which orientations are still needed */
-		char pendingStr[80];
-		pendingStr[0] = 0;
+		char pending_str[80];
+		pending_str[0] = 0;
 
 		for (unsigned int cur_orientation = 0; cur_orientation < detect_orientation_side_count; cur_orientation++) {
 			if (!side_data_collected[cur_orientation]) {
-				strncat(pendingStr, " ", sizeof(pendingStr) - 1);
-				strncat(pendingStr, detect_orientation_str((enum detect_orientation_return)cur_orientation), sizeof(pendingStr) - 1);
+				strncat(pending_str, " ", sizeof(pending_str) - 1);
+				strncat(pending_str, detect_orientation_str((enum detect_orientation_return)cur_orientation), sizeof(pending_str) - 1);
 			}
 		}
 
-		calibration_log_info(mavlink_log_pub, "[cal] pending:%s", pendingStr);
+		calibration_log_info(mavlink_log_pub, "[cal] pending:%s", pending_str);
 		usleep(20000);
 		calibration_log_info(mavlink_log_pub, "[cal] hold vehicle still on a pending side");
 		usleep(20000);
@@ -790,7 +790,7 @@ calibrate_return calibrate_from_orientation(orb_advert_t *mavlink_log_pub,
 		set_tune(TONE_NOTIFY_NEUTRAL_TUNE);
 
 		// temporary priority boost for the white blinking led to come trough
-		rgbled_set_color_and_mode(led_control_s::COLOR_WHITE, led_control_s::MODE_BLINK_FAST, 3, 1);
+		rgbled_set_color_and_mode(led_control_s::color_white, led_control_s::mode_blink_fast, 3, 1);
 		usleep(200000);
 	}
 
@@ -814,11 +814,11 @@ void calibrate_cancel_unsubscribe(int cmd_sub)
 static void calibrate_answer_command(orb_advert_t *mavlink_log_pub, struct vehicle_command_s &cmd, unsigned result)
 {
 	switch (result) {
-	case vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED:
+	case vehicle_command_s::vehicle_cmd_result_accepted:
 		tune_positive(true);
 		break;
 
-	case vehicle_command_s::VEHICLE_CMD_RESULT_DENIED:
+	case vehicle_command_s::vehicle_cmd_result_denied:
 		mavlink_log_critical(mavlink_log_pub, "command denied during calibration: %u", cmd.command);
 		tune_negative(true);
 		break;
@@ -841,19 +841,19 @@ bool calibrate_cancel_check(orb_advert_t *mavlink_log_pub, int cancel_sub)
 
 		// ignore internal commands, such as VEHICLE_CMD_DO_MOUNT_CONTROL from vmount
 		if (cmd.from_external) {
-			if (cmd.command == vehicle_command_s::VEHICLE_CMD_PREFLIGHT_CALIBRATION &&
+			if (cmd.command == vehicle_command_s::vehicle_cmd_preflight_calibration &&
 					(int)cmd.param1 == 0 &&
 					(int)cmd.param2 == 0 &&
 					(int)cmd.param3 == 0 &&
 					(int)cmd.param4 == 0 &&
 					(int)cmd.param5 == 0 &&
 					(int)cmd.param6 == 0) {
-				calibrate_answer_command(mavlink_log_pub, cmd, vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED);
+				calibrate_answer_command(mavlink_log_pub, cmd, vehicle_command_s::vehicle_cmd_result_accepted);
 				mavlink_log_critical(mavlink_log_pub, CAL_QGC_CANCELLED_MSG);
 				return true;
 
 			} else {
-				calibrate_answer_command(mavlink_log_pub, cmd, vehicle_command_s::VEHICLE_CMD_RESULT_DENIED);
+				calibrate_answer_command(mavlink_log_pub, cmd, vehicle_command_s::vehicle_cmd_result_denied);
 			}
 		}
 	}

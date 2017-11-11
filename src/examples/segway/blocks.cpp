@@ -56,29 +56,29 @@ BlockWaypointGuidance::~BlockWaypointGuidance() {};
 void BlockWaypointGuidance::update(
 	const vehicle_global_position_s &pos,
 	const vehicle_attitude_s &att,
-	const position_setpoint_s &missionCmd,
-	const position_setpoint_s &lastMissionCmd)
+	const position_setpoint_s &mission_cmd,
+	const position_setpoint_s &last_mission_cmd)
 {
 
 	// heading to waypoint
-	float psiTrack = get_bearing_to_next_waypoint(
+	float psi_track = get_bearing_to_next_waypoint(
 				 (double)pos.lat / (double)1e7,
 				 (double)pos.lon / (double)1e7,
-				 missionCmd.lat,
-				 missionCmd.lon);
+				 mission_cmd.lat,
+				 mission_cmd.lon);
 
 	// cross track
-	struct crosstrack_error_s xtrackError;
-	get_distance_to_line(&xtrackError,
+	struct crosstrack_error_s xtrack_error;
+	get_distance_to_line(&xtrack_error,
 			     (double)pos.lat / (double)1e7,
 			     (double)pos.lon / (double)1e7,
-			     lastMissionCmd.lat,
-			     lastMissionCmd.lon,
-			     missionCmd.lat,
-			     missionCmd.lon);
+			     last_mission_cmd.lat,
+			     last_mission_cmd.lon,
+			     mission_cmd.lat,
+			     mission_cmd.lon);
 
-	_psiCmd = _wrap_2pi(psiTrack -
-			    _xtYawLimit.update(_xt2Yaw.update(xtrackError.distance)));
+	_psiCmd = wrap_2pi(psi_track -
+			    _xtYawLimit.update(_xt2Yaw.update(xtrack_error.distance)));
 }
 
 BlockUorbEnabledAutopilot::BlockUorbEnabledAutopilot(SuperBlock *parent, const char *name) :

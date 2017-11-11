@@ -84,7 +84,7 @@ namespace px4
 class Replay;
 
 
-char *Replay::_replay_file = nullptr;
+char *Replay::replay_file = nullptr;
 
 Replay::CompatSensorCombinedDtType::CompatSensorCombinedDtType(int gyro_integral_dt_offset_log,
 		int gyro_integral_dt_offset_intern,
@@ -113,11 +113,11 @@ void *Replay::CompatSensorCombinedDtType::apply(void *data)
 
 void Replay::setupReplayFile(const char *file_name)
 {
-	if (_replay_file) {
-		free(_replay_file);
+	if (replay_file) {
+		free(replay_file);
 	}
 
-	_replay_file = strdup(file_name);
+	replay_file = strdup(file_name);
 }
 
 
@@ -384,7 +384,7 @@ bool Replay::readAndAddSubscription(std::ifstream &file, uint16_t msg_size)
 		}
 	}
 
-	Subscription subscription;
+	subscription subscription;
 	subscription.orb_meta = orb_meta;
 	subscription.multi_id = multi_id;
 	subscription.compat = compat;
@@ -545,7 +545,7 @@ bool Replay::readDropout(std::ifstream &file, uint16_t msg_size)
 	return file.good();
 }
 
-bool Replay::nextDataMessage(std::ifstream &file, Subscription &subscription, int msg_id)
+bool Replay::nextDataMessage(std::ifstream &file, subscription &subscription, int msg_id)
 {
 	ulog_message_header_s message_header;
 	file.seekg(subscription.next_read_pos);
@@ -728,7 +728,7 @@ bool Replay::readDefinitionsAndApplyParams(std::ifstream &file)
 
 void Replay::run()
 {
-	ifstream replay_file(_replay_file, ios::in | ios::binary);
+	ifstream replay_file(replay_file, ios::in | ios::binary);
 
 	if (!readDefinitionsAndApplyParams(replay_file)) {
 		return;
@@ -780,7 +780,7 @@ void Replay::run()
 			break; //no active subscription anymore. We're done.
 		}
 
-		Subscription &sub = _subscriptions[next_msg_id];
+		subscription &sub = _subscriptions[next_msg_id];
 
 		if (next_file_time == 0) {
 			//someone didn't set the timestamp properly. Consider the message invalid
@@ -843,7 +843,7 @@ void Replay::readTopicDataToBuffer(const Subscription &sub, std::ifstream &repla
 	replay_file.read((char *)_read_buffer.data(), msg_read_size);
 }
 
-bool Replay::handleTopicUpdate(Subscription &sub, void *data, std::ifstream &replay_file)
+bool Replay::handleTopicUpdate(subscription &sub, void *data, std::ifstream &replay_file)
 {
 	return publishTopic(sub, data);
 }
@@ -864,7 +864,7 @@ uint64_t Replay::handleTopicDelay(uint64_t next_file_time, uint64_t timestamp_of
 	return publish_timestamp;
 }
 
-bool Replay::publishTopic(Subscription &sub, void *data)
+bool Replay::publishTopic(subscription &sub, void *data)
 {
 	bool published = false;
 
@@ -909,7 +909,7 @@ bool Replay::publishTopic(Subscription &sub, void *data)
 	return published;
 }
 
-bool ReplayEkf2::handleTopicUpdate(Subscription &sub, void *data, std::ifstream &replay_file)
+bool ReplayEkf2::handleTopicUpdate(subscription &sub, void *data, std::ifstream &replay_file)
 {
 	if (sub.orb_meta == ORB_ID(ekf2_timestamps)) {
 		ekf2_timestamps_s ekf2_timestamps;
@@ -954,7 +954,7 @@ bool ReplayEkf2::handleTopicUpdate(Subscription &sub, void *data, std::ifstream 
 	return false;
 }
 
-void ReplayEkf2::onSubscriptionAdded(Subscription &sub, uint16_t msg_id)
+void ReplayEkf2::onSubscriptionAdded(subscription &sub, uint16_t msg_id)
 {
 	if (sub.orb_meta == ORB_ID(sensor_combined)) {
 		_sensors_combined_msg_id = msg_id;
@@ -987,7 +987,7 @@ void ReplayEkf2::onSubscriptionAdded(Subscription &sub, uint16_t msg_id)
 bool ReplayEkf2::publishEkf2Topics(const ekf2_timestamps_s &ekf2_timestamps, std::ifstream &replay_file)
 {
 	auto handle_sensor_publication = [&](int16_t timestamp_relative, uint16_t msg_id) {
-		if (timestamp_relative != ekf2_timestamps_s::RELATIVE_TIMESTAMP_INVALID) {
+		if (timestamp_relative != ekf2_timestamps_s::relative_timestamp_invalid) {
 			// timestamp_relative is already given in 0.1 ms
 			uint64_t t = timestamp_relative + ekf2_timestamps.timestamp / 100; // in 0.1 ms
 			findTimestampAndPublish(t, msg_id, replay_file);
@@ -1029,7 +1029,7 @@ bool ReplayEkf2::findTimestampAndPublish(uint64_t timestamp, uint16_t msg_id, st
 		return false;
 	}
 
-	Subscription &sub = _subscriptions[msg_id];
+	subscription &sub = _subscriptions[msg_id];
 
 	while (sub.next_timestamp / 100 < timestamp && sub.orb_meta) {
 		nextDataMessage(replay_file, sub, msg_id);
@@ -1062,7 +1062,7 @@ void ReplayEkf2::onExitMainLoop()
 	// print statistics
 	auto print_sensor_statistics = [this](uint16_t msg_id, const char *name) {
 		if (msg_id != msg_id_invalid) {
-			Subscription &sub = _subscriptions[msg_id];
+			subscription &sub = _subscriptions[msg_id];
 
 			if (sub.publication_counter > 0 || sub.error_counter > 0) {
 				PX4_INFO("%s: %i, %i", name, sub.publication_counter, sub.error_counter);
@@ -1091,26 +1091,26 @@ uint64_t ReplayEkf2::handleTopicDelay(uint64_t next_file_time, uint64_t timestam
 }
 
 
-int Replay::custom_command(int argc, char *argv[])
+int Replay::customCommand(int argc, char *argv[])
 {
 	if (!strcmp(argv[0], "tryapplyparams")) {
 		return Replay::applyParams(true);
 	}
 
 	if (!strcmp(argv[0], "trystart")) {
-		return Replay::task_spawn(argc, argv);
+		return Replay::taskSpawn(argc, argv);
 	}
 
-	return print_usage("unknown command");
+	return printUsage("unknown command");
 }
 
-int Replay::print_usage(const char *reason)
+int Replay::printUsage(const char *reason)
 {
 	if (reason) {
 		PX4_WARN("%s\n", reason);
 	}
 
-	PRINT_MODULE_DESCRIPTION(
+	print_module_description(
 		R"DESCR_STR(
 ### Description
 This module is used to replay ULog files.
@@ -1130,7 +1130,7 @@ The replay procedure is documented on the [System-wide Replay](https://dev.px4.i
 page.
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("replay", "system");
+	print_module_usage_name("replay", "system");
 	PRINT_MODULE_USAGE_COMMAND_DESCR("start", "Start replay, using log file from ENV variable 'replay'");
 	PRINT_MODULE_USAGE_COMMAND_DESCR("trystart", "Same as 'start', but silently exit if no log file given");
 	PRINT_MODULE_USAGE_COMMAND_DESCR("tryapplyparams", "Try to apply the parameters from the log file");
@@ -1139,26 +1139,26 @@ page.
 	return 0;
 }
 
-int Replay::task_spawn(int argc, char *argv[])
+int Replay::taskSpawn(int argc, char *argv[])
 {
 	// check if a log file was found
 	if (!isSetup()) {
 		if (argc > 0 && strncmp(argv[0], "try", 3)==0) {
 			return 0;
 		}
-		PX4_ERR("no log file given (via env variable %s)", replay::ENV_FILENAME);
+		PX4_ERR("no log file given (via env variable %s)", replay::env_filename);
 		return -1;
 	}
 
-	_task_id = px4_task_spawn_cmd("replay",
+	task_id = px4_task_spawn_cmd("replay",
 				      SCHED_DEFAULT,
 				      SCHED_PRIORITY_MAX - 5,
 				      4000,
-				      (px4_main_t)&run_trampoline,
+				      (px4_main_t)&runTrampoline,
 				      (char *const *)argv);
 
-	if (_task_id < 0) {
-		_task_id = -1;
+	if (task_id < 0) {
+		task_id = -1;
 		return -errno;
 	}
 
@@ -1171,7 +1171,7 @@ int Replay::applyParams(bool quiet)
 		if (quiet) {
 			return 0;
 		}
-		PX4_ERR("no log file given (via env variable %s)", replay::ENV_FILENAME);
+		PX4_ERR("no log file given (via env variable %s)", replay::env_filename);
 		return -1;
 	}
 
@@ -1183,7 +1183,7 @@ int Replay::applyParams(bool quiet)
 		return -ENOMEM;
 	}
 
-	ifstream replay_file(_replay_file, ios::in | ios::binary);
+	ifstream replay_file(replay_file, ios::in | ios::binary);
 
 	if (!r->readDefinitionsAndApplyParams(replay_file)) {
 		ret = -1;
@@ -1197,7 +1197,7 @@ int Replay::applyParams(bool quiet)
 Replay *Replay::instantiate(int argc, char *argv[])
 {
 	// check the replay mode
-	const char *replay_mode = getenv(replay::ENV_MODE);
+	const char *replay_mode = getenv(replay::env_mode);
 
 	Replay *instance = nullptr;
 	if (replay_mode && strcmp(replay_mode, "ekf2") == 0) {
@@ -1218,7 +1218,7 @@ using namespace px4;
 int replay_main(int argc, char *argv[])
 {
 	//check for logfile env variable
-	const char *logfile = getenv(replay::ENV_FILENAME);
+	const char *logfile = getenv(replay::env_filename);
 
 	if (logfile && !Replay::isSetup()) {
 		PX4_INFO("using replay log file: %s", logfile);

@@ -63,8 +63,8 @@ void VtolLandDetector::_update_topics()
 {
 	MulticopterLandDetector::_update_topics();
 
-	_orb_update(ORB_ID(airspeed), _airspeedSub, &_airspeed);
-	_orb_update(ORB_ID(vehicle_status), _vehicle_status_sub, &_vehicle_status);
+	orbUpdate(ORB_ID(airspeed), _airspeedSub, &_airspeed);
+	orbUpdate(ORB_ID(vehicle_status), _vehicle_status_sub, &_vehicle_status);
 }
 
 bool VtolLandDetector::_get_maybe_landed_state()

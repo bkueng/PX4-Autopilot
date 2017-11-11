@@ -48,5 +48,5 @@ extern "C" __EXPORT int commander_tests_main(int argc, char *argv[]);
 
 int commander_tests_main(int argc, char *argv[])
 {
-	return stateMachineHelperTest() ? 0 : -1;
+	return state_machine_helper_test() ? 0 : -1;
 }

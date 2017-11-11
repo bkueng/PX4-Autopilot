@@ -51,13 +51,13 @@ public:
 	/**
 	 * Initialize class in the same context as the work queue. And start the background listener.
 	 * @return 0 if successful, <0 on error */
-	static int task_spawn(int argc, char *argv[]);
+	static int taskSpawn(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int custom_command(int argc, char *argv[]);
+	static int customCommand(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int print_usage(const char *reason = nullptr);
+	static int printUsage(const char *reason = nullptr);
 
 private:
 
@@ -68,20 +68,20 @@ private:
 
 
 	/** Trampoline for initialisation. */
-	static void initialize_trampoline(void *arg);
+	static void initializeTrampoline(void *arg);
 	/** Trampoline for the work queue. */
-	static void cycle_trampoline(void *arg);
+	static void cycleTrampoline(void *arg);
 
 	/** call process_commands() and schedule the next cycle. */
 	void cycle();
 
 	/** check for new commands and process them. */
-	void process_commands();
+	void processCommands();
 
 	/** return an ACK to a vehicle_command */
-	void answer_command(const vehicle_command_s &cmd, unsigned result);
+	void answerCommand(const vehicle_command_s &cmd, unsigned result);
 
-	static struct work_s _work;
+	static struct work_s work;
 	events::SubscriberHandler _subscriber_handler;
 	status::StatusDisplay _status_display;
 	orb_advert_t _command_ack_pub = nullptr;

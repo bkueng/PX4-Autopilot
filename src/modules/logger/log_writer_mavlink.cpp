@@ -67,7 +67,7 @@ LogWriterMavlink::~LogWriterMavlink()
 	}
 }
 
-void LogWriterMavlink::start_log()
+void LogWriterMavlink::startLog()
 {
 	if (_ulog_stream_pub == nullptr) {
 		memset(&_ulog_stream_data, 0, sizeof(_ulog_stream_data));
@@ -89,13 +89,13 @@ void LogWriterMavlink::start_log()
 	_is_started = true;
 }
 
-void LogWriterMavlink::stop_log()
+void LogWriterMavlink::stopLog()
 {
 	_ulog_stream_data.length = 0;
 	_is_started = false;
 }
 
-int LogWriterMavlink::write_message(void *ptr, size_t size)
+int LogWriterMavlink::writeMessage(void *ptr, size_t size)
 {
 	if (!is_started()) {
 		return 0;
@@ -125,7 +125,7 @@ int LogWriterMavlink::write_message(void *ptr, size_t size)
 	return 0;
 }
 
-void LogWriterMavlink::set_need_reliable_transfer(bool need_reliable)
+void LogWriterMavlink::setNeedReliableTransfer(bool need_reliable)
 {
 	if (!need_reliable && _need_reliable_transfer) {
 		if (_ulog_stream_data.length > 0) {
@@ -137,7 +137,7 @@ void LogWriterMavlink::set_need_reliable_transfer(bool need_reliable)
 	_need_reliable_transfer = need_reliable;
 }
 
-int LogWriterMavlink::publish_message()
+int LogWriterMavlink::publishMessage()
 {
 	_ulog_stream_data.timestamp = hrt_absolute_time();
 	_ulog_stream_data.flags = 0;
@@ -160,7 +160,7 @@ int LogWriterMavlink::publish_message()
 		fds[0].fd = _ulog_stream_ack_sub;
 		fds[0].events = POLLIN;
 		bool got_ack = false;
-		const int timeout_ms = ulog_stream_ack_s::ACK_TIMEOUT * ulog_stream_ack_s::ACK_MAX_TRIES;
+		const int timeout_ms = ulog_stream_ack_s::ack_timeout * ulog_stream_ack_s::ack_max_tries;
 
 		hrt_abstime started = hrt_absolute_time();
 

@@ -46,7 +46,7 @@ namespace systemlib
 
 
 void
-Hysteresis::set_state_and_update(const bool new_state)
+Hysteresis::setStateAndUpdate(const bool new_state)
 {
 	if (new_state != _state) {
 		if (new_state != _requested_state) {

@@ -69,19 +69,19 @@ public:
 	 * thread-safe
 	 * @return 0 on success, <0 otherwise
 	 */
-	int handle_vehicle_command(const struct vehicle_command_s &command, mavlink_channel_t channel);
+	int handleVehicleCommand(const struct vehicle_command_s &command, mavlink_channel_t channel);
 
 	/**
 	 * Check timeouts to verify if an commands need retransmission.
 	 * thread-safe
 	 */
-	void check_timeout(mavlink_channel_t channel);
+	void checkTimeout(mavlink_channel_t channel);
 
 	/**
 	 * Handle mavlink command_ack.
 	 * thread-safe
 	 */
-	void handle_mavlink_command_ack(const mavlink_command_ack_t &ack, uint8_t from_sysid, uint8_t from_compid);
+	void handleMavlinkCommandAck(const mavlink_command_ack_t &ack, uint8_t from_sysid, uint8_t from_compid);
 
 private:
 	MavlinkCommandSender();
@@ -90,32 +90,32 @@ private:
 
 	static void lock()
 	{
-		do {} while (px4_sem_wait(&_lock) != 0);
+		do {} while (px4_sem_wait(&lock) != 0);
 	}
 
 	static void unlock()
 	{
-		px4_sem_post(&_lock);
+		px4_sem_post(&lock);
 	}
 
-	static MavlinkCommandSender *_instance;
-	static px4_sem_t _lock;
+	static MavlinkCommandSender *instance;
+	static px4_sem_t lock;
 
 	// There are MAVLINK_COMM_0 to MAVLINK_COMM_3, so it should be 4.
-	static const unsigned MAX_MAVLINK_CHANNEL = 4;
+	static const unsigned max_mavlink_channel = 4;
 
 	typedef struct {
 		mavlink_command_long_t command = {};
 		hrt_abstime timestamp_us = 0;
 		hrt_abstime last_time_sent_us = 0;
-		int8_t num_sent_per_channel[MAX_MAVLINK_CHANNEL] = {-1, -1, -1, -1};
+		int8_t num_sent_per_channel[max_mavlink_channel] = {-1, -1, -1, -1};
 	} command_item_t;
 
 	TimestampedList<command_item_t> _commands;
 
 	bool _debug_enabled = false;
-	static const uint8_t RETRIES = 3;
-	static const uint64_t TIMEOUT_US = 500000;
+	static const uint8_t retries = 3;
+	static const uint64_t timeout_us = 500000;
 
 	/* do not allow copying or assigning this class */
 	MavlinkCommandSender(const MavlinkCommandSender &) = delete;

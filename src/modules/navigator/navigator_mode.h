@@ -66,22 +66,22 @@ public:
 	/**
 	 * This function is called while the mode is inactive
 	 */
-	virtual void on_inactive();
+	virtual void onInactive();
 
 	/**
 	 * This function is called one time when mode becomes active, pos_sp_triplet must be initialized here
 	 */
-	virtual void on_activation();
+	virtual void onActivation();
 
 	/**
 	 * This function is called one time when mode becomes inactive
 	 */
-	virtual void on_inactivation();
+	virtual void onInactivation();
 
 	/**
 	 * This function is called while the mode is active
 	 */
-	virtual void on_active();
+	virtual void onActive();
 
 protected:
 	Navigator *_navigator{nullptr};

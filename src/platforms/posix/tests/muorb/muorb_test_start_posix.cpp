@@ -64,7 +64,7 @@ int muorb_test_main(int argc, char *argv[])
 
 	if (!strcmp(argv[1], "start")) {
 
-		if (MuorbTestExample::appState.isRunning()) {
+		if (MuorbTestExample::app_state.isRunning()) {
 			PX4_DEBUG("already running");
 			/* this is not an error */
 			return 0;
@@ -81,12 +81,12 @@ int muorb_test_main(int argc, char *argv[])
 	}
 
 	if (!strcmp(argv[1], "stop")) {
-		MuorbTestExample::appState.requestExit();
+		MuorbTestExample::app_state.requestExit();
 		return 0;
 	}
 
 	if (!strcmp(argv[1], "status")) {
-		if (MuorbTestExample::appState.isRunning()) {
+		if (MuorbTestExample::app_state.isRunning()) {
 			PX4_DEBUG("is running");
 
 		} else {

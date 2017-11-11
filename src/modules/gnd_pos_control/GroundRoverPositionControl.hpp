@@ -68,7 +68,7 @@
 
 using matrix::Dcmf;
 
-using uORB::Subscription;
+using u_orb::Subscription;
 
 class GroundRoverPositionControl
 {
@@ -90,7 +90,7 @@ public:
 	 *
 	 * @return	true if the mainloop is running
 	 */
-	bool		task_running() { return _task_running; }
+	bool		taskRunning() { return _task_running; }
 
 private:
 	orb_advert_t	_attitude_sp_pub{nullptr};		/**< attitude setpoint */
@@ -126,7 +126,7 @@ private:
 	// estimator reset counters
 	uint8_t _pos_reset_counter{0};		// captures the number of times the estimator has reset the horizontal position
 
-	ECL_L1_Pos_Controller				_gnd_control;
+	EclL1PosController				_gnd_control;
 
 	enum UGV_POSCTRL_MODE {
 		UGV_POSCTRL_MODE_AUTO,
@@ -182,31 +182,31 @@ private:
 	/**
 	 * Update our local parameter cache.
 	 */
-	int		parameters_update();
+	int		parametersUpdate();
 
-	void		manual_control_setpoint_poll();
-	void		position_setpoint_triplet_poll();
-	void		vehicle_control_mode_poll();
+	void		manualControlSetpointPoll();
+	void		positionSetpointTripletPoll();
+	void		vehicleControlModePoll();
 
 	/**
 	 * Publish navigation capabilities
 	 */
-	void		gnd_pos_ctrl_status_publish();
+	void		gndPosCtrlStatusPublish();
 
 	/**
 	 * Control position.
 	 */
-	bool		control_position(const math::Vector<2> &global_pos, const math::Vector<3> &ground_speed,
-					 const position_setpoint_triplet_s &_pos_sp_triplet);
+	bool		controlPosition(const math::Vector<2> &global_pos, const math::Vector<3> &ground_speed,
+					 const position_setpoint_triplet_s &pos_sp_triplet);
 
 	/**
 	 * Shim for calling task_main from task_create.
 	 */
-	static void	task_main_trampoline(int argc, char *argv[]);
+	static void	taskMainTrampoline(int argc, char *argv[]);
 
 	/**
 	 * Main sensor collection task.
 	 */
-	void		task_main();
+	void		taskMain();
 
 };

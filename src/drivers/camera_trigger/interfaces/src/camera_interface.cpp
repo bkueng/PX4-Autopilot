@@ -16,7 +16,7 @@ CameraInterface::~CameraInterface()
 {
 }
 
-void CameraInterface::get_pins()
+void CameraInterface::getPins()
 {
 
 	// Get parameter handle

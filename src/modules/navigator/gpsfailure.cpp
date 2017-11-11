@@ -51,7 +51,7 @@
 using matrix::Eulerf;
 using matrix::Quatf;
 
-static constexpr float DELAY_SIGMA = 0.01f;
+static constexpr float delay_sigma = 0.01f;
 
 GpsFailure::GpsFailure(Navigator *navigator, const char *name) :
 	MissionBlock(navigator, name),
@@ -135,7 +135,7 @@ GpsFailure::on_active()
 }
 
 void
-GpsFailure::set_gpsf_item()
+GpsFailure::setGpsfItem()
 {
 	struct position_setpoint_triplet_s *pos_sp_triplet = _navigator->get_position_setpoint_triplet();
 
@@ -161,7 +161,7 @@ GpsFailure::set_gpsf_item()
 }
 
 void
-GpsFailure::advance_gpsf()
+GpsFailure::advanceGpsf()
 {
 	switch (_gpsf_state) {
 	case GPSF_STATE_NONE:

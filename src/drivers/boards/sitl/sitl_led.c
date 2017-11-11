@@ -48,7 +48,7 @@ extern void led_off(int led);
 extern void led_toggle(int led);
 __END_DECLS
 
-static bool _led_state[2] = { false, false };
+static bool led_state[2] = { false, false };
 
 __EXPORT void led_init()
 {
@@ -59,7 +59,7 @@ __EXPORT void led_on(int led)
 {
 	if (led == 1 || led == 0) {
 		PX4_DEBUG("LED%d_ON", led);
-		_led_state[led] = true;
+		led_state[led] = true;
 	}
 }
 
@@ -67,15 +67,15 @@ __EXPORT void led_off(int led)
 {
 	if (led == 1 || led == 0) {
 		PX4_DEBUG("LED%d_OFF", led);
-		_led_state[led] = false;
+		led_state[led] = false;
 	}
 }
 
 __EXPORT void led_toggle(int led)
 {
 	if (led == 1 || led == 0) {
-		_led_state[led] = !_led_state[led];
-		PX4_DEBUG("LED%d_TOGGLE: %s", led, _led_state[led] ? "ON" : "OFF");
+		led_state[led] = !led_state[led];
+		PX4_DEBUG("LED%d_TOGGLE: %s", led, led_state[led] ? "ON" : "OFF");
 
 	}
 }

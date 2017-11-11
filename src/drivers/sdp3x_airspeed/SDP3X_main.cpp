@@ -221,7 +221,7 @@ sdp3x_airspeed_usage()
 {
 	PX4_WARN("usage: sdp3x_airspeed command [options]");
 	PX4_WARN("options:");
-	PX4_WARN("\t-b --bus i2cbus (%d)", PX4_I2C_BUS_DEFAULT);
+	PX4_WARN("\t-b --bus i2cbus (%d)", p_x4_i2_c_bus_default);
 	PX4_WARN("command:");
 	PX4_WARN("\tstart|stop|reset|test");
 }
@@ -229,7 +229,7 @@ sdp3x_airspeed_usage()
 int
 sdp3x_airspeed_main(int argc, char *argv[])
 {
-	uint8_t i2c_bus = PX4_I2C_BUS_DEFAULT;
+	uint8_t i2c_bus = p_x4_i2_c_bus_default;
 
 	for (int i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "--bus") == 0) {

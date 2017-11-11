@@ -126,7 +126,7 @@ Integrator::put(uint64_t timestamp, math::Vector<3> &val, math::Vector<3> &integ
 }
 
 bool
-Integrator::put_with_interval(unsigned interval_us, math::Vector<3> &val, math::Vector<3> &integral,
+Integrator::putWithInterval(unsigned interval_us, math::Vector<3> &val, math::Vector<3> &integral,
 			      uint64_t &integral_dt)
 {
 	if (_last_integration_time == 0) {
@@ -158,7 +158,7 @@ Integrator::get(bool reset, uint64_t &integral_dt)
 }
 
 math::Vector<3>
-Integrator::get_and_filtered(bool reset, uint64_t &integral_dt, math::Vector<3> &filtered_val)
+Integrator::getAndFiltered(bool reset, uint64_t &integral_dt, math::Vector<3> &filtered_val)
 {
 	// Do the usual get with reset first but don't return yet.
 	math::Vector<3> ret_integral = get(reset, integral_dt);
@@ -172,7 +172,7 @@ Integrator::get_and_filtered(bool reset, uint64_t &integral_dt, math::Vector<3> 
 }
 
 void
-Integrator::_reset(uint64_t &integral_dt)
+Integrator::reset(uint64_t &integral_dt)
 {
 	_alpha(0) = 0.0f;
 	_alpha(1) = 0.0f;

@@ -85,16 +85,16 @@ protected:
 private:
 
 	/** Time in us that landing conditions have to hold before triggering a land. */
-	static constexpr uint64_t LAND_DETECTOR_TRIGGER_TIME_US = 300000;
+	static constexpr uint64_t land_detector_trigger_time_us = 300000;
 
 	/** Time in us that almost landing conditions have to hold before triggering almost landed . */
-	static constexpr uint64_t MAYBE_LAND_DETECTOR_TRIGGER_TIME_US = 250000;
+	static constexpr uint64_t maybe_land_detector_trigger_time_us = 250000;
 
 	/** Time in us that ground contact condition have to hold before triggering contact ground */
-	static constexpr uint64_t GROUND_CONTACT_TRIGGER_TIME_US = 350000;
+	static constexpr uint64_t ground_contact_trigger_time_us = 350000;
 
 	/** Time interval in us in which wider acceptance thresholds are used after landed. */
-	static constexpr uint64_t LAND_DETECTOR_LAND_PHASE_TIME_US = 2000000;
+	static constexpr uint64_t land_detector_land_phase_time_us = 2000000;
 
 	/**
 	* @brief Handles for interesting parameters
@@ -149,12 +149,12 @@ private:
 	uint64_t _landed_time;
 
 	/* get control mode dependent pilot throttle threshold with which we should quit landed state and take off */
-	float _get_takeoff_throttle();
-	bool _has_altitude_lock();
-	bool _has_position_lock();
-	bool _has_minimal_thrust();
-	bool _has_low_thrust();
-	bool _is_climb_rate_enabled();
+	float getTakeoffThrottle();
+	bool hasAltitudeLock();
+	bool hasPositionLock();
+	bool hasMinimalThrust();
+	bool hasLowThrust();
+	bool isClimbRateEnabled();
 };
 
 

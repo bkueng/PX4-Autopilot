@@ -43,22 +43,22 @@
 
 #define CMD_DEBUG(FMT, ...) PX4_LOG_NAMED_COND("cmd sender", _debug_enabled, FMT, ##__VA_ARGS__)
 
-MavlinkCommandSender *MavlinkCommandSender::_instance = nullptr;
-px4_sem_t MavlinkCommandSender::_lock;
+MavlinkCommandSender *MavlinkCommandSender::instance = nullptr;
+px4_sem_t MavlinkCommandSender::lock;
 
 void MavlinkCommandSender::initialize()
 {
-	px4_sem_init(&_lock, 1, 1);
+	px4_sem_init(&lock, 1, 1);
 
-	if (_instance == nullptr) {
-		_instance = new MavlinkCommandSender();
+	if (instance == nullptr) {
+		instance = new MavlinkCommandSender();
 	}
 }
 
 MavlinkCommandSender &MavlinkCommandSender::instance()
 {
 
-	return *_instance;
+	return *instance;
 }
 
 MavlinkCommandSender::MavlinkCommandSender() :
@@ -68,10 +68,10 @@ MavlinkCommandSender::MavlinkCommandSender() :
 
 MavlinkCommandSender::~MavlinkCommandSender()
 {
-	px4_sem_destroy(&_lock);
+	px4_sem_destroy(&lock);
 }
 
-int MavlinkCommandSender::handle_vehicle_command(const struct vehicle_command_s &command, mavlink_channel_t channel)
+int MavlinkCommandSender::handleVehicleCommand(const struct vehicle_command_s &command, mavlink_channel_t channel)
 {
 	lock();
 	CMD_DEBUG("new command: %d (channel: %d)", command.command, channel);
@@ -117,7 +117,7 @@ int MavlinkCommandSender::handle_vehicle_command(const struct vehicle_command_s 
 	return 0;
 }
 
-void MavlinkCommandSender::handle_mavlink_command_ack(const mavlink_command_ack_t &ack,
+void MavlinkCommandSender::handleMavlinkCommandAck(const mavlink_command_ack_t &ack,
 		uint8_t from_sysid, uint8_t from_compid)
 {
 	CMD_DEBUG("handling result %d for command %d (from %d:%d)",
@@ -141,14 +141,14 @@ void MavlinkCommandSender::handle_mavlink_command_ack(const mavlink_command_ack_
 	unlock();
 }
 
-void MavlinkCommandSender::check_timeout(mavlink_channel_t channel)
+void MavlinkCommandSender::checkTimeout(mavlink_channel_t channel)
 {
 	lock();
 
 	_commands.reset_to_start();
 
 	while (command_item_t *item = _commands.get_next()) {
-		if (hrt_elapsed_time(&item->last_time_sent_us) <= TIMEOUT_US) {
+		if (hrt_elapsed_time(&item->last_time_sent_us) <= timeout_us) {
 			// We keep waiting for the timeout.
 			continue;
 		}
@@ -166,7 +166,7 @@ void MavlinkCommandSender::check_timeout(mavlink_channel_t channel)
 		int8_t max_sent = 0;
 		int8_t min_sent = INT8_MAX;
 
-		for (unsigned i = 0; i < MAX_MAVLINK_CHANNEL; ++i) {
+		for (unsigned i = 0; i < max_mavlink_channel; ++i) {
 			if (item->num_sent_per_channel[i] > max_sent) {
 				max_sent = item->num_sent_per_channel[i];
 			}
@@ -193,7 +193,7 @@ void MavlinkCommandSender::check_timeout(mavlink_channel_t channel)
 
 			// If the next retry would be above the needed retries anyway, we can
 			// drop the item, and continue with other items.
-			if (item->num_sent_per_channel[channel] + 1 > RETRIES) {
+			if (item->num_sent_per_channel[channel] + 1 > retries) {
 				CMD_DEBUG("command %d dropped", item->command.command);
 				_commands.drop_current();
 				continue;

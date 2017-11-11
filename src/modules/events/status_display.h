@@ -68,12 +68,12 @@ protected:
 	 * check for topic updates
 	 * @return true if one or more topic got updated
 	 */
-	bool check_for_updates();
+	bool checkForUpdates();
 
 	/**
 	 * handle LED logic changes & call publish()
 	 */
-	void set_leds();
+	void setLeds();
 
 	/** publish LED control */
 	void publish();

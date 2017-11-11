@@ -58,7 +58,7 @@ void SubscriberHandler::unsubscribe()
 
 }
 
-void SubscriberHandler::check_for_updates()
+void SubscriberHandler::checkForUpdates()
 {
 	bool updated;
 	_update_bitfield = 0;

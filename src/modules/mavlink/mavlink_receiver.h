@@ -104,65 +104,65 @@ public:
 	/**
 	 * Display the mavlink status.
 	 */
-	void		print_status();
+	void		printStatus();
 
 	/**
 	 * Start the receiver thread
 	 */
-	static void receive_start(pthread_t *thread, Mavlink *parent);
+	static void receiveStart(pthread_t *thread, Mavlink *parent);
 
-	static void *start_helper(void *context);
+	static void *startHelper(void *context);
 
 private:
 
 	void acknowledge(uint8_t sysid, uint8_t compid, uint16_t command, uint8_t result);
-	void handle_message(mavlink_message_t *msg);
-	void handle_message_command_long(mavlink_message_t *msg);
-	void handle_message_command_int(mavlink_message_t *msg);
+	void handleMessage(mavlink_message_t *msg);
+	void handleMessageCommandLong(mavlink_message_t *msg);
+	void handleMessageCommandInt(mavlink_message_t *msg);
 	/**
 	 * common method to handle both mavlink command types. T is one of mavlink_command_int_t or mavlink_command_long_t
 	 */
 	template<class T>
-	void handle_message_command_both(mavlink_message_t *msg, const T &cmd_mavlink,
+	void handleMessageCommandBoth(mavlink_message_t *msg, const T &cmd_mavlink,
 					 const vehicle_command_s &vehicle_command);
-	void handle_message_command_ack(mavlink_message_t *msg);
-	void handle_message_optical_flow_rad(mavlink_message_t *msg);
-	void handle_message_hil_optical_flow(mavlink_message_t *msg);
-	void handle_message_set_mode(mavlink_message_t *msg);
-	void handle_message_att_pos_mocap(mavlink_message_t *msg);
-	void handle_message_vision_position_estimate(mavlink_message_t *msg);
-	void handle_message_gps_global_origin(mavlink_message_t *msg);
-	void handle_message_attitude_quaternion_cov(mavlink_message_t *msg);
-	void handle_message_local_position_ned_cov(mavlink_message_t *msg);
-	void handle_message_quad_swarm_roll_pitch_yaw_thrust(mavlink_message_t *msg);
-	void handle_message_set_position_target_local_ned(mavlink_message_t *msg);
-	void handle_message_set_actuator_control_target(mavlink_message_t *msg);
-	void handle_message_set_attitude_target(mavlink_message_t *msg);
-	void handle_message_radio_status(mavlink_message_t *msg);
-	void handle_message_manual_control(mavlink_message_t *msg);
-	void handle_message_rc_channels_override(mavlink_message_t *msg);
-	void handle_message_heartbeat(mavlink_message_t *msg);
-	void handle_message_ping(mavlink_message_t *msg);
-	void handle_message_request_data_stream(mavlink_message_t *msg);
-	void handle_message_system_time(mavlink_message_t *msg);
-	void handle_message_timesync(mavlink_message_t *msg);
-	void handle_message_hil_sensor(mavlink_message_t *msg);
-	void handle_message_hil_gps(mavlink_message_t *msg);
-	void handle_message_hil_state_quaternion(mavlink_message_t *msg);
-	void handle_message_distance_sensor(mavlink_message_t *msg);
-	void handle_message_follow_target(mavlink_message_t *msg);
-	void handle_message_adsb_vehicle(mavlink_message_t *msg);
-	void handle_message_collision(mavlink_message_t *msg);
-	void handle_message_gps_rtcm_data(mavlink_message_t *msg);
-	void handle_message_battery_status(mavlink_message_t *msg);
-	void handle_message_serial_control(mavlink_message_t *msg);
-	void handle_message_logging_ack(mavlink_message_t *msg);
-	void handle_message_play_tune(mavlink_message_t *msg);
-	void handle_message_named_value_float(mavlink_message_t *msg);
-	void handle_message_debug(mavlink_message_t *msg);
-	void handle_message_debug_vect(mavlink_message_t *msg);
+	void handleMessageCommandAck(mavlink_message_t *msg);
+	void handleMessageOpticalFlowRad(mavlink_message_t *msg);
+	void handleMessageHilOpticalFlow(mavlink_message_t *msg);
+	void handleMessageSetMode(mavlink_message_t *msg);
+	void handleMessageAttPosMocap(mavlink_message_t *msg);
+	void handleMessageVisionPositionEstimate(mavlink_message_t *msg);
+	void handleMessageGpsGlobalOrigin(mavlink_message_t *msg);
+	void handleMessageAttitudeQuaternionCov(mavlink_message_t *msg);
+	void handleMessageLocalPositionNedCov(mavlink_message_t *msg);
+	void handleMessageQuadSwarmRollPitchYawThrust(mavlink_message_t *msg);
+	void handleMessageSetPositionTargetLocalNed(mavlink_message_t *msg);
+	void handleMessageSetActuatorControlTarget(mavlink_message_t *msg);
+	void handleMessageSetAttitudeTarget(mavlink_message_t *msg);
+	void handleMessageRadioStatus(mavlink_message_t *msg);
+	void handleMessageManualControl(mavlink_message_t *msg);
+	void handleMessageRcChannelsOverride(mavlink_message_t *msg);
+	void handleMessageHeartbeat(mavlink_message_t *msg);
+	void handleMessagePing(mavlink_message_t *msg);
+	void handleMessageRequestDataStream(mavlink_message_t *msg);
+	void handleMessageSystemTime(mavlink_message_t *msg);
+	void handleMessageTimesync(mavlink_message_t *msg);
+	void handleMessageHilSensor(mavlink_message_t *msg);
+	void handleMessageHilGps(mavlink_message_t *msg);
+	void handleMessageHilStateQuaternion(mavlink_message_t *msg);
+	void handleMessageDistanceSensor(mavlink_message_t *msg);
+	void handleMessageFollowTarget(mavlink_message_t *msg);
+	void handleMessageAdsbVehicle(mavlink_message_t *msg);
+	void handleMessageCollision(mavlink_message_t *msg);
+	void handleMessageGpsRtcmData(mavlink_message_t *msg);
+	void handleMessageBatteryStatus(mavlink_message_t *msg);
+	void handleMessageSerialControl(mavlink_message_t *msg);
+	void handleMessageLoggingAck(mavlink_message_t *msg);
+	void handleMessagePlayTune(mavlink_message_t *msg);
+	void handleMessageNamedValueFloat(mavlink_message_t *msg);
+	void handleMessageDebug(mavlink_message_t *msg);
+	void handleMessageDebugVect(mavlink_message_t *msg);
 
-	void *receive_thread(void *arg);
+	void *receiveThread(void *arg);
 
 	/**
 	 * Set the interval at which the given message stream is published.
@@ -174,33 +174,33 @@ private:
 	 *
 	 * @return PX4_OK on success, PX4_ERROR on fail
 	 */
-	int set_message_interval(int msgId, float interval, int data_rate = -1);
-	void get_message_interval(int msgId);
+	int setMessageInterval(int msg_id, float interval, int data_rate = -1);
+	void getMessageInterval(int msg_id);
 
 	/**
 	 * Convert remote timestamp to local hrt time (usec)
 	 * Use timesync if available, monotonic boot time otherwise
 	 */
-	uint64_t sync_stamp(uint64_t usec);
+	uint64_t syncStamp(uint64_t usec);
 
 	/**
 	 * Exponential moving average filter to smooth time offset
 	 */
-	void smooth_time_offset(int64_t offset_ns);
+	void smoothTimeOffset(int64_t offset_ns);
 
 	/**
 	 * Decode a switch position from a bitfield
 	 */
-	switch_pos_t decode_switch_pos(uint16_t buttons, unsigned sw);
+	switch_pos_t decodeSwitchPos(uint16_t buttons, unsigned sw);
 
 	/**
 	 * Decode a switch position from a bitfield and state
 	 */
-	int decode_switch_pos_n(uint16_t buttons, unsigned sw);
+	int decodeSwitchPosN(uint16_t buttons, unsigned sw);
 
-	bool	evaluate_target_ok(int command, int target_system, int target_component);
+	bool	evaluateTargetOk(int command, int target_system, int target_component);
 
-	void send_flight_information();
+	void sendFlightInformation();
 
 	Mavlink	*_mavlink;
 
@@ -250,7 +250,7 @@ private:
 	orb_advert_t _debug_key_value_pub;
 	orb_advert_t _debug_value_pub;
 	orb_advert_t _debug_vect_pub;
-	static const int _gps_inject_data_queue_size = 6;
+	static const int gps_inject_data_queue_size = 6;
 	orb_advert_t _gps_inject_data_pub;
 	orb_advert_t _command_ack_pub;
 	int _control_mode_sub;
@@ -268,9 +268,9 @@ private:
 	int64_t _time_offset;
 	int	_orb_class_instance;
 
-	static constexpr unsigned MOM_SWITCH_COUNT = 8;
+	static constexpr unsigned mom_switch_count = 8;
 
-	uint8_t _mom_switch_pos[MOM_SWITCH_COUNT];
+	uint8_t _mom_switch_pos[mom_switch_count];
 	uint16_t _mom_switch_state;
 
 	param_t _p_bat_emergen_thr;

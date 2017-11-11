@@ -98,8 +98,8 @@ typedef struct {
 // FIXME - Stub implementation
 // Original version commented out
 //#define I2C_TRANSFER(d,m,c) ((d)->ops->transfer(d,m,c))
-inline int I2C_TRANSFER(px4_i2c_dev_t *dev, px4_i2c_msg_t *msg, int count);
-inline int I2C_TRANSFER(px4_i2c_dev_t *dev, px4_i2c_msg_t *msg, int count) { return 0; }
+inline int i2_c_transfer(px4_i2c_dev_t *dev, px4_i2c_msg_t *msg, int count);
+inline int i2_c_transfer(px4_i2c_dev_t *dev, px4_i2c_msg_t *msg, int count) { return 0; }
 
 #ifdef __PX4_QURT
 

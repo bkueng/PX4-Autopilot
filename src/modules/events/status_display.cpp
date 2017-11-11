@@ -51,15 +51,15 @@ StatusDisplay::StatusDisplay(const events::SubscriberHandler &subscriber_handler
 	// set the base color
 	_led_control.priority = 0;
 	_led_control.led_mask = 0xff;
-	_led_control.color = led_control_s::COLOR_CYAN;
-	_led_control.mode = led_control_s::MODE_ON;
+	_led_control.color = led_control_s::color_cyan;
+	_led_control.mode = led_control_s::mode_on;
 	publish();
 
 	_led_control.priority = 1;
 	_led_control.num_blinks = 0;	// infinite blinking
 }
 
-bool StatusDisplay::check_for_updates()
+bool StatusDisplay::checkForUpdates()
 {
 	bool got_updates = false;
 
@@ -103,6 +103,6 @@ void StatusDisplay::publish()
 		orb_publish(ORB_ID(led_control), _led_control_pub, &_led_control);
 
 	} else {
-		_led_control_pub =  orb_advertise_queue(ORB_ID(led_control), &_led_control, LED_UORB_QUEUE_LENGTH);
+		_led_control_pub =  orb_advertise_queue(ORB_ID(led_control), &_led_control, led_uorb_queue_length);
 	}
 }

@@ -41,7 +41,7 @@ namespace logger
 LogWriter::LogWriter(Backend configured_backend, size_t file_buffer_size, unsigned int queue_size)
 	: _backend(configured_backend)
 {
-	if (configured_backend & BackendFile) {
+	if (configured_backend & backend_file) {
 		_log_writer_file_for_write = _log_writer_file = new LogWriterFile(file_buffer_size);
 
 		if (!_log_writer_file) {
@@ -49,7 +49,7 @@ LogWriter::LogWriter(Backend configured_backend, size_t file_buffer_size, unsign
 		}
 	}
 
-	if (configured_backend & BackendMavlink) {
+	if (configured_backend & backend_mavlink) {
 		_log_writer_mavlink_for_write = _log_writer_mavlink = new LogWriterMavlink(queue_size);
 
 		if (!_log_writer_mavlink) {
@@ -95,7 +95,7 @@ LogWriter::~LogWriter()
 	}
 }
 
-bool LogWriter::is_started() const
+bool LogWriter::isStarted() const
 {
 	bool ret = false;
 
@@ -110,55 +110,55 @@ bool LogWriter::is_started() const
 	return ret;
 }
 
-bool LogWriter::is_started(Backend query_backend) const
+bool LogWriter::isStarted(Backend query_backend) const
 {
-	if (query_backend == BackendFile && _log_writer_file) {
+	if (query_backend == backend_file && _log_writer_file) {
 		return _log_writer_file->is_started();
 	}
 
-	if (query_backend == BackendMavlink && _log_writer_mavlink) {
+	if (query_backend == backend_mavlink && _log_writer_mavlink) {
 		return _log_writer_mavlink->is_started();
 	}
 
 	return false;
 }
 
-void LogWriter::start_log_file(const char *filename)
+void LogWriter::startLogFile(const char *filename)
 {
 	if (_log_writer_file) {
 		_log_writer_file->start_log(filename);
 	}
 }
 
-void LogWriter::stop_log_file()
+void LogWriter::stopLogFile()
 {
 	if (_log_writer_file) {
 		_log_writer_file->stop_log();
 	}
 }
 
-void LogWriter::start_log_mavlink()
+void LogWriter::startLogMavlink()
 {
 	if (_log_writer_mavlink) {
 		_log_writer_mavlink->start_log();
 	}
 }
 
-void LogWriter::stop_log_mavlink()
+void LogWriter::stopLogMavlink()
 {
 	if (_log_writer_mavlink) {
 		_log_writer_mavlink->stop_log();
 	}
 }
 
-void LogWriter::thread_stop()
+void LogWriter::threadStop()
 {
 	if (_log_writer_file) {
 		_log_writer_file->thread_stop();
 	}
 }
 
-int LogWriter::write_message(void *ptr, size_t size, uint64_t dropout_start)
+int LogWriter::writeMessage(void *ptr, size_t size, uint64_t dropout_start)
 {
 	int ret_file = 0, ret_mavlink = 0;
 
@@ -178,16 +178,16 @@ int LogWriter::write_message(void *ptr, size_t size, uint64_t dropout_start)
 	return ret_mavlink;
 }
 
-void LogWriter::select_write_backend(Backend sel_backend)
+void LogWriter::selectWriteBackend(Backend sel_backend)
 {
-	if (sel_backend & BackendFile) {
+	if (sel_backend & backend_file) {
 		_log_writer_file_for_write = _log_writer_file;
 
 	} else {
 		_log_writer_file_for_write = nullptr;
 	}
 
-	if (sel_backend & BackendMavlink) {
+	if (sel_backend & backend_mavlink) {
 		_log_writer_mavlink_for_write = _log_writer_mavlink;
 
 	} else {

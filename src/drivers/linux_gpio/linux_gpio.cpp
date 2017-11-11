@@ -57,8 +57,8 @@ LinuxGPIO::~LinuxGPIO()
 int LinuxGPIO::exportPin()
 {
 	int ret;
-	char pinIndex[PIN_INDEX_BUFFER_MAX];
-	char valuePath[PIN_VALUE_BUFFER_MAX];
+	char pin_index[PIN_INDEX_BUFFER_MAX];
+	char value_path[PIN_VALUE_BUFFER_MAX];
 	int fd = -1;
 	int bytes_to_write;
 
@@ -71,8 +71,8 @@ int LinuxGPIO::exportPin()
 	}
 
 	/* Check if GPIO is already exported */
-	snprintf(valuePath, PIN_VALUE_BUFFER_MAX, "/sys/class/gpio/gpio%d/value", _pin);
-	ret = stat(valuePath, &statbuf);
+	snprintf(value_path, PIN_VALUE_BUFFER_MAX, "/sys/class/gpio/gpio%d/value", _pin);
+	ret = stat(value_path, &statbuf);
 
 	if (ret == -1) {
 		/* GPIO is not exported */
@@ -84,8 +84,8 @@ int LinuxGPIO::exportPin()
 			return -1;
 		}
 
-		bytes_to_write = snprintf(pinIndex, PIN_INDEX_BUFFER_MAX, "%u", _pin);
-		ret = write(fd, pinIndex, bytes_to_write);
+		bytes_to_write = snprintf(pin_index, PIN_INDEX_BUFFER_MAX, "%u", _pin);
+		ret = write(fd, pin_index, bytes_to_write);
 
 		if (ret == -1) {
 			int err = errno;
@@ -98,7 +98,7 @@ int LinuxGPIO::exportPin()
 		}
 	}
 
-	_fd = open(valuePath, O_RDWR);
+	_fd = open(value_path, O_RDWR);
 
 	if (_fd == -1) {
 		int err = errno;
@@ -120,7 +120,7 @@ cleanup:
 
 int LinuxGPIO::unexportPin()
 {
-	char pinIndex[PIN_INDEX_BUFFER_MAX];
+	char pin_index[PIN_INDEX_BUFFER_MAX];
 	int fd;
 	int ret;
 	int bytes_to_write;
@@ -138,8 +138,8 @@ int LinuxGPIO::unexportPin()
 		return -1;
 	}
 
-	bytes_to_write = snprintf(pinIndex, PIN_INDEX_BUFFER_MAX, "%u", _pin);
-	ret = write(fd, pinIndex, bytes_to_write);
+	bytes_to_write = snprintf(pin_index, PIN_INDEX_BUFFER_MAX, "%u", _pin);
+	ret = write(fd, pin_index, bytes_to_write);
 
 	if (ret == -1) {
 		int err = errno;

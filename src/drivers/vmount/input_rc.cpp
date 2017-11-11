@@ -74,7 +74,7 @@ int InputRC::initialize()
 	return 0;
 }
 
-int InputRC::update_impl(unsigned int timeout_ms, ControlData **control_data, bool already_active)
+int InputRC::update_impl(unsigned int timeout_ms, control_data **control_data, bool already_active)
 {
 	// Default to no change signalled by NULL.
 	*control_data = nullptr;
@@ -103,11 +103,11 @@ int InputRC::update_impl(unsigned int timeout_ms, ControlData **control_data, bo
 	return 0;
 }
 
-bool InputRC::_read_control_data_from_subscription(ControlData &control_data, bool already_active)
+bool InputRC::readControlDataFromSubscription(control_data &control_data, bool already_active)
 {
 	manual_control_setpoint_s manual_control_setpoint;
 	orb_copy(ORB_ID(manual_control_setpoint), _manual_control_setpoint_sub, &manual_control_setpoint);
-	control_data.type = ControlData::Type::Angle;
+	control_data.type = control_data::Type::Angle;
 
 	float new_aux_values[3];
 
@@ -146,7 +146,7 @@ bool InputRC::_read_control_data_from_subscription(ControlData &control_data, bo
 	}
 }
 
-float InputRC::_get_aux_value(const manual_control_setpoint_s &manual_control_setpoint, int channel_idx)
+float InputRC::getAuxValue(const manual_control_setpoint_s &manual_control_setpoint, int channel_idx)
 {
 	switch (_aux_channels[channel_idx]) {
 

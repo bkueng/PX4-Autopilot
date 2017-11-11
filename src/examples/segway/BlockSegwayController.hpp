@@ -12,8 +12,8 @@ class BlockSegwayController : public control::BlockUorbEnabledAutopilot
 public:
 	BlockSegwayController() :
 		BlockUorbEnabledAutopilot(nullptr, "SEG"),
-		th2v(this, "TH2V"),
-		q2v(this, "Q2V"),
+		_th2v(this, "TH2V"),
+		_q2v(this, "Q2V"),
 		_attPoll(),
 		_timeStamp(0)
 	{
@@ -26,8 +26,8 @@ public:
 private:
 	enum {CH_LEFT, CH_RIGHT};
 
-	BlockPI th2v;
-	BlockP q2v;
+	BlockPI _th2v;
+	BlockP _q2v;
 
 	px4_pollfd_struct_t _attPoll;
 	uint64_t _timeStamp;

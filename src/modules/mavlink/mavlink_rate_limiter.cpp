@@ -53,7 +53,7 @@ MavlinkRateLimiter::~MavlinkRateLimiter()
 }
 
 void
-MavlinkRateLimiter::set_interval(unsigned int interval)
+MavlinkRateLimiter::setInterval(unsigned int interval)
 {
 	_interval = interval;
 }

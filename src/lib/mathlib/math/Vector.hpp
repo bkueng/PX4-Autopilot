@@ -130,7 +130,7 @@ public:
 	/**
 	 * get vector size
 	 */
-	unsigned int get_size() const
+	unsigned int getSize() const
 	{
 		return N;
 	}
@@ -335,7 +335,7 @@ public:
 	/**
 	 * gets the length of this vector squared
 	 */
-	float length_squared() const
+	float lengthSquared() const
 	{
 		float res = 0.0f;
 

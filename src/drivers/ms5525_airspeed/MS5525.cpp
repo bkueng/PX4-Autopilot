@@ -59,10 +59,10 @@ MS5525::measure()
 }
 
 bool
-MS5525::init_ms5525()
+MS5525::initMs5525()
 {
 	// Step 1 - reset
-	uint8_t cmd = CMD_RESET;
+	uint8_t cmd = cmd_reset;
 	int ret = transfer(&cmd, 1, nullptr, 0);
 
 	if (ret != PX4_OK) {
@@ -81,7 +81,7 @@ MS5525::init_ms5525()
 	uint16_t prom[8];
 
 	for (uint8_t i = 0; i < 8; i++) {
-		cmd = CMD_PROM_START + i * 2;
+		cmd = cmd_prom_start + i * 2;
 
 		// request PROM value
 		ret = transfer(&cmd, 1, nullptr, 0);
@@ -117,7 +117,7 @@ MS5525::init_ms5525()
 		C5 = prom[5];
 		C6 = prom[6];
 
-		Tref = int64_t(C5) * (1UL << Q5);
+		Tref = int64_t(C5) * (1UL << q5);
 		_device_id.devid_s.devtype = DRV_DIFF_PRESS_DEVTYPE_MS5525;
 
 		return true;
@@ -129,7 +129,7 @@ MS5525::init_ms5525()
 }
 
 uint8_t
-MS5525::prom_crc4(uint16_t n_prom[]) const
+MS5525::promCrc4(uint16_t n_prom[]) const
 {
 	// see Measurement Specialties AN520
 
@@ -172,7 +172,7 @@ MS5525::collect()
 	perf_begin(_sample_perf);
 
 	// read ADC
-	uint8_t cmd = CMD_ADC_READ;
+	uint8_t cmd = cmd_adc_read;
 	int ret = transfer(&cmd, 1, nullptr, 0);
 
 	if (ret != PX4_OK) {
@@ -200,18 +200,18 @@ MS5525::collect()
 		return EAGAIN;
 	}
 
-	if (_current_cmd == CMD_CONVERT_PRES) {
+	if (_current_cmd == cmd_convert_pres) {
 		D1 = adc;
 		_pressure_count++;
 
 		if (_pressure_count > 9) {
 			_pressure_count = 0;
-			_current_cmd = CMD_CONVERT_TEMP;
+			_current_cmd = cmd_convert_temp;
 		}
 
-	} else if (_current_cmd == CMD_CONVERT_TEMP) {
+	} else if (_current_cmd == cmd_convert_temp) {
 		D2 = adc;
-		_current_cmd = CMD_CONVERT_PRES;
+		_current_cmd = cmd_convert_pres;
 
 		// only calculate and publish after new pressure readings
 		return PX4_OK;
@@ -224,31 +224,31 @@ MS5525::collect()
 
 	// Difference between actual and reference temperature
 	//  dT = D2 - Tref
-	const int64_t dT = D2 - Tref;
+	const int64_t d_t = D2 - Tref;
 
 	// Measured temperature
 	//  TEMP = 20°C + dT * TEMPSENS
-	const int64_t TEMP = 2000 + (dT * int64_t(C6)) / (1UL << Q6);
+	const int64_t temp = 2000 + (d_t * int64_t(C6)) / (1UL << q6);
 
 	// Offset at actual temperature
 	//  OFF = OFF_T1 + TCO * dT
-	const int64_t OFF = int64_t(C2) * (1UL << Q2) + (int64_t(C4) * dT) / (1UL << Q4);
+	const int64_t off = int64_t(C2) * (1UL << q2) + (int64_t(C4) * d_t) / (1UL << q4);
 
 	// Sensitivity at actual temperature
 	//  SENS = SENS_T1 + TCS * dT
-	const int64_t SENS = int64_t(C1) * (1UL << Q1) + (int64_t(C3) * dT) / (1UL << Q3);
+	const int64_t sens = int64_t(C1) * (1UL << q1) + (int64_t(C3) * d_t) / (1UL << q3);
 
 	// Temperature Compensated Pressure (example 24996 = 2.4996 psi)
 	//  P = D1 * SENS - OFF
-	const int64_t P = (D1 * SENS / (1UL << 21) - OFF) / (1UL << 15);
+	const int64_t p = (D1 * sens / (1UL << 21) - off) / (1UL << 15);
 
-	const float diff_press_PSI = P * 0.0001f;
+	const float diff_press_psi = p * 0.0001f;
 
 	// 1 PSI = 6894.76 Pascals
-	static constexpr float PSI_to_Pa = 6894.757f;
-	const float diff_press_pa_raw = diff_press_PSI * PSI_to_Pa;
+	static constexpr float psi_to_pa = 6894.757f;
+	const float diff_press_pa_raw = diff_press_psi * psi_to_pa;
 
-	const float temperature_c = TEMP * 0.01f;
+	const float temperature_c = temp * 0.01f;
 
 	differential_pressure_s diff_pressure = {
 		.timestamp = hrt_absolute_time(),
@@ -292,11 +292,11 @@ MS5525::cycle()
 		_collect_phase = false;
 
 		// is there a collect->measure gap?
-		if (_measure_ticks > USEC2TICK(CONVERSION_INTERVAL)) {
+		if (_measure_ticks > USEC2TICK(conversion_interval)) {
 
 			// schedule a fresh cycle call when we are ready to measure again
-			work_queue(HPWORK, &_work, (worker_t)&Airspeed::cycle_trampoline, this,
-				   _measure_ticks - USEC2TICK(CONVERSION_INTERVAL));
+			work_queue(HPWORK, &_work, (worker_t)&Airspeed::cycleTrampoline, this,
+				   _measure_ticks - USEC2TICK(conversion_interval));
 
 			return;
 		}
@@ -315,5 +315,5 @@ MS5525::cycle()
 	_collect_phase = true;
 
 	// schedule a fresh cycle call when the measurement is done
-	work_queue(HPWORK, &_work, (worker_t)&Airspeed::cycle_trampoline, this, USEC2TICK(CONVERSION_INTERVAL));
+	work_queue(HPWORK, &_work, (worker_t)&Airspeed::cycleTrampoline, this, USEC2TICK(conversion_interval));
 }

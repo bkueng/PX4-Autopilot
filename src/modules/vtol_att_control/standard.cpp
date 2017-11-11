@@ -208,8 +208,8 @@ void Standard::update_vtol_state()
 		} else if (_vtol_schedule.flight_mode == TRANSITION_TO_MC) {
 			// transition to MC mode if transition time has passed or forward velocity drops below MPC cruise speed
 
-			const matrix::Dcmf R_to_body(matrix::Quatf(_v_att->q).inversed());
-			const matrix::Vector3f vel = R_to_body * matrix::Vector3f(_local_pos->vx, _local_pos->vy, _local_pos->vz);
+			const matrix::Dcmf r_to_body(matrix::Quatf(_v_att->q).inversed());
+			const matrix::Vector3f vel = r_to_body * matrix::Vector3f(_local_pos->vx, _local_pos->vy, _local_pos->vz);
 
 			float x_vel = vel(0);
 
@@ -422,23 +422,23 @@ void Standard::update_mc_state()
 
 	// disable pusher assist during landing
 	if (_attc->get_pos_sp_triplet()->current.valid
-	    && _attc->get_pos_sp_triplet()->current.type == position_setpoint_s::SETPOINT_TYPE_LAND) {
+	    && _attc->get_pos_sp_triplet()->current.type == position_setpoint_s::setpoint_type_land) {
 		return;
 	}
 
-	matrix::Dcmf R(matrix::Quatf(_v_att->q));
-	matrix::Dcmf R_sp(matrix::Quatf(_v_att_sp->q_d));
-	matrix::Eulerf euler(R);
-	matrix::Eulerf euler_sp(R_sp);
+	matrix::Dcmf r(matrix::Quatf(_v_att->q));
+	matrix::Dcmf r_sp(matrix::Quatf(_v_att_sp->q_d));
+	matrix::Eulerf euler(r);
+	matrix::Eulerf euler_sp(r_sp);
 	_pusher_throttle = 0.0f;
 
 	// direction of desired body z axis represented in earth frame
-	matrix::Vector3f body_z_sp(R_sp(0, 2), R_sp(1, 2), R_sp(2, 2));
+	matrix::Vector3f body_z_sp(r_sp(0, 2), r_sp(1, 2), r_sp(2, 2));
 
 	// rotate desired body z axis into new frame which is rotated in z by the current
 	// heading of the vehicle. we refer to this as the heading frame.
-	matrix::Dcmf R_yaw = matrix::Eulerf(0.0f, 0.0f, -euler(2));
-	body_z_sp = R_yaw * body_z_sp;
+	matrix::Dcmf r_yaw = matrix::Eulerf(0.0f, 0.0f, -euler(2));
+	body_z_sp = r_yaw * body_z_sp;
 	body_z_sp.normalize();
 
 	// calculate the desired pitch seen in the heading frame
@@ -458,20 +458,20 @@ void Standard::update_mc_state()
 		float pitch_new = 0.0f;
 
 		// create corrected desired body z axis in heading frame
-		matrix::Dcmf R_tmp = matrix::Eulerf(roll_new, pitch_new, 0.0f);
-		matrix::Vector3f tilt_new(R_tmp(0, 2), R_tmp(1, 2), R_tmp(2, 2));
+		matrix::Dcmf r_tmp = matrix::Eulerf(roll_new, pitch_new, 0.0f);
+		matrix::Vector3f tilt_new(r_tmp(0, 2), r_tmp(1, 2), r_tmp(2, 2));
 
 		// rotate the vector into a new frame which is rotated in z by the desired heading
 		// with respect to the earh frame.
-		float yaw_error = _wrap_pi(euler_sp(2) - euler(2));
-		matrix::Dcmf R_yaw_correction = matrix::Eulerf(0.0f, 0.0f, -yaw_error);
-		tilt_new = R_yaw_correction * tilt_new;
+		float yaw_error = wrap_pi(euler_sp(2) - euler(2));
+		matrix::Dcmf r_yaw_correction = matrix::Eulerf(0.0f, 0.0f, -yaw_error);
+		tilt_new = r_yaw_correction * tilt_new;
 
 		// now extract roll and pitch setpoints
 		_v_att_sp->pitch_body = atan2f(tilt_new(0), tilt_new(2));
 		_v_att_sp->roll_body = -asinf(tilt_new(1));
-		R_sp = matrix::Eulerf(_v_att_sp->roll_body, _v_att_sp->pitch_body, euler_sp(2));
-		matrix::Quatf q_sp(R_sp);
+		r_sp = matrix::Eulerf(_v_att_sp->roll_body, _v_att_sp->pitch_body, euler_sp(2));
+		matrix::Quatf q_sp(r_sp);
 		q_sp.copyTo(_v_att_sp->q_d);
 	}
 
@@ -501,17 +501,17 @@ void Standard::fill_actuator_outputs()
 	_actuators_out_0->timestamp = _actuators_mc_in->timestamp;
 
 	// roll
-	_actuators_out_0->control[actuator_controls_s::INDEX_ROLL] =
-		_actuators_mc_in->control[actuator_controls_s::INDEX_ROLL] * _mc_roll_weight;
+	_actuators_out_0->control[actuator_controls_s::index_roll] =
+		_actuators_mc_in->control[actuator_controls_s::index_roll] * _mc_roll_weight;
 	// pitch
-	_actuators_out_0->control[actuator_controls_s::INDEX_PITCH] =
-		_actuators_mc_in->control[actuator_controls_s::INDEX_PITCH] * _mc_pitch_weight;
+	_actuators_out_0->control[actuator_controls_s::index_pitch] =
+		_actuators_mc_in->control[actuator_controls_s::index_pitch] * _mc_pitch_weight;
 	// yaw
-	_actuators_out_0->control[actuator_controls_s::INDEX_YAW] =
-		_actuators_mc_in->control[actuator_controls_s::INDEX_YAW] * _mc_yaw_weight;
+	_actuators_out_0->control[actuator_controls_s::index_yaw] =
+		_actuators_mc_in->control[actuator_controls_s::index_yaw] * _mc_yaw_weight;
 	// throttle
-	_actuators_out_0->control[actuator_controls_s::INDEX_THROTTLE] =
-		_actuators_mc_in->control[actuator_controls_s::INDEX_THROTTLE] * _mc_throttle_weight;
+	_actuators_out_0->control[actuator_controls_s::index_throttle] =
+		_actuators_mc_in->control[actuator_controls_s::index_throttle] * _mc_throttle_weight;
 
 
 	// fixed wing controls
@@ -521,36 +521,36 @@ void Standard::fill_actuator_outputs()
 	if (_vtol_schedule.flight_mode != MC_MODE) {
 
 		//roll
-		_actuators_out_1->control[actuator_controls_s::INDEX_ROLL] =
-			-_actuators_fw_in->control[actuator_controls_s::INDEX_ROLL];
+		_actuators_out_1->control[actuator_controls_s::index_roll] =
+			-_actuators_fw_in->control[actuator_controls_s::index_roll];
 		//pitch
-		_actuators_out_1->control[actuator_controls_s::INDEX_PITCH] =
-			_actuators_fw_in->control[actuator_controls_s::INDEX_PITCH] + _params->fw_pitch_trim;
+		_actuators_out_1->control[actuator_controls_s::index_pitch] =
+			_actuators_fw_in->control[actuator_controls_s::index_pitch] + _params->fw_pitch_trim;
 		// yaw
-		_actuators_out_1->control[actuator_controls_s::INDEX_YAW] =
-			_actuators_fw_in->control[actuator_controls_s::INDEX_YAW];
+		_actuators_out_1->control[actuator_controls_s::index_yaw] =
+			_actuators_fw_in->control[actuator_controls_s::index_yaw];
 
-		_actuators_out_1->control[actuator_controls_s::INDEX_AIRBRAKES] = _reverse_output;
+		_actuators_out_1->control[actuator_controls_s::index_airbrakes] = _reverse_output;
 
 	} else {
 
 		// zero outputs when inactive
-		_actuators_out_1->control[actuator_controls_s::INDEX_ROLL] = 0.0f;
-		_actuators_out_1->control[actuator_controls_s::INDEX_PITCH] = _params->fw_pitch_trim;
-		_actuators_out_1->control[actuator_controls_s::INDEX_YAW] = 0.0f;
-		_actuators_out_1->control[actuator_controls_s::INDEX_AIRBRAKES] = 0.0f;
+		_actuators_out_1->control[actuator_controls_s::index_roll] = 0.0f;
+		_actuators_out_1->control[actuator_controls_s::index_pitch] = _params->fw_pitch_trim;
+		_actuators_out_1->control[actuator_controls_s::index_yaw] = 0.0f;
+		_actuators_out_1->control[actuator_controls_s::index_airbrakes] = 0.0f;
 	}
 
 	// set the fixed wing throttle control
 	if (_vtol_schedule.flight_mode == FW_MODE) {
 
 		// take the throttle value commanded by the fw controller
-		_actuators_out_1->control[actuator_controls_s::INDEX_THROTTLE] =
-			_actuators_fw_in->control[actuator_controls_s::INDEX_THROTTLE];
+		_actuators_out_1->control[actuator_controls_s::index_throttle] =
+			_actuators_fw_in->control[actuator_controls_s::index_throttle];
 
 	} else {
 		// otherwise we may be ramping up the throttle during the transition to fw mode
-		_actuators_out_1->control[actuator_controls_s::INDEX_THROTTLE] = _pusher_throttle;
+		_actuators_out_1->control[actuator_controls_s::index_throttle] = _pusher_throttle;
 	}
 
 
@@ -567,7 +567,7 @@ Standard::waiting_on_tecs()
 * Disable all multirotor motors when in fw mode.
 */
 void
-Standard::set_max_mc(unsigned pwm_value)
+Standard::setMaxMc(unsigned pwm_value)
 {
 	int ret;
 	unsigned servo_count;

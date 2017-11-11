@@ -111,10 +111,10 @@ protected:
 	/**
 	 * Correct for 5V rail voltage variations
 	 */
-	void voltage_correction(float &diff_pres_pa, float &temperature);
+	void voltageCorrection(float &diff_pres_pa, float &temperature);
 
 	int _t_system_power;
-	struct system_power_s system_power;
+	struct system_power_s _system_power;
 };
 
 /*
@@ -126,7 +126,7 @@ MEASAirspeedSim::MEASAirspeedSim(int bus, int address, const char *path) : Airsp
 			CONVERSION_INTERVAL, path),
 	_filter(MEAS_RATE, MEAS_DRIVER_FILTER_FREQ),
 	_t_system_power(-1),
-	system_power{}
+	_system_power{}
 {}
 
 int
@@ -246,7 +246,7 @@ MEASAirspeedSim::cycle()
 			/* schedule a fresh cycle call when we are ready to measure again */
 			work_queue(HPWORK,
 				   &_work,
-				   (worker_t)&AirspeedSim::cycle_trampoline,
+				   (worker_t)&AirspeedSim::cycleTrampoline,
 				   this,
 				   _measure_ticks - USEC2TICK(CONVERSION_INTERVAL));
 
@@ -269,7 +269,7 @@ MEASAirspeedSim::cycle()
 	/* schedule a fresh cycle call when the measurement is done */
 	work_queue(HPWORK,
 		   &_work,
-		   (worker_t)&AirspeedSim::cycle_trampoline,
+		   (worker_t)&AirspeedSim::cycleTrampoline,
 		   this,
 		   USEC2TICK(CONVERSION_INTERVAL));
 }

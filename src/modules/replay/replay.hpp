@@ -63,16 +63,16 @@ public:
 	virtual ~Replay() {}
 
 	/** @see ModuleBase */
-	static int task_spawn(int argc, char *argv[]);
+	static int taskSpawn(int argc, char *argv[]);
 
 	/** @see ModuleBase */
 	static Replay *instantiate(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int custom_command(int argc, char *argv[]);
+	static int customCommand(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int print_usage(const char *reason = nullptr);
+	static int printUsage(const char *reason = nullptr);
 
 	/** @see ModuleBase::run() */
 	void run() override;
@@ -91,7 +91,7 @@ public:
 	 */
 	static void setupReplayFile(const char *file_name);
 
-	static bool isSetup() { return _replay_file; }
+	static bool isSetup() { return replay_file; }
 
 protected:
 
@@ -125,7 +125,7 @@ protected:
 		int _accelerometer_integral_dt_offset_intern;
 	};
 
-	struct Subscription {
+	struct subscription {
 
 		const orb_metadata *orb_meta = nullptr; ///< if nullptr, this subscription is invalid
 		orb_advert_t orb_advert = nullptr;
@@ -160,7 +160,7 @@ protected:
 	 * @param data
 	 * @return true if published, false otherwise
 	 */
-	bool publishTopic(Subscription &sub, void *data);
+	bool publishTopic(subscription &sub, void *data);
 
 	/**
 	 * called when entering the main replay loop
@@ -174,7 +174,7 @@ protected:
 	/**
 	 * called when a new subscription is added
 	 */
-	virtual void onSubscriptionAdded(Subscription &sub, uint16_t msg_id) {}
+	virtual void onSubscriptionAdded(subscription &sub, uint16_t msg_id) {}
 
 	/**
 	 * handle delay until topic can be published.
@@ -188,7 +188,7 @@ protected:
 	 * handle the publication of a topic update
 	 * @return true if published, false otherwise
 	 */
-	virtual bool handleTopicUpdate(Subscription &sub, void *data, std::ifstream &replay_file);
+	virtual bool handleTopicUpdate(subscription &sub, void *data, std::ifstream &replay_file);
 
 	/**
 	 * read a topic from the file (offset given by the subscription) into _read_buffer
@@ -203,9 +203,9 @@ protected:
 	 * File seek position is arbitrary after this call.
 	 * @return false on file error
 	 */
-	bool nextDataMessage(std::ifstream &file, Subscription &subscription, int msg_id);
+	bool nextDataMessage(std::ifstream &file, subscription &subscription, int msg_id);
 
-	std::vector<Subscription> _subscriptions;
+	std::vector<subscription> _subscriptions;
 	std::vector<uint8_t> _read_buffer;
 
 private:
@@ -262,7 +262,7 @@ private:
 
 	void setUserParams(const char *filename);
 
-	static char *_replay_file;
+	static char *replay_file;
 };
 
 
@@ -287,9 +287,9 @@ protected:
 	 * @param replay_file file currently replayed (file seek position should be considered arbitrary after this call)
 	 * @return true if published, false otherwise
 	 */
-	bool handleTopicUpdate(Subscription &sub, void *data, std::ifstream &replay_file) override;
+	bool handleTopicUpdate(subscription &sub, void *data, std::ifstream &replay_file) override;
 
-	void onSubscriptionAdded(Subscription &sub, uint16_t msg_id) override;
+	void onSubscriptionAdded(subscription &sub, uint16_t msg_id) override;
 
 private:
 

@@ -85,7 +85,7 @@ void TemperatureCalibrationAccel::reset_calibration()
 	}
 }
 
-int TemperatureCalibrationAccel::update_sensor_instance(PerSensorData &data, int sensor_sub)
+int TemperatureCalibrationAccel::update_sensor_instance(per_sensor_data &data, int sensor_sub)
 {
 	bool finished = data.hot_soaked;
 
@@ -182,7 +182,7 @@ int TemperatureCalibrationAccel::finish()
 	return result;
 }
 
-int TemperatureCalibrationAccel::finish_sensor_instance(PerSensorData &data, int sensor_index)
+int TemperatureCalibrationAccel::finishSensorInstance(per_sensor_data &data, int sensor_index)
 {
 	if (!data.hot_soaked || data.tempcal_complete) {
 		return 0;

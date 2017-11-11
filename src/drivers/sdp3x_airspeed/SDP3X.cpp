@@ -46,7 +46,7 @@ SDP3X::probe()
 	return !init_sdp3x();
 }
 
-int SDP3X::write_command(uint16_t command)
+int SDP3X::writeCommand(uint16_t command)
 {
 	uint8_t cmd[2];
 	cmd[0] = static_cast<uint8_t>(command >> 8);
@@ -55,7 +55,7 @@ int SDP3X::write_command(uint16_t command)
 }
 
 bool
-SDP3X::init_sdp3x()
+SDP3X::initSdp3x()
 {
 	// step 1 - reset on broadcast
 	uint16_t prev_addr = get_address();
@@ -141,10 +141,10 @@ SDP3X::collect()
 		ret = 0;
 	}
 
-	int16_t P = (((int16_t)val[0]) << 8) | val[1];
+	int16_t p = (((int16_t)val[0]) << 8) | val[1];
 	int16_t temp = (((int16_t)val[3]) << 8) | val[4];
 
-	float diff_press_pa_raw = static_cast<float>(P) / static_cast<float>(_scale);
+	float diff_press_pa_raw = static_cast<float>(p) / static_cast<float>(_scale);
 	float temperature_c = temp / static_cast<float>(SDP3X_SCALE_TEMPERATURE);
 
 	differential_pressure_s report;
@@ -181,7 +181,7 @@ SDP3X::cycle()
 	}
 
 	// schedule a fresh cycle call when the measurement is done
-	work_queue(HPWORK, &_work, (worker_t)&Airspeed::cycle_trampoline, this, USEC2TICK(CONVERSION_INTERVAL));
+	work_queue(HPWORK, &_work, (worker_t)&Airspeed::cycleTrampoline, this, USEC2TICK(CONVERSION_INTERVAL));
 }
 
 bool SDP3X::crc(const uint8_t data[], unsigned size, uint8_t checksum)

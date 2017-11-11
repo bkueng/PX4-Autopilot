@@ -48,7 +48,7 @@
 #include <uORB/topics/vtol_vehicle_status.h>
 #include <uORB/uORB.h>
 
-static constexpr float DELAY_SIGMA = 0.01f;
+static constexpr float delay_sigma = 0.01f;
 
 RTL::RTL(Navigator *navigator, const char *name) :
 	MissionBlock(navigator, name),
@@ -73,7 +73,7 @@ RTL::on_inactive()
 }
 
 float
-RTL::get_rtl_altitude()
+RTL::getRtlAltitude()
 {
 	return math::min(_param_return_alt.get(), _navigator->get_land_detected()->alt_max);
 }
@@ -120,13 +120,13 @@ RTL::on_active()
 }
 
 void
-RTL::set_return_alt_min(bool min)
+RTL::setReturnAltMin(bool min)
 {
 	_rtl_alt_min = min;
 }
 
 void
-RTL::set_rtl_item()
+RTL::setRtlItem()
 {
 	struct position_setpoint_triplet_s *pos_sp_triplet = _navigator->get_position_setpoint_triplet();
 
@@ -202,7 +202,7 @@ RTL::set_rtl_item()
 
 	case RTL_STATE_TRANSITION_TO_MC: {
 			_mission_item.nav_cmd = NAV_CMD_DO_VTOL_TRANSITION;
-			_mission_item.params[0] = vtol_vehicle_status_s::VEHICLE_VTOL_STATE_MC;
+			_mission_item.params[0] = vtol_vehicle_status_s::vehicle_vtol_state_mc;
 			break;
 		}
 
@@ -247,7 +247,7 @@ RTL::set_rtl_item()
 		}
 
 	case RTL_STATE_LOITER: {
-			bool autoland = _param_land_delay.get() > -DELAY_SIGMA;
+			bool autoland = _param_land_delay.get() > -delay_sigma;
 
 			_mission_item.lat = _navigator->get_home_position()->lat;
 			_mission_item.lon = _navigator->get_home_position()->lon;
@@ -294,7 +294,7 @@ RTL::set_rtl_item()
 	reset_mission_item_reached();
 
 	/* execute command if set. This is required for commands like VTOL transition */
-	if (!item_contains_position(_mission_item)) {
+	if (!itemContainsPosition(_mission_item)) {
 		issue_command(_mission_item);
 	}
 
@@ -307,7 +307,7 @@ RTL::set_rtl_item()
 }
 
 void
-RTL::advance_rtl()
+RTL::advanceRtl()
 {
 	switch (_rtl_state) {
 	case RTL_STATE_CLIMB:
@@ -330,7 +330,7 @@ RTL::advance_rtl()
 	case RTL_STATE_DESCEND:
 
 		/* only go to land if autoland is enabled */
-		if (_param_land_delay.get() < -DELAY_SIGMA || _param_land_delay.get() > DELAY_SIGMA) {
+		if (_param_land_delay.get() < -delay_sigma || _param_land_delay.get() > delay_sigma) {
 			_rtl_state = RTL_STATE_LOITER;
 
 		} else {

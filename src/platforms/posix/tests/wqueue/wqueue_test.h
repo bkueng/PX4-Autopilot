@@ -58,13 +58,13 @@ public:
 
 	int main();
 
-	static px4::AppState appState; /* track requests to terminate app */
+	static px4::AppState app_state; /* track requests to terminate app */
 private:
-	static void hp_worker_cb(void *p);
-	static void lp_worker_cb(void *p);
+	static void hpWorkerCb(void *p);
+	static void lpWorkerCb(void *p);
 
-	void do_lp_work(void);
-	void do_hp_work(void);
+	void doLpWork(void);
+	void doHpWork(void);
 
 	bool _lpwork_done;
 	bool _hpwork_done;

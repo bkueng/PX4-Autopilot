@@ -43,16 +43,16 @@
 #include <errno.h>
 #include <mathlib/mathlib.h>
 
-bool MavlinkULog::_init = false;
-MavlinkULog *MavlinkULog::_instance = nullptr;
-px4_sem_t MavlinkULog::_lock;
-const float MavlinkULog::_rate_calculation_delta_t = 0.1f;
+bool MavlinkULog::init = false;
+MavlinkULog *MavlinkULog::instance = nullptr;
+px4_sem_t MavlinkULog::lock;
+const float MavlinkULog::rate_calculation_delta_t = 0.1f;
 
 
 MavlinkULog::MavlinkULog(int datarate, float max_rate_factor, uint8_t target_system, uint8_t target_component)
 	: _target_system(target_system), _target_component(target_component),
 	  _max_rate_factor(max_rate_factor),
-	  _max_num_messages(math::max(1, (int)ceilf(_rate_calculation_delta_t *_max_rate_factor * datarate /
+	  _max_num_messages(math::max(1, (int)ceilf(rate_calculation_delta_t *_max_rate_factor * datarate /
 				      (MAVLINK_MSG_ID_LOGGING_DATA_LEN + MAVLINK_NUM_NON_PAYLOAD_BYTES)))),
 	  _current_rate_factor(max_rate_factor)
 {
@@ -64,7 +64,7 @@ MavlinkULog::MavlinkULog(int datarate, float max_rate_factor, uint8_t target_sys
 
 	_waiting_for_initial_ack = true;
 	_last_sent_time = hrt_absolute_time(); //(ab)use this timestamp during initialization
-	_next_rate_check = _last_sent_time + _rate_calculation_delta_t * 1.e6f;
+	_next_rate_check = _last_sent_time + rate_calculation_delta_t * 1.e6f;
 }
 
 MavlinkULog::~MavlinkULog()
@@ -78,7 +78,7 @@ MavlinkULog::~MavlinkULog()
 	}
 }
 
-void MavlinkULog::start_ack_received()
+void MavlinkULog::startAckReceived()
 {
 	if (_waiting_for_initial_ack) {
 		_last_sent_time = 0;
@@ -87,7 +87,7 @@ void MavlinkULog::start_ack_received()
 	}
 }
 
-int MavlinkULog::handle_update(mavlink_channel_t channel)
+int MavlinkULog::handleUpdate(mavlink_channel_t channel)
 {
 	static_assert(sizeof(ulog_stream_s::data) == MAVLINK_MSG_LOGGING_DATA_FIELD_DATA_LEN,
 		      "Invalid uorb ulog_stream.data length");
@@ -113,8 +113,8 @@ int MavlinkULog::handle_update(mavlink_channel_t channel)
 
 		} else {
 
-			if (hrt_elapsed_time(&_last_sent_time) > ulog_stream_ack_s::ACK_TIMEOUT * 1000) {
-				if (++_sent_tries > ulog_stream_ack_s::ACK_MAX_TRIES) {
+			if (hrt_elapsed_time(&_last_sent_time) > ulog_stream_ack_s::ack_timeout * 1000) {
+				if (++_sent_tries > ulog_stream_ack_s::ack_max_tries) {
 					return -ETIMEDOUT;
 
 				} else {
@@ -144,7 +144,7 @@ int MavlinkULog::handle_update(mavlink_channel_t channel)
 		orb_copy(ORB_ID(ulog_stream), _ulog_stream_sub, &_ulog_data);
 
 		if (_ulog_data.timestamp > 0) {
-			if (_ulog_data.flags & ulog_stream_s::FLAGS_NEED_ACK) {
+			if (_ulog_data.flags & ulog_stream_s::flags_need_ack) {
 				_sent_tries = 1;
 				_last_sent_time = hrt_absolute_time();
 				lock();
@@ -189,9 +189,9 @@ int MavlinkULog::handle_update(mavlink_channel_t channel)
 		}
 
 		_current_num_msgs = 0;
-		_next_rate_check = t + _rate_calculation_delta_t * 1.e6f;
+		_next_rate_check = t + rate_calculation_delta_t * 1.e6f;
 		PX4_DEBUG("current rate=%.3f (max=%i msgs in %.3fs)", (double)_current_rate_factor, _max_num_messages,
-			  (double)_rate_calculation_delta_t);
+			  (double)rate_calculation_delta_t);
 	}
 
 	return 0;
@@ -199,25 +199,25 @@ int MavlinkULog::handle_update(mavlink_channel_t channel)
 
 void MavlinkULog::initialize()
 {
-	if (_init) {
+	if (init) {
 		return;
 	}
 
-	px4_sem_init(&_lock, 1, 1);
-	_init = true;
+	px4_sem_init(&lock, 1, 1);
+	init = true;
 }
 
-MavlinkULog *MavlinkULog::try_start(int datarate, float max_rate_factor, uint8_t target_system,
+MavlinkULog *MavlinkULog::tryStart(int datarate, float max_rate_factor, uint8_t target_system,
 				    uint8_t target_component)
 {
 	MavlinkULog *ret = nullptr;
 	bool failed = false;
 	lock();
 
-	if (!_instance) {
-		ret = _instance = new MavlinkULog(datarate, max_rate_factor, target_system, target_component);
+	if (!instance) {
+		ret = instance = new MavlinkULog(datarate, max_rate_factor, target_system, target_component);
 
-		if (!_instance) {
+		if (!instance) {
 			failed = true;
 		}
 	}
@@ -235,19 +235,19 @@ void MavlinkULog::stop()
 {
 	lock();
 
-	if (_instance) {
-		delete _instance;
-		_instance = nullptr;
+	if (instance) {
+		delete instance;
+		instance = nullptr;
 	}
 
 	unlock();
 }
 
-void MavlinkULog::handle_ack(mavlink_logging_ack_t ack)
+void MavlinkULog::handleAck(mavlink_logging_ack_t ack)
 {
 	lock();
 
-	if (_instance) { // make sure stop() was not called right before
+	if (instance) { // make sure stop() was not called right before
 		if (_wait_for_ack_sequence == ack.sequence) {
 			_ack_received = true;
 			publish_ack(ack.sequence);
@@ -257,7 +257,7 @@ void MavlinkULog::handle_ack(mavlink_logging_ack_t ack)
 	unlock();
 }
 
-void MavlinkULog::publish_ack(uint16_t sequence)
+void MavlinkULog::publishAck(uint16_t sequence)
 {
 	ulog_stream_ack_s ack;
 	ack.timestamp = hrt_absolute_time();

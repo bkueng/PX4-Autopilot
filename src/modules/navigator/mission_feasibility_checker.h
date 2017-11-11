@@ -55,28 +55,28 @@ private:
 	Navigator *_navigator{nullptr};
 
 	/* Checks for all airframes */
-	bool checkGeofence(dm_item_t dm_current, size_t nMissionItems, Geofence &geofence, float home_alt, bool home_valid);
+	bool checkGeofence(dm_item_t dm_current, size_t n_mission_items, Geofence &geofence, float home_alt, bool home_valid);
 
-	bool checkHomePositionAltitude(dm_item_t dm_current, size_t nMissionItems, float home_alt, bool home_valid,
+	bool checkHomePositionAltitude(dm_item_t dm_current, size_t n_mission_items, float home_alt, bool home_valid,
 				       bool &warning_issued, bool throw_error = false);
 
-	bool checkMissionItemValidity(dm_item_t dm_current, size_t nMissionItems, bool condition_landed);
+	bool checkMissionItemValidity(dm_item_t dm_current, size_t n_mission_items, bool condition_landed);
 
-	bool checkDistanceToFirstWaypoint(dm_item_t dm_current, size_t nMissionItems, float max_distance, bool &warning_issued);
-	bool checkDistancesBetweenWaypoints(dm_item_t dm_current, size_t nMissionItems, float max_distance,
+	bool checkDistanceToFirstWaypoint(dm_item_t dm_current, size_t n_mission_items, float max_distance, bool &warning_issued);
+	bool checkDistancesBetweenWaypoints(dm_item_t dm_current, size_t n_mission_items, float max_distance,
 					    bool &warning_issued);
 
 	/* Checks specific to fixedwing airframes */
-	bool checkFixedwing(dm_item_t dm_current, size_t nMissionItems, fw_pos_ctrl_status_s *fw_pos_ctrl_status,
+	bool checkFixedwing(dm_item_t dm_current, size_t n_mission_items, fw_pos_ctrl_status_s *fw_pos_ctrl_status,
 			    float home_alt, bool home_valid, float default_acceptance_rad, bool land_start_req);
 
-	bool checkFixedWingTakeoff(dm_item_t dm_current, size_t nMissionItems, float home_alt, bool home_valid,
+	bool checkFixedWingTakeoff(dm_item_t dm_current, size_t n_mission_items, float home_alt, bool home_valid,
 				   float default_acceptance_rad);
-	bool checkFixedWingLanding(dm_item_t dm_current, size_t nMissionItems, fw_pos_ctrl_status_s *fw_pos_ctrl_status,
+	bool checkFixedWingLanding(dm_item_t dm_current, size_t n_mission_items, fw_pos_ctrl_status_s *fw_pos_ctrl_status,
 				   bool land_start_req);
 
 	/* Checks specific to rotarywing airframes */
-	bool checkRotarywing(dm_item_t dm_current, size_t nMissionItems,
+	bool checkRotarywing(dm_item_t dm_current, size_t n_mission_items,
 			     float home_alt, bool home_valid, float default_altitude_acceptance_rad);
 
 public:

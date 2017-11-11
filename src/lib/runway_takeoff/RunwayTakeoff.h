@@ -80,10 +80,10 @@ public:
 
 	bool controlYaw();
 	bool climbout() { return _climbout; }
-	float getPitch(float tecsPitch);
-	float getRoll(float navigatorRoll);
-	float getYaw(float navigatorYaw);
-	float getThrottle(float tecsThrottle);
+	float getPitch(float tecs_pitch);
+	float getRoll(float navigator_roll);
+	float getYaw(float navigator_yaw);
+	float getThrottle(float tecs_throttle);
 	bool resetIntegrators();
 	float getMinPitch(float sp_min, float climbout_min, float min);
 	float getMaxPitch(float max);

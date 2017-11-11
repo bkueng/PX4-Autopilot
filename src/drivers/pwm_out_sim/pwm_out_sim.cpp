@@ -84,8 +84,8 @@
 
 class PWMSim : public device::CDev
 {
-	const uint32_t PWM_SIM_DISARMED_MAGIC = 900;
-	const uint32_t PWM_SIM_FAILSAFE_MAGIC = 600;
+	const uint32_t _PWM_SIM_DISARMED_MAGIC = 900;
+	const uint32_t _PWM_SIM_FAILSAFE_MAGIC = 600;
 public:
 	enum Mode {
 		MODE_2PWM,
@@ -103,18 +103,18 @@ public:
 
 	virtual int	init();
 
-	int		set_mode(Mode mode);
-	int		set_pwm_rate(unsigned rate);
+	int		setMode(Mode mode);
+	int		setPwmRate(unsigned rate);
 	int		_task;
 
 private:
-	static const unsigned _max_actuators = 8;
+	static const unsigned max_actuators = 8;
 
 	Mode		_mode;
 	int 		_update_rate;
 	int 		_current_update_rate;
-	int			_control_subs[actuator_controls_s::NUM_ACTUATOR_CONTROL_GROUPS];
-	px4_pollfd_struct_t	_poll_fds[actuator_controls_s::NUM_ACTUATOR_CONTROL_GROUPS];
+	int			_control_subs[actuator_controls_s::num_actuator_control_groups];
+	px4_pollfd_struct_t	_poll_fds[actuator_controls_s::num_actuator_control_groups];
 	unsigned	_poll_fds_num;
 	int		_armed_sub;
 	orb_advert_t	_outputs_pub;
@@ -125,40 +125,40 @@ private:
 	uint32_t	_groups_subscribed;
 
 	volatile bool	_task_should_exit;
-	static bool	_armed;
-	static bool	_lockdown;
-	static bool	_failsafe;
+	static bool	armed;
+	static bool	lockdown;
+	static bool	failsafe;
 
 	MixerGroup	*_mixers;
 
-	actuator_controls_s _controls[actuator_controls_s::NUM_ACTUATOR_CONTROL_GROUPS];
-	orb_id_t	_control_topics[actuator_controls_s::NUM_ACTUATOR_CONTROL_GROUPS];
+	actuator_controls_s _controls[actuator_controls_s::num_actuator_control_groups];
+	orb_id_t	_control_topics[actuator_controls_s::num_actuator_control_groups];
 
-	static void	task_main_trampoline(int argc, char *argv[]);
-	void		task_main();
+	static void	taskMainTrampoline(int argc, char *argv[]);
+	void		taskMain();
 
-	static int	control_callback(uintptr_t handle,
+	static int	controlCallback(uintptr_t handle,
 					 uint8_t control_group,
 					 uint8_t control_index,
 					 float &input);
 
-	int		pwm_ioctl(device::file_t *filp, int cmd, unsigned long arg);
+	int		pwmIoctl(device::file_t *filp, int cmd, unsigned long arg);
 	void 	subscribe();
 
-	struct GPIOConfig {
+	struct gpio_config {
 		uint32_t	input;
 		uint32_t	output;
 		uint32_t	alt;
 	};
 
-	static const GPIOConfig	_gpio_tab[];
-	static const unsigned	_ngpio;
+	static const GPIOConfig	gpio_tab[];
+	static const unsigned	ngpio;
 
-	void		gpio_reset();
-	void		gpio_set_function(uint32_t gpios, int function);
-	void		gpio_write(uint32_t gpios, int function);
-	uint32_t	gpio_read();
-	int		gpio_ioctl(device::file_t *filp, int cmd, unsigned long arg);
+	void		gpioReset();
+	void		gpioSetFunction(uint32_t gpios, int function);
+	void		gpioWrite(uint32_t gpios, int function);
+	uint32_t	gpioRead();
+	int		gpioIoctl(device::file_t *filp, int cmd, unsigned long arg);
 
 };
 
@@ -169,9 +169,9 @@ PWMSim	*g_pwm_sim = nullptr;
 
 } // namespace
 
-bool PWMSim::_armed = false;
-bool PWMSim::_lockdown = false;
-bool PWMSim::_failsafe = false;
+bool PWMSim::armed = false;
+bool PWMSim::lockdown = false;
+bool PWMSim::failsafe = false;
 
 PWMSim::PWMSim() :
 	CDev("pwm_out_sim", PWM_OUTPUT0_DEVICE_PATH),
@@ -197,7 +197,7 @@ PWMSim::PWMSim() :
 	_control_topics[2] = ORB_ID(actuator_controls_2);
 	_control_topics[3] = ORB_ID(actuator_controls_3);
 
-	for (unsigned i = 0; i < actuator_controls_s::NUM_ACTUATOR_CONTROL_GROUPS; i++) {
+	for (unsigned i = 0; i < actuator_controls_s::num_actuator_control_groups; i++) {
 		_control_subs[i] = -1;
 	}
 }
@@ -248,7 +248,7 @@ PWMSim::init()
 				   SCHED_DEFAULT,
 				   SCHED_PRIORITY_DEFAULT,
 				   1200,
-				   (px4_main_t)&PWMSim::task_main_trampoline,
+				   (px4_main_t)&PWMSim::taskMainTrampoline,
 				   nullptr);
 
 	if (_task < 0) {
@@ -260,13 +260,13 @@ PWMSim::init()
 }
 
 void
-PWMSim::task_main_trampoline(int argc, char *argv[])
+PWMSim::taskMainTrampoline(int argc, char *argv[])
 {
 	g_pwm_sim->task_main();
 }
 
 int
-PWMSim::set_mode(Mode mode)
+PWMSim::setMode(Mode mode)
 {
 	/*
 	 * Configure for PWM output.
@@ -327,7 +327,7 @@ PWMSim::set_mode(Mode mode)
 }
 
 int
-PWMSim::set_pwm_rate(unsigned rate)
+PWMSim::setPwmRate(unsigned rate)
 {
 	if ((rate > 500) || (rate < 10)) {
 		return -EINVAL;
@@ -345,7 +345,7 @@ PWMSim::subscribe()
 	uint32_t unsub_groups = _groups_subscribed & ~_groups_required;
 	_poll_fds_num = 0;
 
-	for (unsigned i = 0; i < actuator_controls_s::NUM_ACTUATOR_CONTROL_GROUPS; i++) {
+	for (unsigned i = 0; i < actuator_controls_s::num_actuator_control_groups; i++) {
 		if (sub_groups & (1 << i)) {
 			PX4_DEBUG("subscribe to actuator_controls_%d", i);
 			_control_subs[i] = orb_subscribe(_control_topics[i]);
@@ -366,7 +366,7 @@ PWMSim::subscribe()
 }
 
 void
-PWMSim::task_main()
+PWMSim::taskMain()
 {
 	/* force a reset of the update rate */
 	_current_update_rate = 0;
@@ -396,7 +396,7 @@ PWMSim::task_main()
 				update_rate_in_ms = 2;
 			}
 
-			for (unsigned i = 0; i < actuator_controls_s::NUM_ACTUATOR_CONTROL_GROUPS; i++) {
+			for (unsigned i = 0; i < actuator_controls_s::num_actuator_control_groups; i++) {
 				if (_control_subs[i] >= 0) {
 					orb_set_interval(_control_subs[i], update_rate_in_ms);
 				}
@@ -431,7 +431,7 @@ PWMSim::task_main()
 		/* get controls for required topics */
 		unsigned poll_id = 0;
 
-		for (unsigned i = 0; i < actuator_controls_s::NUM_ACTUATOR_CONTROL_GROUPS; i++) {
+		for (unsigned i = 0; i < actuator_controls_s::num_actuator_control_groups; i++) {
 			if (_control_subs[i] >= 0) {
 				if (_poll_fds[poll_id].revents & POLLIN) {
 					orb_copy(_control_topics[i], _control_subs[i], &_controls[i]);
@@ -442,7 +442,7 @@ PWMSim::task_main()
 		}
 
 		/* can we mix? */
-		if (_armed && _mixers != nullptr) {
+		if (armed && _mixers != nullptr) {
 
 			size_t num_outputs;
 
@@ -505,14 +505,14 @@ PWMSim::task_main()
 			}
 
 			/* overwrite outputs in case of force_failsafe */
-			if (_failsafe) {
+			if (failsafe) {
 				for (size_t i = 0; i < num_outputs; i++) {
 					outputs.output[i] = PWM_SIM_FAILSAFE_MAGIC;
 				}
 			}
 
 			/* overwrite outputs in case of lockdown */
-			if (_lockdown) {
+			if (lockdown) {
 				for (size_t i = 0; i < num_outputs; i++) {
 					outputs.output[i] = 0.0;
 				}
@@ -530,13 +530,13 @@ PWMSim::task_main()
 		if (updated) {
 			orb_copy(ORB_ID(actuator_armed), _armed_sub, &aa);
 			/* do not obey the lockdown value, as lockdown is for PWMSim. Only obey manual lockdown */
-			_armed = aa.armed;
-			_failsafe = aa.force_failsafe;
-			_lockdown = aa.manual_lockdown;
+			armed = aa.armed;
+			failsafe = aa.force_failsafe;
+			lockdown = aa.manual_lockdown;
 		}
 	}
 
-	for (unsigned i = 0; i < actuator_controls_s::NUM_ACTUATOR_CONTROL_GROUPS; i++) {
+	for (unsigned i = 0; i < actuator_controls_s::num_actuator_control_groups; i++) {
 		if (_control_subs[i] >= 0) {
 			orb_unsubscribe(_control_subs[i]);
 		}
@@ -554,14 +554,14 @@ PWMSim::task_main()
 }
 
 int
-PWMSim::control_callback(uintptr_t handle,
+PWMSim::controlCallback(uintptr_t handle,
 			 uint8_t control_group,
 			 uint8_t control_index,
 			 float &input)
 {
 	const actuator_controls_s *controls = (actuator_controls_s *)handle;
 
-	if (_armed) {
+	if (armed) {
 		input = controls[control_group].control[control_index];
 
 	} else {
@@ -602,7 +602,7 @@ PWMSim::ioctl(device::file_t *filp, int cmd, unsigned long arg)
 }
 
 int
-PWMSim::pwm_ioctl(device::file_t *filp, int cmd, unsigned long arg)
+PWMSim::pwmIoctl(device::file_t *filp, int cmd, unsigned long arg)
 {
 	int ret = OK;
 	// int channel;
@@ -781,7 +781,7 @@ PWMSim::pwm_ioctl(device::file_t *filp, int cmd, unsigned long arg)
 	case MIXERIOCADDSIMPLE: {
 			mixer_simple_s *mixinfo = (mixer_simple_s *)arg;
 
-			SimpleMixer *mixer = new SimpleMixer(control_callback,
+			SimpleMixer *mixer = new SimpleMixer(controlCallback,
 							     (uintptr_t)&_controls, mixinfo);
 
 			if (mixer->check()) {
@@ -791,7 +791,7 @@ PWMSim::pwm_ioctl(device::file_t *filp, int cmd, unsigned long arg)
 
 			} else {
 				if (_mixers == nullptr) {
-					_mixers = new MixerGroup(control_callback,
+					_mixers = new MixerGroup(controlCallback,
 								 (uintptr_t)&_controls);
 				}
 
@@ -807,7 +807,7 @@ PWMSim::pwm_ioctl(device::file_t *filp, int cmd, unsigned long arg)
 			unsigned buflen = strnlen(buf, 1024);
 
 			if (_mixers == nullptr) {
-				_mixers = new MixerGroup(control_callback, (uintptr_t)&_controls);
+				_mixers = new MixerGroup(controlCallback, (uintptr_t)&_controls);
 			}
 
 			if (_mixers == nullptr) {

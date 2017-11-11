@@ -78,7 +78,7 @@ private:
 	/**
 	 * Set the position to hold based on the current local position
 	 */
-	void set_loiter_position();
+	void setLoiterPosition();
 
 	control::BlockParamInt _param_yawmode;
 	bool _loiter_pos_set;

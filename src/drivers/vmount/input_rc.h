@@ -68,17 +68,17 @@ public:
 	virtual void print_status();
 
 protected:
-	virtual int update_impl(unsigned int timeout_ms, ControlData **control_data, bool already_active);
+	virtual int update_impl(unsigned int timeout_ms, control_data **control_data, bool already_active);
 	virtual int initialize();
 
 	/**
 	 * @return true if there was a change in control data
 	 */
-	virtual bool _read_control_data_from_subscription(ControlData &control_data, bool already_active);
+	virtual bool readControlDataFromSubscription(control_data &control_data, bool already_active);
 
-	int _get_subscription_fd() const { return _manual_control_setpoint_sub; }
+	int getSubscriptionFd() const { return _manual_control_setpoint_sub; }
 
-	float _get_aux_value(const manual_control_setpoint_s &manual_control_setpoint, int channel_idx);
+	float getAuxValue(const manual_control_setpoint_s &manual_control_setpoint, int channel_idx);
 
 private:
 	const bool _do_stabilization;

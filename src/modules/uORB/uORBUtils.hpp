@@ -35,15 +35,15 @@
 
 #include "uORBCommon.hpp"
 
-namespace uORB
+namespace u_orb
 {
 class Utils;
 }
 
-class uORB::Utils
+class u_orb::Utils
 {
 public:
-	static int node_mkpath
+	static int nodeMkpath
 	(
 		char *buf,
 		Flavor f,
@@ -54,7 +54,7 @@ public:
 	/**
 	 * same as above except this generators the path based on the string.
 	 */
-	static int node_mkpath(char *buf, Flavor f, const char *orbMsgName);
+	static int nodeMkpath(char *buf, Flavor f, const char *orb_msg_name);
 
 };
 

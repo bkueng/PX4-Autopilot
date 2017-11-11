@@ -102,10 +102,10 @@ protected:
 	/**
 	 * Correct for 5V rail voltage variations
 	 */
-	void voltage_correction(float &diff_pres_pa, float &temperature);
+	void voltageCorrection(float &diff_pres_pa, float &temperature);
 
 	int _t_system_power;
-	struct system_power_s system_power;
+	struct system_power_s _system_power;
 };
 
 /*
@@ -117,7 +117,7 @@ MEASAirspeed::MEASAirspeed(int bus, int address, const char *path) : Airspeed(bu
 			CONVERSION_INTERVAL, path),
 	_filter(MEAS_RATE, MEAS_DRIVER_FILTER_FREQ),
 	_t_system_power(-1),
-	system_power{}
+	_system_power{}
 {
 	_device_id.devid_s.devtype = DRV_DIFF_PRESS_DEVTYPE_MS4525;
 }
@@ -181,26 +181,26 @@ MEASAirspeed::collect()
 		return -EAGAIN;
 	}
 
-	int16_t dp_raw = 0, dT_raw = 0;
+	int16_t dp_raw = 0, d_t_raw = 0;
 	dp_raw = (val[0] << 8) + val[1];
 	/* mask the used bits */
 	dp_raw = 0x3FFF & dp_raw;
-	dT_raw = (val[2] << 8) + val[3];
-	dT_raw = (0xFFE0 & dT_raw) >> 5;
+	d_t_raw = (val[2] << 8) + val[3];
+	d_t_raw = (0xFFE0 & d_t_raw) >> 5;
 
 	// dT max is almost certainly an invalid reading
-	if (dT_raw == 2047) {
+	if (d_t_raw == 2047) {
 		perf_count(_comms_errors);
 		return -EAGAIN;
 	}
 
-	float temperature = ((200.0f * dT_raw) / 2047) - 50;
+	float temperature = ((200.0f * d_t_raw) / 2047) - 50;
 
 	// Calculate differential pressure. As its centered around 8000
 	// and can go positive or negative
-	const float P_min = -1.0f;
-	const float P_max = 1.0f;
-	const float PSI_to_Pa = 6894.757f;
+	const float p_min = -1.0f;
+	const float p_max = 1.0f;
+	const float psi_to_pa = 6894.757f;
 	/*
 	  this equation is an inversion of the equation in the
 	  pressure transfer function figure on page 4 of the datasheet
@@ -209,8 +209,8 @@ MEASAirspeed::collect()
 	  are generated when the bottom port is used as the static
 	  port on the pitot and top port is used as the dynamic port
 	 */
-	float diff_press_PSI = -((dp_raw - 0.1f * 16383) * (P_max - P_min) / (0.8f * 16383) + P_min);
-	float diff_press_pa_raw = diff_press_PSI * PSI_to_Pa;
+	float diff_press_psi = -((dp_raw - 0.1f * 16383) * (p_max - p_min) / (0.8f * 16383) + p_min);
+	float diff_press_pa_raw = diff_press_psi * psi_to_pa;
 
 	// correct for 5V rail voltage if possible
 	voltage_correction(diff_press_pa_raw, temperature);
@@ -271,7 +271,7 @@ MEASAirspeed::cycle()
 			/* schedule a fresh cycle call when we are ready to measure again */
 			work_queue(HPWORK,
 				   &_work,
-				   (worker_t)&Airspeed::cycle_trampoline,
+				   (worker_t)&Airspeed::cycleTrampoline,
 				   this,
 				   _measure_ticks - USEC2TICK(CONVERSION_INTERVAL));
 
@@ -294,7 +294,7 @@ MEASAirspeed::cycle()
 	/* schedule a fresh cycle call when the measurement is done */
 	work_queue(HPWORK,
 		   &_work,
-		   (worker_t)&Airspeed::cycle_trampoline,
+		   (worker_t)&Airspeed::cycleTrampoline,
 		   this,
 		   USEC2TICK(CONVERSION_INTERVAL));
 }
@@ -307,7 +307,7 @@ MEASAirspeed::cycle()
    offset versus voltage for 3 sensors
  */
 void
-MEASAirspeed::voltage_correction(float &diff_press_pa, float &temperature)
+MEASAirspeed::voltageCorrection(float &diff_press_pa, float &temperature)
 {
 #if defined(ADC_SCALED_V5_SENSE)
 
@@ -556,7 +556,7 @@ meas_airspeed_usage()
 {
 	PX4_INFO("usage: meas_airspeed command [options]");
 	PX4_INFO("options:");
-	PX4_INFO("\t-b --bus i2cbus (%d)", PX4_I2C_BUS_DEFAULT);
+	PX4_INFO("\t-b --bus i2cbus (%d)", p_x4_i2_c_bus_default);
 	PX4_INFO("command:");
 	PX4_INFO("\tstart|stop|reset|test");
 }
@@ -564,7 +564,7 @@ meas_airspeed_usage()
 int
 ms4525_airspeed_main(int argc, char *argv[])
 {
-	int i2c_bus = PX4_I2C_BUS_DEFAULT;
+	int i2c_bus = p_x4_i2_c_bus_default;
 
 	int i;
 

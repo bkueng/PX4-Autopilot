@@ -55,7 +55,7 @@
 
 
 // set the queue size to the number of LED's, so that each led can be controlled individually
-static const int LED_UORB_QUEUE_LENGTH = BOARD_MAX_LEDS;
+static const int led_uorb_queue_length = BOARD_MAX_LEDS;
 
 // Legacy paths - 2 are need to allow both pwm and i2c drviers to co-exist
 #define RGBLED0_DEVICE_PATH "/dev/rgbled0"         // Primary RGB LED on i2c

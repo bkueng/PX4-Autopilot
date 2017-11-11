@@ -42,10 +42,10 @@
 namespace sensors
 {
 
-int initialize_parameter_handles(ParameterHandles &parameter_handles)
+int initialize_parameter_handles(parameter_handles &parameter_handles)
 {
 	/* basic r/c parameters */
-	for (unsigned i = 0; i < RC_MAX_CHAN_COUNT; i++) {
+	for (unsigned i = 0; i < rc_max_chan_count; i++) {
 		char nbuf[16];
 
 		/* min values */
@@ -103,9 +103,9 @@ int initialize_parameter_handles(ParameterHandles &parameter_handles)
 	parameter_handles.rc_map_aux5 = param_find("RC_MAP_AUX5");
 
 	/* RC to parameter mapping for changing parameters with RC */
-	for (int i = 0; i < rc_parameter_map_s::RC_PARAM_MAP_NCHAN; i++) {
-		char name[rc_parameter_map_s::PARAM_ID_LEN];
-		snprintf(name, rc_parameter_map_s::PARAM_ID_LEN, "RC_MAP_PARAM%d",
+	for (int i = 0; i < rc_parameter_map_s::rc_param_map_nchan; i++) {
+		char name[rc_parameter_map_s::param_id_len];
+		snprintf(name, rc_parameter_map_s::param_id_len, "RC_MAP_PARAM%d",
 			 i + 1); // shifted by 1 because param name starts at 1
 		parameter_handles.rc_map_param[i] = param_find(name);
 	}
@@ -248,16 +248,16 @@ int initialize_parameter_handles(ParameterHandles &parameter_handles)
 	return 0;
 }
 
-int update_parameters(const ParameterHandles &parameter_handles, Parameters &parameters)
+int update_parameters(const ParameterHandles &parameter_handles, parameters &parameters)
 {
 
 	bool rc_valid = true;
-	float tmpScaleFactor = 0.0f;
-	float tmpRevFactor = 0.0f;
+	float tmp_scale_factor = 0.0f;
+	float tmp_rev_factor = 0.0f;
 	int ret = PX4_OK;
 
 	/* rc values */
-	for (unsigned int i = 0; i < RC_MAX_CHAN_COUNT; i++) {
+	for (unsigned int i = 0; i < rc_max_chan_count; i++) {
 
 		param_get(parameter_handles.min[i], &(parameters.min[i]));
 		param_get(parameter_handles.trim[i], &(parameters.trim[i]));
@@ -265,20 +265,20 @@ int update_parameters(const ParameterHandles &parameter_handles, Parameters &par
 		param_get(parameter_handles.rev[i], &(parameters.rev[i]));
 		param_get(parameter_handles.dz[i], &(parameters.dz[i]));
 
-		tmpScaleFactor = (1.0f / ((parameters.max[i] - parameters.min[i]) / 2.0f) * parameters.rev[i]);
-		tmpRevFactor = tmpScaleFactor * parameters.rev[i];
+		tmp_scale_factor = (1.0f / ((parameters.max[i] - parameters.min[i]) / 2.0f) * parameters.rev[i]);
+		tmp_rev_factor = tmp_scale_factor * parameters.rev[i];
 
 		/* handle blowup in the scaling factor calculation */
-		if (!PX4_ISFINITE(tmpScaleFactor) ||
-		    (tmpRevFactor < 0.000001f) ||
-		    (tmpRevFactor > 0.2f)) {
-			PX4_WARN("RC chan %u not sane, scaling: %8.6f, rev: %d", i, (double)tmpScaleFactor, (int)(parameters.rev[i]));
+		if (!PX4_ISFINITE(tmp_scale_factor) ||
+		    (tmp_rev_factor < 0.000001f) ||
+		    (tmp_rev_factor > 0.2f)) {
+			PX4_WARN("RC chan %u not sane, scaling: %8.6f, rev: %d", i, (double)tmp_scale_factor, (int)(parameters.rev[i]));
 			/* scaling factors do not make sense, lock them down */
 			parameters.scaling_factor[i] = 0.0f;
 			rc_valid = false;
 
 		} else {
-			parameters.scaling_factor[i] = tmpScaleFactor;
+			parameters.scaling_factor[i] = tmp_scale_factor;
 		}
 	}
 
@@ -372,7 +372,7 @@ int update_parameters(const ParameterHandles &parameter_handles, Parameters &par
 	param_get(parameter_handles.rc_map_aux4, &(parameters.rc_map_aux4));
 	param_get(parameter_handles.rc_map_aux5, &(parameters.rc_map_aux5));
 
-	for (int i = 0; i < rc_parameter_map_s::RC_PARAM_MAP_NCHAN; i++) {
+	for (int i = 0; i < rc_parameter_map_s::rc_param_map_nchan; i++) {
 		param_get(parameter_handles.rc_map_param[i], &(parameters.rc_map_param[i]));
 	}
 

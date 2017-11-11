@@ -41,7 +41,7 @@
 #include <drivers/drv_hrt.h>
 
 
-namespace uORB
+namespace u_orb
 {
 static const unsigned orb_maxpath = 64;
 
@@ -49,7 +49,7 @@ static const unsigned orb_maxpath = 64;
 # undef ERROR
 #endif
 /* ERROR is not defined for c++ */
-const int ERROR = -1;
+const int error = -1;
 
 enum Flavor {
 	PUBSUB = 0,

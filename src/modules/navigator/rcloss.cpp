@@ -97,7 +97,7 @@ RCLoss::on_active()
 }
 
 void
-RCLoss::set_rcl_item()
+RCLoss::setRclItem()
 {
 	struct position_setpoint_triplet_s *pos_sp_triplet = _navigator->get_position_setpoint_triplet();
 
@@ -148,7 +148,7 @@ RCLoss::set_rcl_item()
 }
 
 void
-RCLoss::advance_rcl()
+RCLoss::advanceRcl()
 {
 	switch (_rcl_state) {
 	case RCL_STATE_NONE:

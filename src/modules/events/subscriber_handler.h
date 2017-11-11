@@ -20,20 +20,20 @@ class SubscriberHandler
 public:
 	void subscribe();
 	void unsubscribe();
-	void check_for_updates();
+	void checkForUpdates();
 
-	int get_battery_status_sub() const { return _battery_status_sub; }
-	int get_cpuload_sub() const { return _cpuload_sub; }
-	int get_vehicle_command_sub() const { return _vehicle_command_sub; }
-	int get_vehicle_status_sub() const { return _vehicle_status_sub; }
-	int get_vehicle_status_flags_sub() const { return _vehicle_status_flags_sub; }
+	int getBatteryStatusSub() const { return _battery_status_sub; }
+	int getCpuloadSub() const { return _cpuload_sub; }
+	int getVehicleCommandSub() const { return _vehicle_command_sub; }
+	int getVehicleStatusSub() const { return _vehicle_status_sub; }
+	int getVehicleStatusFlagsSub() const { return _vehicle_status_flags_sub; }
 
 	/* update checking methods */
-	bool battery_status_updated() const { return _update_bitfield & (uint32_t)StatusMask::BatteryStatus; }
-	bool cpuload_updated() const { return _update_bitfield & (uint32_t)StatusMask::CpuLoad; }
-	bool vehicle_command_updated() const { return _update_bitfield & (uint32_t)StatusMask::VehicleCommand; }
-	bool vehicle_status_updated() const { return _update_bitfield & (uint32_t)StatusMask::VehicleStatus; }
-	bool vehicle_status_flags_updated() const { return _update_bitfield & (uint32_t)StatusMask::VehicleStatusFlags; }
+	bool batteryStatusUpdated() const { return _update_bitfield & (uint32_t)StatusMask::BatteryStatus; }
+	bool cpuloadUpdated() const { return _update_bitfield & (uint32_t)StatusMask::CpuLoad; }
+	bool vehicleCommandUpdated() const { return _update_bitfield & (uint32_t)StatusMask::VehicleCommand; }
+	bool vehicleStatusUpdated() const { return _update_bitfield & (uint32_t)StatusMask::VehicleStatus; }
+	bool vehicleStatusFlagsUpdated() const { return _update_bitfield & (uint32_t)StatusMask::VehicleStatusFlags; }
 
 
 private:

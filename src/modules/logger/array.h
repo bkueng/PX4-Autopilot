@@ -51,7 +51,7 @@ public:
 		: _size(0), _overflow(false)
 	{}
 
-	bool push_back(const TYPE &x)
+	bool pushBack(const TYPE &x)
 	{
 		if (_size == N) {
 			_overflow = true;
@@ -100,7 +100,7 @@ public:
 		return _size;
 	}
 
-	size_t max_size() const
+	size_t maxSize() const
 	{
 		return N;
 	}
@@ -115,7 +115,7 @@ public:
 		return _size == 0;
 	}
 
-	bool is_overflowed()
+	bool isOverflowed()
 	{
 		return _overflow;
 	}

@@ -54,13 +54,13 @@ ORB_DEFINE(orb_test_medium_queue_poll, struct orb_test_medium, sizeof(orb_test_m
 ORB_DEFINE(orb_test_large, struct orb_test_large, sizeof(orb_test_large),
 	   "ORB_TEST_LARGE:int val;hrt_abstime time;char[512] junk;");
 
-uORBTest::UnitTest &uORBTest::UnitTest::instance()
+u_orb_test::UnitTest &u_orb_test::UnitTest::instance()
 {
-	static uORBTest::UnitTest t;
+	static u_orb_test::UnitTest t;
 	return t;
 }
 
-int uORBTest::UnitTest::pubsublatency_main()
+int u_orb_test::UnitTest::pubsublatencyMain()
 {
 	/* poll on test topic and output latency */
 	float latency_integral = 0.0f;
@@ -131,7 +131,7 @@ int uORBTest::UnitTest::pubsublatency_main()
 		if (f == nullptr) {
 			warnx("Error opening file!\n");
 			delete[] timings;
-			return uORB::ERROR;
+			return u_orb::error;
 		}
 
 		for (unsigned i = 0; i < maxruns; i++) {
@@ -148,7 +148,7 @@ int uORBTest::UnitTest::pubsublatency_main()
 	pubsubtest_passed = true;
 
 	if (static_cast<float>(latency_integral / maxruns) > 100.0f) {
-		pubsubtest_res = uORB::ERROR;
+		pubsubtest_res = u_orb::error;
 
 	} else {
 		pubsubtest_res = PX4_OK;
@@ -157,7 +157,7 @@ int uORBTest::UnitTest::pubsublatency_main()
 	return pubsubtest_res;
 }
 
-int uORBTest::UnitTest::test()
+int u_orb_test::UnitTest::test()
 {
 	int ret = test_single();
 
@@ -198,7 +198,7 @@ int uORBTest::UnitTest::test()
 	return test_queue_poll_notify();
 }
 
-int uORBTest::UnitTest::test_unadvertise()
+int u_orb_test::UnitTest::testUnadvertise()
 {
 	test_note("Testing unadvertise");
 
@@ -231,12 +231,12 @@ int uORBTest::UnitTest::test_unadvertise()
 }
 
 
-int uORBTest::UnitTest::info()
+int u_orb_test::UnitTest::info()
 {
 	return OK;
 }
 
-int uORBTest::UnitTest::test_single()
+int u_orb_test::UnitTest::testSingle()
 {
 	test_note("try single-topic support");
 
@@ -312,7 +312,7 @@ int uORBTest::UnitTest::test_single()
 	return test_note("PASS single-topic test");
 }
 
-int uORBTest::UnitTest::test_multi()
+int u_orb_test::UnitTest::testMulti()
 {
 	/* this routine tests the multi-topic support */
 	test_note("try multi-topic support");
@@ -401,13 +401,13 @@ int uORBTest::UnitTest::test_multi()
 
 
 
-int uORBTest::UnitTest::pub_test_multi2_entry(char *const argv[])
+int u_orb_test::UnitTest::pubTestMulti2Entry(char *const argv[])
 {
-	uORBTest::UnitTest &t = uORBTest::UnitTest::instance();
+	u_orb_test::UnitTest &t = u_orb_test::UnitTest::instance();
 	return t.pub_test_multi2_main();
 }
 
-int uORBTest::UnitTest::pub_test_multi2_main()
+int u_orb_test::UnitTest::pubTestMulti2Main()
 {
 	int data_next_idx = 0;
 	const int num_instances = 3;
@@ -458,7 +458,7 @@ int uORBTest::UnitTest::pub_test_multi2_main()
 	return 0;
 }
 
-int uORBTest::UnitTest::test_multi2()
+int u_orb_test::UnitTest::testMulti2()
 {
 
 	test_note("Testing multi-topic 2 test (queue simulation)");
@@ -479,7 +479,7 @@ int uORBTest::UnitTest::test_multi2()
 					     SCHED_DEFAULT,
 					     SCHED_PRIORITY_MAX - 5,
 					     1500,
-					     (px4_main_t)&uORBTest::UnitTest::pub_test_multi2_entry,
+					     (px4_main_t)&u_orb_test::UnitTest::pubTestMulti2Entry,
 					     args);
 
 	if (pubsub_task < 0) {
@@ -523,7 +523,7 @@ int uORBTest::UnitTest::test_multi2()
 	return test_note("PASS multi-topic 2 test (queue simulation)");
 }
 
-int uORBTest::UnitTest::test_multi_reversed()
+int u_orb_test::UnitTest::testMultiReversed()
 {
 	test_note("try multi-topic support subscribing before publishing");
 
@@ -594,7 +594,7 @@ int uORBTest::UnitTest::test_multi_reversed()
 	return test_note("PASS multi-topic reversed");
 }
 
-int uORBTest::UnitTest::test_queue()
+int u_orb_test::UnitTest::testQueue()
 {
 	test_note("Testing orb queuing");
 
@@ -707,13 +707,13 @@ int uORBTest::UnitTest::test_queue()
 }
 
 
-int uORBTest::UnitTest::pub_test_queue_entry(char *const argv[])
+int u_orb_test::UnitTest::pubTestQueueEntry(char *const argv[])
 {
-	uORBTest::UnitTest &t = uORBTest::UnitTest::instance();
+	u_orb_test::UnitTest &t = u_orb_test::UnitTest::instance();
 	return t.pub_test_queue_main();
 }
 
-int uORBTest::UnitTest::pub_test_queue_main()
+int u_orb_test::UnitTest::pubTestQueueMain()
 {
 	struct orb_test_medium t;
 	orb_advert_t ptopic;
@@ -750,7 +750,7 @@ int uORBTest::UnitTest::pub_test_queue_main()
 	return 0;
 }
 
-int uORBTest::UnitTest::test_queue_poll_notify()
+int u_orb_test::UnitTest::testQueuePollNotify()
 {
 	test_note("Testing orb queuing (poll & notify)");
 
@@ -768,7 +768,7 @@ int uORBTest::UnitTest::test_queue_poll_notify()
 					     SCHED_DEFAULT,
 					     SCHED_PRIORITY_MIN + 5,
 					     1500,
-					     (px4_main_t)&uORBTest::UnitTest::pub_test_queue_entry,
+					     (px4_main_t)&u_orb_test::UnitTest::pubTestQueueEntry,
 					     args);
 
 	if (pubsub_task < 0) {
@@ -815,7 +815,7 @@ int uORBTest::UnitTest::test_queue_poll_notify()
 }
 
 
-int uORBTest::UnitTest::test_fail(const char *fmt, ...)
+int u_orb_test::UnitTest::testFail(const char *fmt, ...)
 {
 	va_list ap;
 
@@ -825,10 +825,10 @@ int uORBTest::UnitTest::test_fail(const char *fmt, ...)
 	va_end(ap);
 	fprintf(stderr, "\n");
 	fflush(stderr);
-	return uORB::ERROR;
+	return u_orb::error;
 }
 
-int uORBTest::UnitTest::test_note(const char *fmt, ...)
+int u_orb_test::UnitTest::testNote(const char *fmt, ...)
 {
 	va_list ap;
 
@@ -841,8 +841,8 @@ int uORBTest::UnitTest::test_note(const char *fmt, ...)
 	return OK;
 }
 
-int uORBTest::UnitTest::pubsubtest_threadEntry(char *const argv[])
+int u_orb_test::UnitTest::pubsubtestThreadEntry(char *const argv[])
 {
-	uORBTest::UnitTest &t = uORBTest::UnitTest::instance();
+	u_orb_test::UnitTest &t = u_orb_test::UnitTest::instance();
 	return t.pubsublatency_main();
 }

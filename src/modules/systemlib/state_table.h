@@ -45,13 +45,13 @@ class StateTable
 {
 public:
 	typedef void (StateTable::*Action)();
-	struct Tran {
+	struct tran {
 		Action action;
 		unsigned nextState;
 	};
 
-	StateTable(Tran const *table, unsigned nStates, unsigned nSignals)
-		: myState(0), myTable(table), myNsignals(nSignals) {}
+	StateTable(Tran const *table, unsigned n_states, unsigned n_signals)
+		: _myState(0), _myTable(table), _myNsignals(n_signals) {}
 
 	StateTable(const StateTable &) = delete;
 	StateTable &operator=(const StateTable &) = delete;
@@ -77,10 +77,10 @@ public:
 		return;
 	}
 protected:
-	unsigned myState;
+	unsigned _myState;
 private:
-	Tran const *myTable;
-	unsigned myNsignals;
+	Tran const *_myTable;
+	unsigned _myNsignals;
 };
 
 #endif

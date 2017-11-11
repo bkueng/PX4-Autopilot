@@ -82,12 +82,12 @@ private:
 	/**
 	 * Set the GPSF item
 	 */
-	void		set_gpsf_item();
+	void		setGpsfItem();
 
 	/**
 	 * Move to next GPSF item
 	 */
-	void		advance_gpsf();
+	void		advanceGpsf();
 
 };
 #endif

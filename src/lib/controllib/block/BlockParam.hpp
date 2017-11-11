@@ -91,7 +91,7 @@ public:
 	bool commit() { return (param_set(_handle, &_val) == PX4_OK); }
 
 	// Store the parameter value to the parameter storage, w/o notifying the system (@see param_set_no_notification())
-	bool commit_no_notification() { return (param_set_no_notification(_handle, &_val) == PX4_OK); }
+	bool commitNoNotification() { return (param_set_no_notification(_handle, &_val) == PX4_OK); }
 
 	void set(T val) { _val = val; }
 

@@ -52,16 +52,16 @@
 namespace sensors
 {
 
-static const unsigned RC_MAX_CHAN_COUNT =
-	input_rc_s::RC_INPUT_MAX_CHANNELS;	/**< maximum number of r/c channels we handle */
+static const unsigned rc_max_chan_count =
+	input_rc_s::rc_input_max_channels;	/**< maximum number of r/c channels we handle */
 
-struct Parameters {
-	float min[RC_MAX_CHAN_COUNT];
-	float trim[RC_MAX_CHAN_COUNT];
-	float max[RC_MAX_CHAN_COUNT];
-	float rev[RC_MAX_CHAN_COUNT];
-	float dz[RC_MAX_CHAN_COUNT];
-	float scaling_factor[RC_MAX_CHAN_COUNT];
+struct parameters {
+	float min[rc_max_chan_count];
+	float trim[rc_max_chan_count];
+	float max[rc_max_chan_count];
+	float rev[rc_max_chan_count];
+	float dz[rc_max_chan_count];
+	float scaling_factor[rc_max_chan_count];
 
 	float diff_pres_offset_pa;
 	float diff_pres_analog_scale;
@@ -97,7 +97,7 @@ struct Parameters {
 	int32_t rc_map_aux4;
 	int32_t rc_map_aux5;
 
-	int32_t rc_map_param[rc_parameter_map_s::RC_PARAM_MAP_NCHAN];
+	int32_t rc_map_param[rc_parameter_map_s::rc_param_map_nchan];
 
 	int32_t rc_map_flightmode;
 
@@ -151,12 +151,12 @@ struct Parameters {
 
 };
 
-struct ParameterHandles {
-	param_t min[RC_MAX_CHAN_COUNT];
-	param_t trim[RC_MAX_CHAN_COUNT];
-	param_t max[RC_MAX_CHAN_COUNT];
-	param_t rev[RC_MAX_CHAN_COUNT];
-	param_t dz[RC_MAX_CHAN_COUNT];
+struct parameter_handles {
+	param_t min[rc_max_chan_count];
+	param_t trim[rc_max_chan_count];
+	param_t max[rc_max_chan_count];
+	param_t rev[rc_max_chan_count];
+	param_t dz[rc_max_chan_count];
 
 	param_t diff_pres_offset_pa;
 	param_t diff_pres_analog_scale;
@@ -188,8 +188,8 @@ struct ParameterHandles {
 	param_t rc_map_aux4;
 	param_t rc_map_aux5;
 
-	param_t rc_map_param[rc_parameter_map_s::RC_PARAM_MAP_NCHAN];
-	param_t rc_param[rc_parameter_map_s::RC_PARAM_MAP_NCHAN];	/**< param handles for the parameters which are bound
+	param_t rc_map_param[rc_parameter_map_s::rc_param_map_nchan];
+	param_t rc_param[rc_parameter_map_s::rc_param_map_nchan];	/**< param handles for the parameters which are bound
 							  to a RC channel, equivalent float values in the
 							  _parameters struct are not existing
 							  because these parameters are never read. */
@@ -239,13 +239,13 @@ struct ParameterHandles {
  * initialize ParameterHandles struct
  * @return 0 on succes, <0 on error
  */
-int initialize_parameter_handles(ParameterHandles &parameter_handles);
+int initialize_parameter_handles(parameter_handles &parameter_handles);
 
 
 /**
  * Read out the parameters using the handles into the parameters struct.
  * @return 0 on succes, <0 on error
  */
-int update_parameters(const ParameterHandles &parameter_handles, Parameters &parameters);
+int update_parameters(const ParameterHandles &parameter_handles, parameters &parameters);
 
 } /* namespace sensors */

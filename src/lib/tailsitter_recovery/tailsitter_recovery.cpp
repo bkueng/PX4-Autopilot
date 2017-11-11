@@ -59,19 +59,19 @@ void TailsitterRecovery::setAttGains(math::Vector<3> &att_p, float yaw_ff)
 void TailsitterRecovery::calcOptimalRates(math::Quaternion &q, math::Quaternion &q_sp, float yaw_move_rate,
 		math::Vector<3> &rates_opt)
 {
-	math::Matrix<3, 3> R = q.to_dcm();
+	math::Matrix<3, 3> r = q.to_dcm();
 
 	// compute error quaternion
 	math::Quaternion q_sp_inv = {q_sp(0), -q_sp(1), -q_sp(2), -q_sp(3)};
 	math::Quaternion q_error = q * q_sp_inv;
 
 	// compute tilt angle and corresponding tilt axis
-	math::Vector<3> zB = {0, 0, -1.0f};
+	math::Vector<3> z_b = {0, 0, -1.0f};
 
-	math::Vector<3> zI = q_error.conjugate(zB);
+	math::Vector<3> z_i = q_error.conjugate(z_b);
 
 	float tilt_angle;
-	float inner_prod = zI * zB;
+	float inner_prod = z_i * z_b;
 
 	if (inner_prod >= 1.0f) {
 		tilt_angle = 0.0f;
@@ -86,10 +86,10 @@ void TailsitterRecovery::calcOptimalRates(math::Quaternion &q, math::Quaternion 
 	math::Vector<3> tilt_axis = {0, 0, -1};
 
 	if (math::min(fabsf(tilt_angle), fabsf(tilt_angle - M_PI_F)) > 0.00001f) {
-		tilt_axis = zI % zB;
+		tilt_axis = z_i % z_b;
 	}
 
-	tilt_axis = R.transposed() * tilt_axis;
+	tilt_axis = r.transposed() * tilt_axis;
 
 	// compute desired rates based on tilt angle and tilt axis
 	float tilt_dir = atan2f(tilt_axis(0), tilt_axis(1));
@@ -154,7 +154,7 @@ void TailsitterRecovery::calcOptimalRates(math::Quaternion &q, math::Quaternion 
 	rates_opt(1) *= -sign_y * 1.5f;
 	rates_opt(2) *= -sign_z;
 
-	float yaw_w = R(2, 2) > 0.0f ? R(2, 2) : 0.0f;
+	float yaw_w = r(2, 2) > 0.0f ? r(2, 2) : 0.0f;
 	yaw_w = math::constrain(yaw_w, 0.0f, 1.0f);
 
 	// we activate recovery mode if our tilt error is more that 30 degrees or

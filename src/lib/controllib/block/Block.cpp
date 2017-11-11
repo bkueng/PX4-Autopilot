@@ -65,16 +65,16 @@ void Block::getName(char *buf, size_t n)
 		buf[n - 1] = '\0';
 
 	} else {
-		char parentName[blockNameLengthMax];
-		getParent()->getName(parentName, n);
+		char parent_name[block_name_length_max];
+		getParent()->getName(parent_name, n);
 
 		if (!strcmp(_name, "")) {
-			strncpy(buf, parentName, n);
+			strncpy(buf, parent_name, n);
 			// ensure string is terminated
 			buf[n - 1] = '\0';
 
 		} else {
-			snprintf(buf, n, "%s_%s", parentName, _name);
+			snprintf(buf, n, "%s_%s", parent_name, _name);
 		}
 	}
 }
@@ -85,9 +85,9 @@ void Block::updateParams()
 	int count = 0;
 
 	while (param != nullptr) {
-		if (count++ > maxParamsPerBlock) {
-			char name[blockNameLengthMax];
-			getName(name, blockNameLengthMax);
+		if (count++ > max_params_per_block) {
+			char name[block_name_length_max];
+			getName(name, block_name_length_max);
 			PX4_ERR("exceeded max params for block: %s", name);
 			break;
 		}
@@ -100,13 +100,13 @@ void Block::updateParams()
 
 void Block::updateSubscriptions()
 {
-	uORB::SubscriptionNode *sub = getSubscriptions().getHead();
+	u_orb::SubscriptionNode *sub = getSubscriptions().getHead();
 	int count = 0;
 
 	while (sub != nullptr) {
-		if (count++ > maxSubscriptionsPerBlock) {
-			char name[blockNameLengthMax];
-			getName(name, blockNameLengthMax);
+		if (count++ > max_subscriptions_per_block) {
+			char name[block_name_length_max];
+			getName(name, block_name_length_max);
 			PX4_ERR("exceeded max subscriptions for block: %s", name);
 			break;
 		}
@@ -118,13 +118,13 @@ void Block::updateSubscriptions()
 
 void Block::updatePublications()
 {
-	uORB::PublicationNode *pub = getPublications().getHead();
+	u_orb::PublicationNode *pub = getPublications().getHead();
 	int count = 0;
 
 	while (pub != nullptr) {
-		if (count++ > maxPublicationsPerBlock) {
-			char name[blockNameLengthMax];
-			getName(name, blockNameLengthMax);
+		if (count++ > max_publications_per_block) {
+			char name[block_name_length_max];
+			getName(name, block_name_length_max);
 			PX4_ERR("exceeded max publications for block: %s", name);
 			break;
 		}
@@ -141,9 +141,9 @@ void SuperBlock::setDt(float dt)
 	int count = 0;
 
 	while (child != nullptr) {
-		if (count++ > maxChildrenPerBlock) {
-			char name[blockNameLengthMax];
-			getName(name, blockNameLengthMax);
+		if (count++ > max_children_per_block) {
+			char name[block_name_length_max];
+			getName(name, block_name_length_max);
 			PX4_ERR("exceeded max children for block: %s", name);
 			break;
 		}
@@ -159,9 +159,9 @@ void SuperBlock::updateChildParams()
 	int count = 0;
 
 	while (child != nullptr) {
-		if (count++ > maxChildrenPerBlock) {
-			char name[blockNameLengthMax];
-			getName(name, blockNameLengthMax);
+		if (count++ > max_children_per_block) {
+			char name[block_name_length_max];
+			getName(name, block_name_length_max);
 			PX4_ERR("exceeded max children for block: %s", name);
 			break;
 		}
@@ -177,9 +177,9 @@ void SuperBlock::updateChildSubscriptions()
 	int count = 0;
 
 	while (child != nullptr) {
-		if (count++ > maxChildrenPerBlock) {
-			char name[blockNameLengthMax];
-			getName(name, blockNameLengthMax);
+		if (count++ > max_children_per_block) {
+			char name[block_name_length_max];
+			getName(name, block_name_length_max);
 			PX4_ERR("exceeded max children for block: %s", name);
 			break;
 		}
@@ -195,9 +195,9 @@ void SuperBlock::updateChildPublications()
 	int count = 0;
 
 	while (child != nullptr) {
-		if (count++ > maxChildrenPerBlock) {
-			char name[blockNameLengthMax];
-			getName(name, blockNameLengthMax);
+		if (count++ > max_children_per_block) {
+			char name[block_name_length_max];
+			getName(name, block_name_length_max);
 			PX4_ERR("exceeded max children for block: %s", name);
 			break;
 		}
@@ -209,6 +209,6 @@ void SuperBlock::updateChildPublications()
 
 } // namespace control
 
-template class List<uORB::SubscriptionNode *>;
-template class List<uORB::PublicationNode *>;
+template class List<u_orb::SubscriptionNode *>;
+template class List<u_orb::PublicationNode *>;
 template class List<control::BlockParamBase *>;

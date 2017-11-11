@@ -91,7 +91,7 @@ void Geofence::updateFence()
 	dm_unlock(DM_KEY_FENCE_POINTS);
 }
 
-void Geofence::_updateFence()
+void Geofence::updateFence()
 {
 
 	// initialize fence points count
@@ -138,17 +138,17 @@ void Geofence::_updateFence()
 			} else {
 				if (_polygons) {
 					// resize: this is somewhat inefficient, but we do not expect there to be many polygons
-					PolygonInfo *new_polygons = new PolygonInfo[_num_polygons + 1];
+					polygon_info *new_polygons = new polygon_info[_num_polygons + 1];
 
 					if (new_polygons) {
-						memcpy(new_polygons, _polygons, sizeof(PolygonInfo) * _num_polygons);
+						memcpy(new_polygons, _polygons, sizeof(polygon_info) * _num_polygons);
 					}
 
 					delete[](_polygons);
 					_polygons = new_polygons;
 
 				} else {
-					_polygons = new PolygonInfo[1];
+					_polygons = new polygon_info[1];
 				}
 
 				if (!_polygons) {
@@ -157,7 +157,7 @@ void Geofence::_updateFence()
 					return;
 				}
 
-				PolygonInfo &polygon = _polygons[_num_polygons];
+				polygon_info &polygon = _polygons[_num_polygons];
 				polygon.dataman_index = current_seq;
 				polygon.fence_type = mission_fence_point.nav_cmd;
 
@@ -445,9 +445,9 @@ Geofence::loadFromFile(const char *filename)
 {
 	FILE		*fp;
 	char		line[120];
-	int			pointCounter = 0;
-	bool		gotVertical = false;
-	const char commentChar = '#';
+	int			point_counter = 0;
+	bool		got_vertical = false;
+	const char comment_char = '#';
 	int rc = PX4_ERROR;
 
 	/* Make sure no data is left in the datamanager */
@@ -468,12 +468,12 @@ Geofence::loadFromFile(const char *filename)
 		}
 
 		/* Trim leading whitespace */
-		size_t textStart = 0;
+		size_t text_start = 0;
 
-		while ((textStart < sizeof(line) / sizeof(char)) && isspace(line[textStart])) { textStart++; }
+		while ((text_start < sizeof(line) / sizeof(char)) && isspace(line[text_start])) { text_start++; }
 
 		/* if the line starts with #, skip */
-		if (line[textStart] == commentChar) {
+		if (line[text_start] == comment_char) {
 			continue;
 		}
 
@@ -482,7 +482,7 @@ Geofence::loadFromFile(const char *filename)
 			continue;
 		}
 
-		if (gotVertical) {
+		if (got_vertical) {
 			/* Parse the line as a geofence point */
 			mission_fence_point_s vertex;
 			vertex.frame = MAV_FRAME_GLOBAL;
@@ -491,7 +491,7 @@ Geofence::loadFromFile(const char *filename)
 			vertex.alt = 0; // alt is not used
 
 			/* if the line starts with DMS, this means that the coordinate is given as degree minute second instead of decimal degrees */
-			if (line[textStart] == 'D' && line[textStart + 1] == 'M' && line[textStart + 2] == 'S') {
+			if (line[text_start] == 'D' && line[text_start + 1] == 'M' && line[text_start + 2] == 'S') {
 				/* Handle degree minute second format */
 				double lat_d, lat_m, lat_s, lon_d, lon_m, lon_s;
 
@@ -513,14 +513,14 @@ Geofence::loadFromFile(const char *filename)
 				}
 			}
 
-			if (dm_write(DM_KEY_FENCE_POINTS, pointCounter + 1, DM_PERSIST_POWER_ON_RESET, &vertex,
+			if (dm_write(DM_KEY_FENCE_POINTS, point_counter + 1, DM_PERSIST_POWER_ON_RESET, &vertex,
 				     sizeof(vertex)) != sizeof(vertex)) {
 				goto error;
 			}
 
-			PX4_INFO("Geofence: point: %d, lat %.5lf: lon: %.5lf", pointCounter, vertex.lat, vertex.lon);
+			PX4_INFO("Geofence: point: %d, lat %.5lf: lon: %.5lf", point_counter, vertex.lat, vertex.lon);
 
-			pointCounter++;
+			point_counter++;
 
 		} else {
 			/* Parse the line as the vertical limits */
@@ -529,30 +529,30 @@ Geofence::loadFromFile(const char *filename)
 			}
 
 			PX4_INFO("Geofence: alt min: %.4f, alt_max: %.4f", (double)_altitude_min, (double)_altitude_max);
-			gotVertical = true;
+			got_vertical = true;
 		}
 	}
 
 
 	/* Check if import was successful */
-	if (gotVertical && pointCounter > 2) {
+	if (got_vertical && point_counter > 2) {
 		mavlink_log_info(_navigator->get_mavlink_log_pub(), "Geofence imported");
 		rc = PX4_OK;
 
 		/* do a second pass, now that we know the number of vertices */
-		for (int seq = 1; seq <= pointCounter; ++seq) {
+		for (int seq = 1; seq <= point_counter; ++seq) {
 			mission_fence_point_s mission_fence_point;
 
 			if (dm_read(DM_KEY_FENCE_POINTS, seq, &mission_fence_point, sizeof(mission_fence_point_s)) ==
 			    sizeof(mission_fence_point_s)) {
-				mission_fence_point.vertex_count = pointCounter;
+				mission_fence_point.vertex_count = point_counter;
 				dm_write(DM_KEY_FENCE_POINTS, seq, DM_PERSIST_POWER_ON_RESET, &mission_fence_point,
 					 sizeof(mission_fence_point_s));
 			}
 		}
 
 		mission_stats_entry_s stats;
-		stats.num_items = pointCounter;
+		stats.num_items = point_counter;
 		rc = dm_write(DM_KEY_FENCE_POINTS, 0, DM_PERSIST_POWER_ON_RESET, &stats, sizeof(mission_stats_entry_s));
 
 	} else {
@@ -578,7 +578,7 @@ bool Geofence::isHomeRequired()
 {
 	bool max_horizontal_enabled = (_param_max_hor_distance.get() > FLT_EPSILON);
 	bool max_vertical_enabled = (_param_max_ver_distance.get() > FLT_EPSILON);
-	bool geofence_action_rtl = (getGeofenceAction() == geofence_result_s::GF_ACTION_RTL);
+	bool geofence_action_rtl = (getGeofenceAction() == geofence_result_s::gf_action_rtl);
 
 	return max_horizontal_enabled || max_vertical_enabled || geofence_action_rtl;
 }

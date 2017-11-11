@@ -72,12 +72,12 @@ private:
 	/**
 	 * Set the DLL item
 	 */
-	void		set_ef_item();
+	void		setEfItem();
 
 	/**
 	 * Move to next EF item
 	 */
-	void		advance_ef();
+	void		advanceEf();
 
 };
 #endif

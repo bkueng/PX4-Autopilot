@@ -54,18 +54,18 @@ public:
 
 	bool init();
 
-	void start_log();
+	void startLog();
 
-	void stop_log();
+	void stopLog();
 
-	bool is_started() const { return _is_started; }
+	bool isStarted() const { return _is_started; }
 
 	/** @see LogWriter::write_message() */
-	int write_message(void *ptr, size_t size);
+	int writeMessage(void *ptr, size_t size);
 
-	void set_need_reliable_transfer(bool need_reliable);
+	void setNeedReliableTransfer(bool need_reliable);
 
-	bool need_reliable_transfer() const
+	bool needReliableTransfer() const
 	{
 		return _need_reliable_transfer;
 	}
@@ -73,7 +73,7 @@ public:
 private:
 
 	/** publish message, wait for ack if needed & reset message */
-	int publish_message();
+	int publishMessage();
 
 	ulog_stream_s _ulog_stream_data;
 	orb_advert_t _ulog_stream_pub = nullptr;

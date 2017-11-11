@@ -63,7 +63,7 @@ public:
 	/**
 	 * Get the address
 	 */
-	int16_t		get_address() const { return _address; }
+	int16_t		getAddress() const { return _address; }
 
 protected:
 	/**
@@ -131,7 +131,7 @@ protected:
 	 *
 	 * @param address	The new bus address to set.
 	 */
-	void		set_address(uint16_t address)
+	void		setAddress(uint16_t address)
 	{
 		_address = address;
 		_device_id.devid_s.address = _address;

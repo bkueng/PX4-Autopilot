@@ -71,7 +71,7 @@ struct wqueue_s g_work[NWORKERS];
 /****************************************************************************
  * Private Variables
  ****************************************************************************/
-px4_sem_t _work_lock[NWORKERS];
+px4_sem_t work_lock[NWORKERS];
 
 /****************************************************************************
  * Private Functions
@@ -190,8 +190,8 @@ static void work_process(struct wqueue_s *wqueue, int lock_id)
  ****************************************************************************/
 void work_queues_init(void)
 {
-	px4_sem_init(&_work_lock[HPWORK], 0, 1);
-	px4_sem_init(&_work_lock[LPWORK], 0, 1);
+	px4_sem_init(&work_lock[HPWORK], 0, 1);
+	px4_sem_init(&work_lock[LPWORK], 0, 1);
 #ifdef CONFIG_SCHED_USRWORK
 	px4_sem_init(&_work_lock[USRWORK], 0, 1);
 #endif

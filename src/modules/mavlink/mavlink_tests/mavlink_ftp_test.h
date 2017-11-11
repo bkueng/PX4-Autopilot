@@ -48,10 +48,10 @@ public:
 
 	virtual bool run_tests(void);
 
-	static void receive_message_handler_generic(const mavlink_file_transfer_protocol_t *ftp_req, void *worker_data);
+	static void receiveMessageHandlerGeneric(const mavlink_file_transfer_protocol_t *ftp_req, void *worker_data);
 
 	/// Worker data for stream handler
-	struct BurstInfo {
+	struct burst_info {
 		MavlinkFtpTest		*ftp_test_class;
 		int			burst_state;
 		bool			single_packet_file;
@@ -59,14 +59,14 @@ public:
 		uint8_t		*file_bytes;
 	};
 
-	static void receive_message_handler_burst(const mavlink_file_transfer_protocol_t *ftp_req, void *worker_data);
+	static void receiveMessageHandlerBurst(const mavlink_file_transfer_protocol_t *ftp_req, void *worker_data);
 
-	static const uint8_t serverSystemId = 50;	///< System ID for server
-	static const uint8_t serverComponentId = 1;	///< Component ID for server
-	static const uint8_t serverChannel = 0;		///< Channel to send to
+	static const uint8_t server_system_id = 50;	///< System ID for server
+	static const uint8_t server_component_id = 1;	///< Component ID for server
+	static const uint8_t server_channel = 0;		///< Channel to send to
 
-	static const uint8_t clientSystemId = 1;	///< System ID for client
-	static const uint8_t clientComponentId = 0;	///< Component ID for client
+	static const uint8_t client_system_id = 1;	///< System ID for client
+	static const uint8_t client_component_id = 0;	///< Component ID for client
 
 	// We don't want any of these
 	MavlinkFtpTest(const MavlinkFtpTest &);
@@ -76,33 +76,33 @@ private:
 	virtual void _init(void);
 	virtual void _cleanup(void);
 
-	bool _ack_test(void);
-	bool _bad_opcode_test(void);
-	bool _bad_datasize_test(void);
-	bool _list_test(void);
-	bool _list_eof_test(void);
-	bool _open_badfile_test(void);
-	bool _open_terminate_test(void);
-	bool _terminate_badsession_test(void);
-	bool _read_test(void);
-	bool _read_badsession_test(void);
-	bool _burst_test(void);
-	bool _removedirectory_test(void);
-	bool _createdirectory_test(void);
-	bool _removefile_test(void);
+	bool ackTest(void);
+	bool badOpcodeTest(void);
+	bool badDatasizeTest(void);
+	bool listTest(void);
+	bool listEofTest(void);
+	bool openBadfileTest(void);
+	bool openTerminateTest(void);
+	bool terminateBadsessionTest(void);
+	bool readTest(void);
+	bool readBadsessionTest(void);
+	bool burstTest(void);
+	bool removedirectoryTest(void);
+	bool createdirectoryTest(void);
+	bool removefileTest(void);
 
-	void _receive_message_handler_generic(const mavlink_file_transfer_protocol_t *ftp_req);
-	void _setup_ftp_msg(const MavlinkFTP::PayloadHeader *payload_header, uint8_t size, const uint8_t *data,
+	void receiveMessageHandlerGeneric(const mavlink_file_transfer_protocol_t *ftp_req);
+	void setupFtpMsg(const MavlinkFTP::payload_header *payload_header, uint8_t size, const uint8_t *data,
 			    mavlink_message_t *msg);
-	bool _decode_message(const mavlink_file_transfer_protocol_t *ftp_msg, const MavlinkFTP::PayloadHeader **payload);
-	bool _send_receive_msg(MavlinkFTP::PayloadHeader	*payload_header,
+	bool decodeMessage(const mavlink_file_transfer_protocol_t *ftp_msg, const MavlinkFTP::payload_header **payload);
+	bool sendReceiveMsg(MavlinkFTP::payload_header	*payload_header,
 			       uint8_t				size,
 			       const uint8_t			*data,
-			       const MavlinkFTP::PayloadHeader	**payload_reply);
-	void _cleanup_microsd(void);
+			       const MavlinkFTP::payload_header	**payload_reply);
+	void cleanupMicrosd(void);
 
 	/// A single download test case
-	struct DownloadTestCase {
+	struct download_test_case {
 		const char	*file;
 		const uint16_t	length;
 		bool		singlePacketRead;
@@ -110,7 +110,7 @@ private:
 	};
 
 	/// The set of test cases for download testing
-	static const DownloadTestCase _rgDownloadTestCases[];
+	static const DownloadTestCase rg_download_test_cases[];
 
 	/// States for stream download handler
 	enum {
@@ -120,15 +120,15 @@ private:
 		burst_state_complete
 	};
 
-	bool _receive_message_handler_burst(const mavlink_file_transfer_protocol_t *ftp_req, BurstInfo *burst_info);
+	bool receiveMessageHandlerBurst(const mavlink_file_transfer_protocol_t *ftp_req, burst_info *burst_info);
 
 	MavlinkFTP	*_ftp_server;
 	uint16_t	_expected_seq_number;
 
 	mavlink_file_transfer_protocol_t _reply_msg;
 
-	static const char _unittest_microsd_dir[];
-	static const char _unittest_microsd_file[];
+	static const char unittest_microsd_dir[];
+	static const char unittest_microsd_file[];
 };
 
 bool mavlink_ftp_test(void);

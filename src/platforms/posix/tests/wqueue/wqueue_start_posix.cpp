@@ -60,7 +60,7 @@ int wqueue_test_main(int argc, char *argv[])
 
 	if (!strcmp(argv[1], "start")) {
 
-		if (WQueueTest::appState.isRunning()) {
+		if (WQueueTest::app_state.isRunning()) {
 			PX4_INFO("already running\n");
 			/* this is not an error */
 			return 0;
@@ -77,12 +77,12 @@ int wqueue_test_main(int argc, char *argv[])
 	}
 
 	if (!strcmp(argv[1], "stop")) {
-		WQueueTest::appState.requestExit();
+		WQueueTest::app_state.requestExit();
 		return 0;
 	}
 
 	if (!strcmp(argv[1], "status")) {
-		if (WQueueTest::appState.isRunning()) {
+		if (WQueueTest::app_state.isRunning()) {
 			PX4_INFO("is running\n");
 
 		} else {

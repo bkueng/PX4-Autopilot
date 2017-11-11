@@ -33,13 +33,13 @@ public:
 	 * send command to turn the camera on/off
 	 * @param enable
 	 */
-	virtual void send_toggle_power(bool enable) {}
+	virtual void sendTogglePower(bool enable) {}
 
 	/**
 	 * send command to prevent the camera from sleeping
 	 * @param enable
 	 */
-	virtual void send_keep_alive(bool enable) {}
+	virtual void sendKeepAlive(bool enable) {}
 
 	/**
 	 * Display info.
@@ -51,14 +51,14 @@ public:
 	 * camera power control
 	 * @return true if power control is supported
 	 */
-	virtual bool has_power_control() { return false; }
+	virtual bool hasPowerControl() { return false; }
 
 	/**
 	 * Checks if the camera connected to the interface
 	 * is turned on.
 	 * @return true if camera is on
 	 */
-	virtual bool is_powered_on() { return true; }
+	virtual bool isPoweredOn() { return true; }
 
 protected:
 
@@ -70,7 +70,7 @@ protected:
 	/**
 	 * get the hardware configuration
 	 */
-	void get_pins();
+	void getPins();
 
 	param_t _p_pin;
 

@@ -57,11 +57,11 @@ bool InputTest::finished()
 	return true; /* only a single-shot test (for now) */
 }
 
-int InputTest::update(unsigned int timeout_ms, ControlData **control_data, bool already_active)
+int InputTest::update(unsigned int timeout_ms, control_data **control_data, bool already_active)
 {
 	//we directly override the update() here, since we don't need the initialization from the base class
 
-	_control_data.type = ControlData::Type::Angle;
+	_control_data.type = control_data::Type::Angle;
 
 	for (int i = 0; i < 3; ++i) {
 		_control_data.type_data.angle.is_speed[i] = false;

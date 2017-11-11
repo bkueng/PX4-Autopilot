@@ -6,9 +6,9 @@ extern orb_advert_t mavlink_log_pub;
 
 // required number of samples for sensor
 // to initialize
-static const int	REQ_SONAR_INIT_COUNT = 10;
-static const uint32_t	SONAR_TIMEOUT = 5000000;	// 2.0 s
-static const float	SONAR_MAX_INIT_STD = 0.3f;	// meters
+static const int	req_sonar_init_count = 10;
+static const uint32_t	sonar_timeout = 5000000;	// 2.0 s
+static const float	sonar_max_init_std = 0.3f;	// meters
 
 void BlockLocalPositionEstimator::sonarInit()
 {
@@ -24,12 +24,12 @@ void BlockLocalPositionEstimator::sonarInit()
 	}
 
 	// if finished
-	if (_sonarStats.getCount() > REQ_SONAR_INIT_COUNT) {
-		if (_sonarStats.getStdDev()(0) > SONAR_MAX_INIT_STD) {
+	if (_sonarStats.getCount() > req_sonar_init_count) {
+		if (_sonarStats.getStdDev()(0) > sonar_max_init_std) {
 			mavlink_and_console_log_info(&mavlink_log_pub, "[lpe] sonar init std > min");
 			_sonarStats.reset();
 
-		} else if ((_timeStamp - _time_init_sonar) > SONAR_TIMEOUT) {
+		} else if ((_timeStamp - _time_init_sonar) > sonar_timeout) {
 			mavlink_and_console_log_info(&mavlink_log_pub, "[lpe] sonar init timeout ");
 			_sonarStats.reset();
 
@@ -91,34 +91,34 @@ void BlockLocalPositionEstimator::sonarCorrect()
 	}
 
 	// sonar measurement matrix and noise matrix
-	Matrix<float, n_y_sonar, n_x> C;
-	C.setZero();
+	Matrix<float, n_y_sonar, n_x> c;
+	c.setZero();
 	// y = -(z - tz)
 	// TODO could add trig to make this an EKF correction
-	C(Y_sonar_z, X_z) = -1;	// measured altitude, negative down dir.
-	C(Y_sonar_z, X_tz) = 1;	// measured altitude, negative down dir.
+	c(Y_sonar_z, X_z) = -1;	// measured altitude, negative down dir.
+	c(Y_sonar_z, X_tz) = 1;	// measured altitude, negative down dir.
 
 	// covariance matrix
-	SquareMatrix<float, n_y_sonar> R;
-	R.setZero();
-	R(0, 0) = cov;
+	SquareMatrix<float, n_y_sonar> r;
+	r.setZero();
+	r(0, 0) = cov;
 
 	// residual
-	Vector<float, n_y_sonar> r = y - C * _x;
+	Vector<float, n_y_sonar> r = y - c * _x;
 	// residual covariance
-	Matrix<float, n_y_sonar, n_y_sonar> S = C * _P * C.transpose() + R;
+	Matrix<float, n_y_sonar, n_y_sonar> s = c * _P * c.transpose() + r;
 
 	// publish innovations
 	_pub_innov.get().hagl_innov = r(0);
-	_pub_innov.get().hagl_innov_var = S(0, 0);
+	_pub_innov.get().hagl_innov_var = s(0, 0);
 
 	// residual covariance, (inverse)
-	Matrix<float, n_y_sonar, n_y_sonar> S_I = inv<float, n_y_sonar>(S);
+	Matrix<float, n_y_sonar, n_y_sonar> s_i = inv<float, n_y_sonar>(s);
 
 	// fault detection
-	float beta = (r.transpose()  * (S_I * r))(0, 0);
+	float beta = (r.transpose()  * (s_i * r))(0, 0);
 
-	if (beta > BETA_TABLE[n_y_sonar]) {
+	if (beta > beta_table[n_y_sonar]) {
 		if (!(_sensorFault & SENSOR_SONAR)) {
 			_sensorFault |= SENSOR_SONAR;
 			mavlink_and_console_log_info(&mavlink_log_pub, "[lpe] sonar fault,  beta %5.2f", double(beta));
@@ -134,17 +134,17 @@ void BlockLocalPositionEstimator::sonarCorrect()
 
 	// kalman filter correction if no fault
 	if (!(_sensorFault & SENSOR_SONAR)) {
-		Matrix<float, n_x, n_y_sonar> K =
-			_P * C.transpose() * S_I;
-		Vector<float, n_x> dx = K * r;
+		Matrix<float, n_x, n_y_sonar> k =
+			_P * c.transpose() * s_i;
+		Vector<float, n_x> dx = k * r;
 		_x += dx;
-		_P -= K * C * _P;
+		_P -= k * c * _P;
 	}
 }
 
 void BlockLocalPositionEstimator::sonarCheckTimeout()
 {
-	if (_timeStamp - _time_last_sonar > SONAR_TIMEOUT) {
+	if (_timeStamp - _time_last_sonar > sonar_timeout) {
 		if (!(_sensorTimeout & SENSOR_SONAR)) {
 			_sensorTimeout |= SENSOR_SONAR;
 			_sonarStats.reset();

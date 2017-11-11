@@ -54,13 +54,13 @@ public:
 	~LogListHelper();
 
 public:
-	static void delete_all(const char *dir);
+	static void deleteAll(const char *dir);
 
 public:
 
-	bool        get_entry(int idx, uint32_t &size, uint32_t &date, char *filename = 0, int filename_len = 0);
-	bool        open_for_transmit();
-	size_t      get_log_data(uint8_t len, uint8_t *buffer);
+	bool        getEntry(int idx, uint32_t &size, uint32_t &date, char *filename = 0, int filename_len = 0);
+	bool        openForTransmit();
+	size_t      getLogData(uint8_t len, uint8_t *buffer);
 
 	enum {
 		LOG_HANDLER_IDLE,
@@ -81,10 +81,10 @@ public:
 	char        current_log_filename[128];
 
 private:
-	void        _init();
-	bool        _get_session_date(const char *path, const char *dir, time_t &date);
-	void        _scan_logs(FILE *f, const char *dir, time_t &date);
-	bool        _get_log_time_size(const char *path, const char *file, time_t &date, uint32_t &size);
+	void        init();
+	bool        getSessionDate(const char *path, const char *dir, time_t &date);
+	void        scanLogs(FILE *f, const char *dir, time_t &date);
+	bool        getLogTimeSize(const char *path, const char *file, time_t &date, uint32_t &size);
 };
 
 // MAVLink LOG_* Message Handler
@@ -94,7 +94,7 @@ public:
 	MavlinkLogHandler(Mavlink *mavlink);
 
 	// Handle possible LOG message
-	void handle_message(const mavlink_message_t *msg);
+	void handleMessage(const mavlink_message_t *msg);
 
 	/**
 	 * Handle sending of messages. Call this regularly at a fixed frequency.
@@ -102,17 +102,17 @@ public:
 	 */
 	void send(const hrt_abstime t);
 
-	unsigned get_size();
+	unsigned getSize();
 
 private:
-	void _log_message(const mavlink_message_t *msg);
-	void _log_request_list(const mavlink_message_t *msg);
-	void _log_request_data(const mavlink_message_t *msg);
-	void _log_request_erase(const mavlink_message_t *msg);
-	void _log_request_end(const mavlink_message_t *msg);
+	void logMessage(const mavlink_message_t *msg);
+	void logRequestList(const mavlink_message_t *msg);
+	void logRequestData(const mavlink_message_t *msg);
+	void logRequestErase(const mavlink_message_t *msg);
+	void logRequestEnd(const mavlink_message_t *msg);
 
-	size_t _log_send_listing();
-	size_t _log_send_data();
+	size_t logSendListing();
+	size_t logSendData();
 
 	LogListHelper    *_pLogHandlerHelper;
 	Mavlink *_mavlink;

@@ -107,33 +107,33 @@ public:
      *
      * @return  true if the mainloop is running
      */
-    bool task_running() { return _task_running; }
+    bool taskRunning() { return _task_running; }
 
     /**
      * Print the current status.
      */
-    void print_status();
+    void printStatus();
 
     /**
      * Trip the filter by feeding it NaN values.
      */
-    int trip_nan();
+    int tripNan();
 
     /**
      * Enable logging.
      *
      * @param   enable Set to true to enable logging, false to disable
      */
-    int enable_logging(bool enable);
+    int enableLogging(bool enable);
 
     /**
      * Set debug level.
      *
      * @param   debug Desired debug level - 0 to disable.
      */
-    int set_debuglevel(unsigned debug) { _debug = debug; return 0; }
+    int setDebuglevel(unsigned debug) { _debug = debug; return 0; }
 
-    static constexpr unsigned MAX_PREDICITION_STEPS = 3; /**< maximum number of prediction steps between updates */
+    static constexpr unsigned max_predicition_steps = 3; /**< maximum number of prediction steps between updates */
 
 private:
     bool        _task_should_exit;      /**< if true, sensor task should exit */
@@ -279,40 +279,40 @@ private:
     /**
      * Update our local parameter cache.
      */
-    int     parameters_update();
+    int     parametersUpdate();
 
     /**
      * Update control outputs
      *
      */
-    void        control_update();
+    void        controlUpdate();
 
     /**
      * Check for changes in land detected.
      */
-    void        vehicle_status_poll();
+    void        vehicleStatusPoll();
 
     /**
      * Check for changes in land detected.
      */
-    void        vehicle_land_detected_poll();
+    void        vehicleLandDetectedPoll();
 
     /**
      * Shim for calling task_main from task_create.
      */
-    static void task_main_trampoline(int argc, char *argv[]);
+    static void taskMainTrampoline(int argc, char *argv[]);
 
     /**
      * Main filter task.
      */
-    void        task_main();
+    void        taskMain();
 
     /**
      * Check filter sanity state
      *
      * @return zero if ok, non-zero for a filter error condition.
      */
-    int     check_filter_state();
+    int     checkFilterState();
 
     /**
     * @brief
@@ -344,8 +344,8 @@ private:
     *   Runs the sensor fusion step of the filter. The parameters determine which of the sensors
     *   are fused with each other
     **/
-    void updateSensorFusion(const bool fuseGPS, const bool fuseMag, const bool fuseRangeSensor,
-            const bool fuseBaro, const bool fuseAirSpeed);
+    void updateSensorFusion(const bool fuse_gps, const bool fuse_mag, const bool fuse_range_sensor,
+            const bool fuse_baro, const bool fuse_air_speed);
 
     /**
     * @brief

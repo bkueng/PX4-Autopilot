@@ -107,27 +107,27 @@ public:
 	/**
 	 * Run intervalometer update
 	 */
-	void		update_intervalometer();
+	void		updateIntervalometer();
 
 	/**
 	 * Run distance-based trigger update
 	 */
-	void		update_distance();
+	void		updateDistance();
 
 	/**
 	 * Trigger the camera just once
 	 */
-	void		shoot_once();
+	void		shootOnce();
 
 	/**
 	 * Toggle keep camera alive functionality
 	 */
-	void		enable_keep_alive(bool on);
+	void		enableKeepAlive(bool on);
 
 	/**
 	 * Toggle camera power (on/off)
 	 */
-	void        toggle_power();
+	void        togglePower();
 
 	/**
 	 * Start the task.
@@ -158,7 +158,7 @@ private:
 	struct hrt_call		_keepalivecall_up;
 	struct hrt_call		_keepalivecall_down;
 
-	static struct work_s	_work;
+	static struct work_s	work;
 
 	float			_activation_time;
 	float			_interval;
@@ -192,7 +192,7 @@ private:
 	/**
 	 * Vehicle command handler
 	 */
-	static void	cycle_trampoline(void *arg);
+	static void	cycleTrampoline(void *arg);
 	/**
 	 * Fires trigger
 	 */
@@ -204,23 +204,23 @@ private:
 	/**
 	 * Fires on/off
 	 */
-	static void engange_turn_on_off(void *arg);
+	static void engangeTurnOnOff(void *arg);
 	/**
 	 * Resets  on/off
 	 */
-	static void disengage_turn_on_off(void *arg);
+	static void disengageTurnOnOff(void *arg);
 	/**
 	 * Enables keep alive signal
 	 */
-	static void	keep_alive_up(void *arg);
+	static void	keepAliveUp(void *arg);
 	/**
 	 * Disables keep alive signal
 	 */
-	static void	keep_alive_down(void *arg);
+	static void	keepAliveDown(void *arg);
 
 };
 
-struct work_s CameraTrigger::_work;
+struct work_s CameraTrigger::work;
 
 namespace camera_trigger
 {
@@ -261,7 +261,7 @@ CameraTrigger::CameraTrigger() :
 		_camera_interface = nullptr;
 	}
 
-	memset(&_work, 0, sizeof(_work));
+	memset(&work, 0, sizeof(work));
 
 	// Parameters
 	_p_interval = param_find("TRIG_INTERVAL");
@@ -327,7 +327,7 @@ CameraTrigger::~CameraTrigger()
 }
 
 void
-CameraTrigger::update_intervalometer()
+CameraTrigger::updateIntervalometer()
 {
 
 	// the actual intervalometer runs in interrupt context, so we only need to call
@@ -347,7 +347,7 @@ CameraTrigger::update_intervalometer()
 }
 
 void
-CameraTrigger::update_distance()
+CameraTrigger::updateDistance()
 {
 
 	if (_lpos_sub < 0) {
@@ -386,15 +386,15 @@ CameraTrigger::update_distance()
 }
 
 void
-CameraTrigger::enable_keep_alive(bool on)
+CameraTrigger::enableKeepAlive(bool on)
 {
 	if (on) {
 		// schedule keep-alive up and down calls
 		hrt_call_every(&_keepalivecall_up, 0, (60000 * 1000),
-			       (hrt_callout)&CameraTrigger::keep_alive_up, this);
+			       (hrt_callout)&CameraTrigger::keepAliveUp, this);
 
 		hrt_call_every(&_keepalivecall_down, 0 + (30000 * 1000), (60000 * 1000),
-			       (hrt_callout)&CameraTrigger::keep_alive_down, this);
+			       (hrt_callout)&CameraTrigger::keepAliveDown, this);
 
 	} else {
 		// cancel all calls
@@ -405,19 +405,19 @@ CameraTrigger::enable_keep_alive(bool on)
 }
 
 void
-CameraTrigger::toggle_power()
+CameraTrigger::togglePower()
 {
 
 	// schedule power toggle calls
 	hrt_call_after(&_engage_turn_on_off_call, 0,
-		       (hrt_callout)&CameraTrigger::engange_turn_on_off, this);
+		       (hrt_callout)&CameraTrigger::engangeTurnOnOff, this);
 
 	hrt_call_after(&_disengage_turn_on_off_call, 0 + (200 * 1000),
-		       (hrt_callout)&CameraTrigger::disengage_turn_on_off, this);
+		       (hrt_callout)&CameraTrigger::disengageTurnOnOff, this);
 }
 
 void
-CameraTrigger::shoot_once()
+CameraTrigger::shootOnce()
 {
 	if (!_trigger_paused) {
 
@@ -460,14 +460,14 @@ CameraTrigger::start()
 	}
 
 	// start to monitor at high rate for trigger enable command
-	work_queue(LPWORK, &_work, (worker_t)&CameraTrigger::cycle_trampoline, this, USEC2TICK(1));
+	work_queue(LPWORK, &work, (worker_t)&CameraTrigger::cycleTrampoline, this, USEC2TICK(1));
 
 }
 
 void
 CameraTrigger::stop()
 {
-	work_cancel(LPWORK, &_work);
+	work_cancel(LPWORK, &work);
 	hrt_cancel(&_engagecall);
 	hrt_cancel(&_disengagecall);
 	hrt_cancel(&_engage_turn_on_off_call);
@@ -492,15 +492,15 @@ CameraTrigger::test()
 		.param3 = 0.0f,
 		.param4 = 0.0f,
 		.param7 = 0.0f,
-		.command = vehicle_command_s::VEHICLE_CMD_DO_DIGICAM_CONTROL
+		.command = vehicle_command_s::vehicle_cmd_do_digicam_control
 	};
 
-	orb_advert_t pub = orb_advertise_queue(ORB_ID(vehicle_command), &cmd, vehicle_command_s::ORB_QUEUE_LENGTH);
+	orb_advert_t pub = orb_advertise_queue(ORB_ID(vehicle_command), &cmd, vehicle_command_s::orb_queue_length);
 	(void)orb_unadvertise(pub);
 }
 
 void
-CameraTrigger::cycle_trampoline(void *arg)
+CameraTrigger::cycleTrampoline(void *arg)
 {
 
 	CameraTrigger *trig = reinterpret_cast<CameraTrigger *>(arg);
@@ -516,7 +516,7 @@ CameraTrigger::cycle_trampoline(void *arg)
 	orb_check(trig->_command_sub, &updated);
 
 	struct vehicle_command_s cmd;
-	unsigned cmd_result = vehicle_command_s::VEHICLE_CMD_RESULT_TEMPORARILY_REJECTED;
+	unsigned cmd_result = vehicle_command_s::vehicle_cmd_result_temporarily_rejected;
 	bool need_ack = false;
 
 	// this flag is set when the polling loop is slowed down to allow the camera to power on
@@ -531,7 +531,7 @@ CameraTrigger::cycle_trampoline(void *arg)
 
 		orb_copy(ORB_ID(vehicle_command), trig->_command_sub, &cmd);
 
-		if (cmd.command == vehicle_command_s::VEHICLE_CMD_DO_DIGICAM_CONTROL) {
+		if (cmd.command == vehicle_command_s::vehicle_cmd_do_digicam_control) {
 
 			need_ack = true;
 
@@ -547,9 +547,9 @@ CameraTrigger::cycle_trampoline(void *arg)
 
 			}
 
-			cmd_result = vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED;
+			cmd_result = vehicle_command_s::vehicle_cmd_result_accepted;
 
-		} else if (cmd.command == vehicle_command_s::VEHICLE_CMD_DO_TRIGGER_CONTROL) {
+		} else if (cmd.command == vehicle_command_s::vehicle_cmd_do_trigger_control) {
 
 			need_ack = true;
 
@@ -576,9 +576,9 @@ CameraTrigger::cycle_trampoline(void *arg)
 
 			}
 
-			cmd_result = vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED;
+			cmd_result = vehicle_command_s::vehicle_cmd_result_accepted;
 
-		} else if (cmd.command == vehicle_command_s::VEHICLE_CMD_DO_SET_CAM_TRIGG_DIST) {
+		} else if (cmd.command == vehicle_command_s::vehicle_cmd_do_set_cam_trigg_dist) {
 
 			need_ack = true;
 
@@ -614,9 +614,9 @@ CameraTrigger::cycle_trampoline(void *arg)
 				trig->_one_shot = true;
 			}
 
-			cmd_result = vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED;
+			cmd_result = vehicle_command_s::vehicle_cmd_result_accepted;
 
-		} else if (cmd.command == vehicle_command_s::VEHICLE_CMD_DO_SET_CAM_TRIGG_INTERVAL) {
+		} else if (cmd.command == vehicle_command_s::vehicle_cmd_do_set_cam_trigg_interval) {
 
 			need_ack = true;
 
@@ -633,7 +633,7 @@ CameraTrigger::cycle_trampoline(void *arg)
 				}
 			}
 
-			cmd_result = vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED;
+			cmd_result = vehicle_command_s::vehicle_cmd_result_accepted;
 
 		}
 
@@ -735,7 +735,7 @@ CameraTrigger::cycle_trampoline(void *arg)
 
 		if (trig->_cmd_ack_pub == nullptr) {
 			trig->_cmd_ack_pub = orb_advertise_queue(ORB_ID(vehicle_command_ack), &command_ack,
-					     vehicle_command_ack_s::ORB_QUEUE_LENGTH);
+					     vehicle_command_ack_s::orb_queue_length);
 
 		} else {
 			orb_publish(ORB_ID(vehicle_command_ack), trig->_cmd_ack_pub, &command_ack);
@@ -743,7 +743,7 @@ CameraTrigger::cycle_trampoline(void *arg)
 		}
 	}
 
-	work_queue(LPWORK, &_work, (worker_t)&CameraTrigger::cycle_trampoline,
+	work_queue(LPWORK, &work, (worker_t)&CameraTrigger::cycleTrampoline,
 		   camera_trigger::g_camera_trigger, USEC2TICK(poll_interval_usec));
 }
 
@@ -791,7 +791,7 @@ CameraTrigger::disengage(void *arg)
 }
 
 void
-CameraTrigger::engange_turn_on_off(void *arg)
+CameraTrigger::engangeTurnOnOff(void *arg)
 {
 	CameraTrigger *trig = reinterpret_cast<CameraTrigger *>(arg);
 
@@ -799,7 +799,7 @@ CameraTrigger::engange_turn_on_off(void *arg)
 }
 
 void
-CameraTrigger::disengage_turn_on_off(void *arg)
+CameraTrigger::disengageTurnOnOff(void *arg)
 {
 	CameraTrigger *trig = reinterpret_cast<CameraTrigger *>(arg);
 
@@ -807,7 +807,7 @@ CameraTrigger::disengage_turn_on_off(void *arg)
 }
 
 void
-CameraTrigger::keep_alive_up(void *arg)
+CameraTrigger::keepAliveUp(void *arg)
 {
 	CameraTrigger *trig = reinterpret_cast<CameraTrigger *>(arg);
 
@@ -815,7 +815,7 @@ CameraTrigger::keep_alive_up(void *arg)
 }
 
 void
-CameraTrigger::keep_alive_down(void *arg)
+CameraTrigger::keepAliveDown(void *arg)
 {
 	CameraTrigger *trig = reinterpret_cast<CameraTrigger *>(arg);
 

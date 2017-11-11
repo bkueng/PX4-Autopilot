@@ -296,7 +296,7 @@ param_find_changed(param_t param)
 }
 
 static void
-_param_notify_changes(void)
+param_notify_changes(void)
 {
 #if !defined(PARAM_NO_ORB)
 	struct parameter_update_s pup = {
@@ -321,7 +321,7 @@ _param_notify_changes(void)
 void
 param_notify_changes(void)
 {
-	_param_notify_changes();
+	param_notify_changes();
 }
 
 param_t
@@ -765,7 +765,7 @@ out:
 	 * a thing has been set.
 	 */
 	if (params_changed && notify_changes) {
-		_param_notify_changes();
+		param_notify_changes();
 	}
 
 	return result;
@@ -848,7 +848,7 @@ param_reset(param_t param)
 	param_unlock_writer();
 
 	if (s != NULL) {
-		_param_notify_changes();
+		param_notify_changes();
 	}
 
 	return (!param_found);
@@ -871,7 +871,7 @@ param_reset_all_internal(bool auto_save)
 
 	param_unlock_writer();
 
-	_param_notify_changes();
+	param_notify_changes();
 }
 
 void
@@ -905,7 +905,7 @@ param_reset_excludes(const char *excludes[], int num_excludes)
 		}
 	}
 
-	_param_notify_changes();
+	param_notify_changes();
 }
 
 int

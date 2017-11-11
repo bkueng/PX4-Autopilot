@@ -68,7 +68,7 @@ FollowTarget::FollowTarget(Navigator *navigator, const char *name) :
 	_follow_target_position(FOLLOW_FROM_BEHIND),
 	_follow_target_sub(-1),
 	_step_time_in_ms(0.0f),
-	_follow_offset(OFFSET_M),
+	_follow_offset(offset_m),
 	_target_updates(0),
 	_last_update_time(0),
 	_current_target_motion(),
@@ -125,8 +125,8 @@ void FollowTarget::on_active()
 	math::Vector<3> target_reported_velocity(0, 0, 0);
 	follow_target_s target_motion_with_offset = {};
 	uint64_t current_time = hrt_absolute_time();
-	bool _radius_entered = false;
-	bool _radius_exited = false;
+	bool radius_entered = false;
+	bool radius_exited = false;
 	bool updated = false;
 	float dt_ms = 0;
 
@@ -156,7 +156,7 @@ void FollowTarget::on_active()
 		target_reported_velocity(0) = _current_target_motion.vx;
 		target_reported_velocity(1) = _current_target_motion.vy;
 
-	} else if (((current_time - _current_target_motion.timestamp) / 1000) > TARGET_TIMEOUT_MS && target_velocity_valid()) {
+	} else if (((current_time - _current_target_motion.timestamp) / 1000) > target_timeout_ms && target_velocity_valid()) {
 		reset_target_validity();
 	}
 
@@ -199,8 +199,8 @@ void FollowTarget::on_active()
 			// give a buffer to exit/enter the radius to give the velocity controller
 			// a chance to catch up
 
-			_radius_exited = ((_target_position_offset + _target_distance).length() > (float) TARGET_ACCEPTANCE_RADIUS_M * 1.5f);
-			_radius_entered = ((_target_position_offset + _target_distance).length() < (float) TARGET_ACCEPTANCE_RADIUS_M);
+			radius_exited = ((_target_position_offset + _target_distance).length() > (float) target_acceptance_radius_m * 1.5f);
+			radius_entered = ((_target_position_offset + _target_distance).length() < (float) target_acceptance_radius_m);
 
 			// to keep the velocity increase/decrease smooth
 			// calculate how many velocity increments/decrements
@@ -210,9 +210,9 @@ void FollowTarget::on_active()
 			// just traveling at the exact velocity of the target will not
 			// get any closer or farther from the target
 
-			_step_vel = (_est_target_vel - _current_vel) + (_target_position_offset + _target_distance) * FF_K;
-			_step_vel /= (dt_ms / 1000.0F * (float) INTERPOLATION_PNTS);
-			_step_time_in_ms = (dt_ms / (float) INTERPOLATION_PNTS);
+			_step_vel = (_est_target_vel - _current_vel) + (_target_position_offset + _target_distance) * ff_k;
+			_step_vel /= (dt_ms / 1000.0F * (float) interpolation_pnts);
+			_step_time_in_ms = (dt_ms / (float) interpolation_pnts);
 
 			// if we are less than 1 meter from the target don't worry about trying to yaw
 			// lock the yaw until we are at a distance that makes sense
@@ -231,7 +231,7 @@ void FollowTarget::on_active()
 
 				_yaw_rate = (_yaw_angle - _navigator->get_global_position()->yaw) / (dt_ms / 1000.0F);
 
-				_yaw_rate = _wrap_pi(_yaw_rate);
+				_yaw_rate = wrap_pi(_yaw_rate);
 
 				_yaw_rate = math::constrain(_yaw_rate, -1.0F * _yaw_auto_max, _yaw_auto_max);
 
@@ -277,7 +277,7 @@ void FollowTarget::on_active()
 
 	case TRACK_POSITION: {
 
-			if (_radius_entered == true) {
+			if (radius_entered == true) {
 				_follow_target_state = TRACK_VELOCITY;
 
 			} else if (target_velocity_valid()) {
@@ -296,7 +296,7 @@ void FollowTarget::on_active()
 
 	case TRACK_VELOCITY: {
 
-			if (_radius_exited == true) {
+			if (radius_exited == true) {
 				_follow_target_state = TRACK_POSITION;
 
 			} else if (target_velocity_valid()) {
@@ -351,7 +351,7 @@ void FollowTarget::on_active()
 	}
 }
 
-void FollowTarget::update_position_sp(bool use_velocity, bool use_position, float yaw_rate)
+void FollowTarget::updatePositionSp(bool use_velocity, bool use_position, float yaw_rate)
 {
 	// convert mission item to current setpoint
 
@@ -363,7 +363,7 @@ void FollowTarget::update_position_sp(bool use_velocity, bool use_position, floa
 	pos_sp_triplet->previous = pos_sp_triplet->current;
 	mission_apply_limitation(_mission_item);
 	mission_item_to_position_setpoint(_mission_item, &pos_sp_triplet->current);
-	pos_sp_triplet->current.type = position_setpoint_s::SETPOINT_TYPE_FOLLOW_TARGET;
+	pos_sp_triplet->current.type = position_setpoint_s::setpoint_type_follow_target;
 	pos_sp_triplet->current.position_valid = use_position;
 	pos_sp_triplet->current.velocity_valid = use_velocity;
 	pos_sp_triplet->current.vx = _current_vel(0);
@@ -374,7 +374,7 @@ void FollowTarget::update_position_sp(bool use_velocity, bool use_position, floa
 	_navigator->set_position_setpoint_triplet_updated();
 }
 
-void FollowTarget::reset_target_validity()
+void FollowTarget::resetTargetValidity()
 {
 	_yaw_rate = NAN;
 	_previous_target_motion = {};
@@ -389,20 +389,20 @@ void FollowTarget::reset_target_validity()
 	_follow_target_state = SET_WAIT_FOR_TARGET_POSITION;
 }
 
-bool FollowTarget::target_velocity_valid()
+bool FollowTarget::targetVelocityValid()
 {
 	// need at least 2 continuous data points for velocity estimate
 	return (_target_updates >= 2);
 }
 
-bool FollowTarget::target_position_valid()
+bool FollowTarget::targetPositionValid()
 {
 	// need at least 1 continuous data points for position estimate
 	return (_target_updates >= 1);
 }
 
 void
-FollowTarget::set_follow_target_item(struct mission_item_s *item, float min_clearance, follow_target_s &target,
+FollowTarget::setFollowTargetItem(struct mission_item_s *item, float min_clearance, follow_target_s &target,
 				     float yaw)
 {
 	if (_navigator->get_land_detected()->landed) {

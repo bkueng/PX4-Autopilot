@@ -59,10 +59,10 @@ public:
 
 	/// @brief Override to run your unit tests. Unit tests should be called using ut_run_test macro.
 	/// @return true: all unit tests succeeded, false: one or more unit tests failed
-	virtual bool run_tests(void) = 0;
+	virtual bool runTests() = 0;
 
 	/// @brief Prints results from running of unit tests.
-	void print_results()
+	void printResults()
 	{
 		if (_tests_failed) {
 			PX4_ERR("SOME TESTS FAILED");
@@ -186,15 +186,15 @@ protected:
 		}										\
 	} while (0)
 
-	virtual void _init(void) {}		///< Run before each unit test. Override to provide custom behavior.
-	virtual void _cleanup(void) {}		///< Run after each unit test. Override to provide custom behavior.
+	virtual void init() {}		///< Run before each unit test. Override to provide custom behavior.
+	virtual void cleanup() {}		///< Run after each unit test. Override to provide custom behavior.
 
-	void _print_assert(const char *msg, const char *test, const char *file, int line)
+	void printAssert(const char *msg, const char *test, const char *file, int line)
 	{
 		PX4_ERR("Assertion failed: %s - %s (%s:%d)", msg, test, file, line);
 	}
 
-	void _print_compare(const char *msg, const char *v1_text, int v1, const char *v2_text, int v2, const char *file,
+	void printCompare(const char *msg, const char *v1_text, int v1, const char *v2_text, int v2, const char *file,
 			    int line)
 	{
 		PX4_ERR("Compare failed: %s - (%s:%d) (%s:%d) (%s:%d)", msg, v1_text, v1, v2_text, v2, file, line);

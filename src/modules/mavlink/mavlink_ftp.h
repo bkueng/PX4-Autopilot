@@ -62,19 +62,19 @@ public:
 	void send(const hrt_abstime t);
 
 	/// Handle possible FTP message
-	void handle_message(const mavlink_message_t *msg);
+	void handleMessage(const mavlink_message_t *msg);
 
 	typedef void (*ReceiveMessageFunc_t)(const mavlink_file_transfer_protocol_t *ftp_req, void *worker_data);
 
 	/// @brief Sets up the server to run in unit test mode.
 	///	@param rcvmsgFunc Function which will be called to handle outgoing mavlink messages.
 	///	@param worker_data Data to pass to worker
-	void set_unittest_worker(ReceiveMessageFunc_t rcvMsgFunc, void *worker_data);
+	void setUnittestWorker(ReceiveMessageFunc_t rcv_msg_func, void *worker_data);
 
 	/// @brief This is the payload which is in mavlink_file_transfer_protocol_t.payload.
 	/// This needs to be packed, because it's typecasted from mavlink_file_transfer_protocol_t.payload, which starts
 	/// at a 3 byte offset, causing an unaligned access to seq_number and offset
-	struct __attribute__((__packed__)) PayloadHeader {
+	struct __attribute__((__packed__)) payload_header {
 		uint16_t	seq_number;	///< sequence number for message
 		uint8_t		session;	///< Session id for read and write commands
 		uint8_t		opcode;		///< Command opcode
@@ -123,47 +123,47 @@ public:
 		kErrFailFileProtected		///< File is write protected
 	};
 
-	unsigned get_size();
+	unsigned getSize();
 
 private:
-	char		*_data_as_cstring(PayloadHeader *payload);
+	char		*dataAsCstring(payload_header *payload);
 
-	void		_process_request(mavlink_file_transfer_protocol_t *ftp_req, uint8_t target_system_id);
-	void		_reply(mavlink_file_transfer_protocol_t *ftp_req);
-	int		_copy_file(const char *src_path, const char *dst_path, size_t length);
+	void		processRequest(mavlink_file_transfer_protocol_t *ftp_req, uint8_t target_system_id);
+	void		reply(mavlink_file_transfer_protocol_t *ftp_req);
+	int		copyFile(const char *src_path, const char *dst_path, size_t length);
 
-	ErrorCode	_workList(PayloadHeader *payload, bool list_hidden = false);
-	ErrorCode	_workOpen(PayloadHeader *payload, int oflag);
-	ErrorCode	_workRead(PayloadHeader *payload);
-	ErrorCode	_workBurst(PayloadHeader *payload, uint8_t target_system_id);
-	ErrorCode	_workWrite(PayloadHeader *payload);
-	ErrorCode	_workTerminate(PayloadHeader *payload);
-	ErrorCode	_workReset(PayloadHeader *payload);
-	ErrorCode	_workRemoveDirectory(PayloadHeader *payload);
-	ErrorCode	_workCreateDirectory(PayloadHeader *payload);
-	ErrorCode	_workRemoveFile(PayloadHeader *payload);
-	ErrorCode	_workTruncateFile(PayloadHeader *payload);
-	ErrorCode	_workRename(PayloadHeader *payload);
-	ErrorCode	_workCalcFileCRC32(PayloadHeader *payload);
+	ErrorCode	workList(payload_header *payload, bool list_hidden = false);
+	ErrorCode	workOpen(payload_header *payload, int oflag);
+	ErrorCode	workRead(payload_header *payload);
+	ErrorCode	workBurst(payload_header *payload, uint8_t target_system_id);
+	ErrorCode	workWrite(payload_header *payload);
+	ErrorCode	workTerminate(payload_header *payload);
+	ErrorCode	workReset(payload_header *payload);
+	ErrorCode	workRemoveDirectory(payload_header *payload);
+	ErrorCode	workCreateDirectory(payload_header *payload);
+	ErrorCode	workRemoveFile(payload_header *payload);
+	ErrorCode	workTruncateFile(payload_header *payload);
+	ErrorCode	workRename(payload_header *payload);
+	ErrorCode	workCalcFileCrC32(payload_header *payload);
 
-	uint8_t _getServerSystemId(void);
-	uint8_t _getServerComponentId(void);
-	uint8_t _getServerChannel(void);
+	uint8_t getServerSystemId(void);
+	uint8_t getServerComponentId(void);
+	uint8_t getServerChannel(void);
 
 	/**
 	 * make sure that the working buffers _work_buffer* are allocated
 	 * @return true if buffers exist, false if allocation failed
 	 */
-	bool _ensure_buffers_exist();
+	bool ensureBuffersExist();
 
-	static const char	kDirentFile = 'F';	///< Identifies File returned from List command
-	static const char	kDirentDir = 'D';	///< Identifies Directory returned from List command
-	static const char	kDirentSkip = 'S';	///< Identifies Skipped entry from List command
+	static const char	k_dirent_file = 'F';	///< Identifies File returned from List command
+	static const char	k_dirent_dir = 'D';	///< Identifies Directory returned from List command
+	static const char	k_dirent_skip = 'S';	///< Identifies Skipped entry from List command
 
 	/// @brief Maximum data size in RequestHeader::data
-	static const uint8_t	kMaxDataLength = MAVLINK_MSG_FILE_TRANSFER_PROTOCOL_FIELD_PAYLOAD_LEN - sizeof(PayloadHeader);
+	static const uint8_t	k_max_data_length = MAVLINK_MSG_FILE_TRANSFER_PROTOCOL_FIELD_PAYLOAD_LEN - sizeof(payload_header);
 
-	struct SessionInfo {
+	struct session_info {
 		int		fd;
 		uint32_t	file_size;
 		bool		stream_download;
@@ -172,7 +172,7 @@ private:
 		uint8_t		stream_target_system_id;
 		unsigned	stream_chunk_transmitted;
 	};
-	struct SessionInfo _session_info;	///< Session info, fd=-1 for no active session
+	struct session_info _session_info;	///< Session info, fd=-1 for no active session
 
 	ReceiveMessageFunc_t	_utRcvMsgFunc;	///< Unit test override for mavlink message sending
 	void			*_worker_data;	///< Additional parameter to _utRcvMsgFunc;
@@ -185,23 +185,23 @@ private:
 
 	/* work buffers: they're allocated as soon as we get the first request (lazy, since FTP is rarely used) */
 	char *_work_buffer1;
-	static constexpr int _work_buffer1_len = kMaxDataLength;
+	static constexpr int work_buffer1_len = k_max_data_length;
 	char *_work_buffer2;
-	static constexpr int _work_buffer2_len = 256;
+	static constexpr int work_buffer2_len = 256;
 	hrt_abstime _last_work_buffer_access; ///< timestamp when the buffers were last accessed
 
 	// prepend a root directory to each file/dir access to avoid enumerating the full FS tree (e.g. on Linux).
 	// Note that requests can still fall outside of the root dir by using ../..
 #ifdef MAVLINK_FTP_UNIT_TEST
-	static constexpr const char _root_dir[] = "";
+	static constexpr const char root_dir[] = "";
 #else
-	static constexpr const char _root_dir[] = PX4_ROOTFSDIR;
+	static constexpr const char root_dir[] = PX4_ROOTFSDIR;
 #endif
-	static constexpr const int _root_dir_len = sizeof(_root_dir) - 1;
+	static constexpr const int root_dir_len = sizeof(root_dir) - 1;
 
 	bool _last_reply_valid = false;
 	uint8_t _last_reply[MAVLINK_MSG_ID_FILE_TRANSFER_PROTOCOL_LEN - MAVLINK_MSG_FILE_TRANSFER_PROTOCOL_FIELD_PAYLOAD_LEN
-								      + sizeof(PayloadHeader) + sizeof(uint32_t)];
+								      + sizeof(payload_header) + sizeof(uint32_t)];
 
 	// Mavlink test needs to be able to call send
 	friend class MavlinkFtpTest;

@@ -54,7 +54,7 @@ class Standard : public VtolType
 
 public:
 
-	Standard(VtolAttitudeControl *_att_controller);
+	Standard(VtolAttitudeControl *att_controller);
 	~Standard();
 
 	virtual void update_vtol_state();
@@ -121,7 +121,7 @@ private:
 	float _reverse_output;
 	float _airspeed_trans_blend_margin;
 
-	void set_max_mc(unsigned pwm_value);
+	void setMaxMc(unsigned pwm_value);
 
 	virtual void parameters_update();
 };

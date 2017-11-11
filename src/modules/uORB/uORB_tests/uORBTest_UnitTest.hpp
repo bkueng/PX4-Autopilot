@@ -64,71 +64,71 @@ struct orb_test_large {
 ORB_DECLARE(orb_test_large);
 
 
-namespace uORBTest
+namespace u_orb_test
 {
 class UnitTest;
 }
 
-class uORBTest::UnitTest
+class u_orb_test::UnitTest
 {
 public:
 
 	// Singleton pattern
-	static uORBTest::UnitTest &instance();
+	static u_orb_test::UnitTest &instance();
 	~UnitTest() {}
 	int test();
-	template<typename S> int latency_test(orb_id_t T, bool print);
+	template<typename S> int latencyTest(orb_id_t t, bool print);
 	int info();
 
 private:
-	UnitTest() : pubsubtest_passed(false), pubsubtest_print(false) {}
+	UnitTest() : _pubsubtest_passed(false), _pubsubtest_print(false) {}
 
 	// Disallow copy
-	UnitTest(const uORBTest::UnitTest & /*unused*/) = delete;
+	UnitTest(const u_orb_test::UnitTest & /*unused*/) = delete;
 
-	static int pubsubtest_threadEntry(char *const argv[]);
-	int pubsublatency_main();
+	static int pubsubtestThreadEntry(char *const argv[]);
+	int pubsublatencyMain();
 
-	static int pub_test_multi2_entry(char *const argv[]);
-	int pub_test_multi2_main();
+	static int pubTestMulti2Entry(char *const argv[]);
+	int pubTestMulti2Main();
 
 	volatile bool _thread_should_exit;
 
-	bool pubsubtest_passed;
-	bool pubsubtest_print;
-	int pubsubtest_res = OK;
+	bool _pubsubtest_passed;
+	bool _pubsubtest_print;
+	int _pubsubtest_res = OK;
 
 	orb_advert_t _pfd[4]; ///< used for test_multi and test_multi_reversed
 
-	int test_single();
+	int testSingle();
 
 	/* These 3 depend on each other and must be called in this order */
-	int test_multi();
-	int test_multi_reversed();
-	int test_unadvertise();
+	int testMulti();
+	int testMultiReversed();
+	int testUnadvertise();
 
-	int test_multi2();
+	int testMulti2();
 
 	/* queuing tests */
-	int test_queue();
-	static int pub_test_queue_entry(char *const argv[]);
-	int pub_test_queue_main();
-	int test_queue_poll_notify();
+	int testQueue();
+	static int pubTestQueueEntry(char *const argv[]);
+	int pubTestQueueMain();
+	int testQueuePollNotify();
 	volatile int _num_messages_sent = 0;
 
-	int test_fail(const char *fmt, ...);
-	int test_note(const char *fmt, ...);
+	int testFail(const char *fmt, ...);
+	int testNote(const char *fmt, ...);
 };
 
 template<typename S>
-int uORBTest::UnitTest::latency_test(orb_id_t T, bool print)
+int u_orb_test::UnitTest::latencyTest(orb_id_t t, bool print)
 {
 	test_note("---------------- LATENCY TEST ------------------");
 	S t;
 	t.val = 308;
 	t.time = hrt_absolute_time();
 
-	orb_advert_t pfd0 = orb_advertise(T, &t);
+	orb_advert_t pfd0 = orb_advertise(t, &t);
 
 	if (pfd0 == nullptr) {
 		return test_fail("orb_advertise failed (%i)", errno);
@@ -148,7 +148,7 @@ int uORBTest::UnitTest::latency_test(orb_id_t T, bool print)
 					     SCHED_DEFAULT,
 					     SCHED_PRIORITY_MAX - 5,
 					     1500,
-					     (px4_main_t)&uORBTest::UnitTest::pubsubtest_threadEntry,
+					     (px4_main_t)&u_orb_test::UnitTest::pubsubtestThreadEntry,
 					     args);
 
 	/* give the test task some data */
@@ -156,7 +156,7 @@ int uORBTest::UnitTest::latency_test(orb_id_t T, bool print)
 		t.val = 308;
 		t.time = hrt_absolute_time();
 
-		if (PX4_OK != orb_publish(T, pfd0, &t)) {
+		if (PX4_OK != orb_publish(t, pfd0, &t)) {
 			return test_fail("mult. pub0 timing fail");
 		}
 

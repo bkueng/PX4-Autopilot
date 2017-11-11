@@ -71,7 +71,7 @@ public:
 	~GroundRoverAttitudeControl();
 
 	int start();
-	bool task_running() { return _task_running; }
+	bool taskRunning() { return _task_running; }
 
 private:
 
@@ -129,14 +129,14 @@ private:
 
 	PID_t			_steering_ctrl{};
 
-	void		parameters_update();
+	void		parametersUpdate();
 
-	void		vehicle_control_mode_poll();
-	void		manual_control_setpoint_poll();
-	void		vehicle_attitude_setpoint_poll();
-	void		battery_status_poll();
+	void		vehicleControlModePoll();
+	void		manualControlSetpointPoll();
+	void		vehicleAttitudeSetpointPoll();
+	void		batteryStatusPoll();
 
-	static void	task_main_trampoline(int argc, char *argv[]);
-	void		task_main();
+	static void	taskMainTrampoline(int argc, char *argv[]);
+	void		taskMain();
 
 };

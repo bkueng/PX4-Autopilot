@@ -53,12 +53,12 @@ void px4_backtrace()
 #endif
 }
 
-__EXPORT void px4_log_modulename(int level, const char *moduleName, const char *fmt, ...)
+__EXPORT void px4_log_modulename(int level, const char *module_name, const char *fmt, ...)
 {
 	PX4_LOG_COLOR_START
 	printf(__px4__log_level_fmt __px4__log_level_arg(level));
 	PX4_LOG_COLOR_MODULE
-	printf(__px4__log_modulename_pfmt, moduleName);
+	printf(__px4__log_modulename_pfmt, module_name);
 	PX4_LOG_COLOR_MESSAGE
 	va_list argptr;
 	va_start(argptr, fmt);
@@ -85,7 +85,7 @@ __EXPORT void px4_log_modulename(int level, const char *moduleName, const char *
 
 		unsigned pos = 0;
 
-		pos += snprintf((char *)log_message.text + pos, max_length - pos, __px4__log_modulename_pfmt, moduleName);
+		pos += snprintf((char *)log_message.text + pos, max_length - pos, __px4__log_modulename_pfmt, module_name);
 		va_start(argptr, fmt);
 		pos += vsnprintf((char *)log_message.text + pos, max_length - pos, fmt, argptr);
 		va_end(argptr);

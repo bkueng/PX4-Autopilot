@@ -237,7 +237,7 @@ Airspeed::start()
 	_collect_phase = false;
 
 	/* schedule a cycle to start things */
-	work_queue(HPWORK, &_work, (worker_t)&Airspeed::cycle_trampoline, this, 1);
+	work_queue(HPWORK, &_work, (worker_t)&Airspeed::cycleTrampoline, this, 1);
 }
 
 void
@@ -247,7 +247,7 @@ Airspeed::stop()
 }
 
 void
-Airspeed::update_status()
+Airspeed::updateStatus()
 {
 	if (_sensor_ok != _last_published_sensor_ok) {
 		/* notify about state change */
@@ -255,7 +255,7 @@ Airspeed::update_status()
 		info.present = true;
 		info.enabled = true;
 		info.ok = _sensor_ok;
-		info.subsystem_type = subsystem_info_s::SUBSYSTEM_TYPE_DIFFPRESSURE;
+		info.subsystem_type = subsystem_info_s::subsystem_type_diffpressure;
 
 		if (_subsys_pub != nullptr) {
 			orb_publish(ORB_ID(subsystem_info), _subsys_pub, &info);
@@ -269,7 +269,7 @@ Airspeed::update_status()
 }
 
 void
-Airspeed::cycle_trampoline(void *arg)
+Airspeed::cycleTrampoline(void *arg)
 {
 	Airspeed *dev = (Airspeed *)arg;
 	dev->cycle();

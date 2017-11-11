@@ -38,5 +38,5 @@
 
 #pragma once
 
-bool stateMachineHelperTest(void);
+bool state_machine_helper_test(void);
 

@@ -92,7 +92,7 @@ EngineFailure::on_active()
 }
 
 void
-EngineFailure::set_ef_item()
+EngineFailure::setEfItem()
 {
 	struct position_setpoint_triplet_s *pos_sp_triplet = _navigator->get_position_setpoint_triplet();
 
@@ -134,7 +134,7 @@ EngineFailure::set_ef_item()
 }
 
 void
-EngineFailure::advance_ef()
+EngineFailure::advanceEf()
 {
 	switch (_ef_state) {
 	case EF_STATE_NONE:

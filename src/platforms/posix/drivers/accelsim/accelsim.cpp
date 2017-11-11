@@ -98,13 +98,13 @@ public:
 	/**
 	 * dump register values
 	 */
-	void			print_registers();
+	void			printRegisters();
 
 protected:
 	friend class 		ACCELSIM_mag;
 
-	ssize_t			mag_read(void *buffer, size_t buflen);
-	int			mag_ioctl(unsigned long cmd, unsigned long arg);
+	ssize_t			magRead(void *buffer, size_t buflen);
+	int			magIoctl(unsigned long cmd, unsigned long arg);
 
 	int			transfer(uint8_t *send, uint8_t *recv, unsigned len);
 private:
@@ -169,7 +169,7 @@ private:
 	/**
 	 * Fetch mag measurements from the sensor and update the report ring.
 	 */
-	void			mag_measure();
+	void			magMeasure();
 
 	/**
 	 * Set the ACCELSIM accel measurement range.
@@ -178,7 +178,7 @@ private:
 	 *			Zero selects the maximum supported range.
 	 * @return		OK if the value can be supported, -ERANGE otherwise.
 	 */
-	int			accel_set_range(unsigned max_g);
+	int			accelSetRange(unsigned max_g);
 
 	/**
 	 * Set the ACCELSIM mag measurement range.
@@ -187,7 +187,7 @@ private:
 	 *			Zero selects the maximum supported range.
 	 * @return		OK if the value can be supported, -ERANGE otherwise.
 	 */
-	int			mag_set_range(unsigned max_g);
+	int			magSetRange(unsigned max_g);
 
 	/**
 	 * Set the driver lowpass filter bandwidth.
@@ -196,7 +196,7 @@ private:
 	 * 			Zero selects the highest bandwidth
 	 * @return		OK if the value can be supported, -ERANGE otherwise.
 	 */
-	int			accel_set_driver_lowpass_filter(float samplerate, float bandwidth);
+	int			accelSetDriverLowpassFilter(float samplerate, float bandwidth);
 
 	/* this class cannot be copied */
 	ACCELSIM(const ACCELSIM &);
@@ -447,7 +447,7 @@ ACCELSIM::devRead(void *buffer, size_t buflen)
 }
 
 ssize_t
-ACCELSIM::mag_read(void *buffer, size_t buflen)
+ACCELSIM::magRead(void *buffer, size_t buflen)
 {
 	unsigned count = buflen / sizeof(struct mag_report);
 	mag_report *mrb = reinterpret_cast<mag_report *>(buffer);
@@ -619,7 +619,7 @@ ACCELSIM::devIOCTL(unsigned long cmd, unsigned long arg)
 }
 
 int
-ACCELSIM::mag_ioctl(unsigned long cmd, unsigned long arg)
+ACCELSIM::magIoctl(unsigned long cmd, unsigned long arg)
 {
 	unsigned long ul_arg = (unsigned long)arg;
 
@@ -743,7 +743,7 @@ ACCELSIM::mag_ioctl(unsigned long cmd, unsigned long arg)
 }
 
 int
-ACCELSIM::accel_set_range(unsigned max_g)
+ACCELSIM::accelSetRange(unsigned max_g)
 {
 	float new_scale_g_digit = 0.732e-3f;
 
@@ -753,7 +753,7 @@ ACCELSIM::accel_set_range(unsigned max_g)
 }
 
 int
-ACCELSIM::mag_set_range(unsigned max_ga)
+ACCELSIM::magSetRange(unsigned max_ga)
 {
 	float new_scale_ga_digit = 0.479e-3f;
 
@@ -763,7 +763,7 @@ ACCELSIM::mag_set_range(unsigned max_ga)
 }
 
 int
-ACCELSIM::accel_set_driver_lowpass_filter(float samplerate, float bandwidth)
+ACCELSIM::accelSetDriverLowpassFilter(float samplerate, float bandwidth)
 {
 	_accel_filter_x.set_cutoff_frequency(samplerate, bandwidth);
 	_accel_filter_y.set_cutoff_frequency(samplerate, bandwidth);
@@ -898,7 +898,7 @@ ACCELSIM::_measure()
 }
 
 void
-ACCELSIM::mag_measure()
+ACCELSIM::magMeasure()
 {
 	/* status register and data as read back from the device */
 #pragma pack(push, 1)

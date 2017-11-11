@@ -82,7 +82,7 @@ HelicopterMixer::~HelicopterMixer()
 }
 
 HelicopterMixer *
-HelicopterMixer::from_text(Mixer::ControlCallback control_cb, uintptr_t cb_handle, const char *buf, unsigned &buflen)
+HelicopterMixer::fromText(Mixer::ControlCallback control_cb, uintptr_t cb_handle, const char *buf, unsigned &buflen)
 {
 	mixer_heli_s mixer_info;
 	unsigned swash_plate_servo_count = 0;

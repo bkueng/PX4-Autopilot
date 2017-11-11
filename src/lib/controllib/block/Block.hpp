@@ -47,11 +47,11 @@
 namespace control
 {
 
-static constexpr uint8_t maxChildrenPerBlock = 100;
-static constexpr uint8_t maxParamsPerBlock = 110;
-static constexpr uint8_t maxSubscriptionsPerBlock = 100;
-static constexpr uint8_t maxPublicationsPerBlock = 100;
-static constexpr uint8_t blockNameLengthMax = 40;
+static constexpr uint8_t max_children_per_block = 100;
+static constexpr uint8_t max_params_per_block = 110;
+static constexpr uint8_t max_subscriptions_per_block = 100;
+static constexpr uint8_t max_publications_per_block = 100;
+static constexpr uint8_t block_name_length_max = 40;
 
 // forward declaration
 class BlockParamBase;
@@ -85,16 +85,16 @@ public:
 protected:
 
 	SuperBlock *getParent() { return _parent; }
-	List<uORB::SubscriptionNode *> &getSubscriptions() { return _subscriptions; }
-	List<uORB::PublicationNode *> &getPublications() { return _publications; }
+	List<u_orb::SubscriptionNode *> &getSubscriptions() { return _subscriptions; }
+	List<u_orb::PublicationNode *> &getPublications() { return _publications; }
 	List<BlockParamBase *> &getParams() { return _params; }
 
 	const char *_name;
 	SuperBlock *_parent;
 	float _dt{0.0f};
 
-	List<uORB::SubscriptionNode *> _subscriptions;
-	List<uORB::PublicationNode *> _publications;
+	List<u_orb::SubscriptionNode *> _subscriptions;
+	List<u_orb::PublicationNode *> _publications;
 	List<BlockParamBase *> _params;
 };
 

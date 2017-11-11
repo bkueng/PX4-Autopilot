@@ -48,49 +48,49 @@ using namespace control;
 
 #define ASSERT_CL(T) if (!(T)) { printf("FAIL\n"); return -1; }
 
-int basicBlocksTest();
-int blockLimitTest();
-int blockLimitSymTest();
-int blockLowPassTest();
-int blockHighPassTest();
-int blockLowPass2Test();
-int blockIntegralTest();
-int blockIntegralTrapTest();
-int blockDerivativeTest();
-int blockPTest();
-int blockPITest();
-int blockPDTest();
-int blockPIDTest();
-int blockOutputTest();
-int blockRandUniformTest();
-int blockRandGaussTest();
-int blockStatsTest();
-int blockDelayTest();
+int basic_blocks_test();
+int block_limit_test();
+int block_limit_sym_test();
+int block_low_pass_test();
+int block_high_pass_test();
+int block_low_pass2_test();
+int block_integral_test();
+int block_integral_trap_test();
+int block_derivative_test();
+int block_p_test();
+int block_pi_test();
+int block_pd_test();
+int block_pid_test();
+int block_output_test();
+int block_rand_uniform_test();
+int block_rand_gauss_test();
+int block_stats_test();
+int block_delay_test();
 
-int basicBlocksTest()
+int basic_blocks_test()
 {
 	bool failed = false;
-	failed = failed || blockLimitTest() < 0;
-	failed = failed || blockLimitSymTest() < 0;
-	failed = failed || blockLowPassTest() < 0;
-	failed = failed || blockHighPassTest() < 0;
-	failed = failed || blockLowPass2Test() < 0;
-	failed = failed || blockIntegralTest() < 0;
-	failed = failed || blockIntegralTrapTest() < 0;
-	failed = failed || blockDerivativeTest() < 0;
-	failed = failed || blockPTest() < 0;
-	failed = failed || blockPITest() < 0;
-	failed = failed || blockPDTest() < 0;
-	failed = failed || blockPIDTest() < 0;
-	failed = failed || blockOutputTest() < 0;
-	failed = failed || blockRandUniformTest() < 0;
-	failed = failed || blockRandGaussTest() < 0;
-	failed = failed || blockStatsTest() < 0;
-	failed = failed || blockDelayTest() < 0;
+	failed = failed || block_limit_test() < 0;
+	failed = failed || block_limit_sym_test() < 0;
+	failed = failed || block_low_pass_test() < 0;
+	failed = failed || block_high_pass_test() < 0;
+	failed = failed || block_low_pass2_test() < 0;
+	failed = failed || block_integral_test() < 0;
+	failed = failed || block_integral_trap_test() < 0;
+	failed = failed || block_derivative_test() < 0;
+	failed = failed || block_p_test() < 0;
+	failed = failed || block_pi_test() < 0;
+	failed = failed || block_pd_test() < 0;
+	failed = failed || block_pid_test() < 0;
+	failed = failed || block_output_test() < 0;
+	failed = failed || block_rand_uniform_test() < 0;
+	failed = failed || block_rand_gauss_test() < 0;
+	failed = failed || block_stats_test() < 0;
+	failed = failed || block_delay_test() < 0;
 	return failed ? -1 : 0;
 }
 
-int blockLimitTest()
+int block_limit_test()
 {
 	printf("Test BlockLimit\t\t\t: ");
 	BlockLimit limit(nullptr, "TEST");
@@ -106,7 +106,7 @@ int blockLimitTest()
 	return 0;
 }
 
-int blockLimitSymTest()
+int block_limit_sym_test()
 {
 	printf("Test BlockLimitSym\t\t: ");
 	BlockLimitSym limit(nullptr, "TEST");
@@ -121,94 +121,94 @@ int blockLimitSymTest()
 	return 0;
 }
 
-int blockLowPassTest()
+int block_low_pass_test()
 {
 	printf("Test BlockLowPass\t\t: ");
-	BlockLowPass lowPass(nullptr, "TEST_LP");
+	BlockLowPass low_pass(nullptr, "TEST_LP");
 	// test initial state
-	ASSERT_CL(equal(10.0f, lowPass.getFCut()));
-	ASSERT_CL(equal(0.0f, lowPass.getState()));
-	ASSERT_CL(equal(0.0f, lowPass.getDt()));
+	ASSERT_CL(equal(10.0f, low_pass.getFCut()));
+	ASSERT_CL(equal(0.0f, low_pass.getState()));
+	ASSERT_CL(equal(0.0f, low_pass.getDt()));
 	// set dt
-	lowPass.setDt(0.1f);
-	ASSERT_CL(equal(0.1f, lowPass.getDt()));
+	low_pass.setDt(0.1f);
+	ASSERT_CL(equal(0.1f, low_pass.getDt()));
 	// set state
-	lowPass.setState(1.0f);
-	ASSERT_CL(equal(1.0f, lowPass.getState()));
+	low_pass.setState(1.0f);
+	ASSERT_CL(equal(1.0f, low_pass.getState()));
 	// test update
-	ASSERT_CL(equal(1.8626974f, lowPass.update(2.0f)));
+	ASSERT_CL(equal(1.8626974f, low_pass.update(2.0f)));
 
 	// test end condition
 	for (int i = 0; i < 100; i++) {
-		lowPass.update(2.0f);
+		low_pass.update(2.0f);
 	}
 
-	ASSERT_CL(equal(2.0f, lowPass.getState()));
-	ASSERT_CL(equal(2.0f, lowPass.update(2.0f)));
+	ASSERT_CL(equal(2.0f, low_pass.getState()));
+	ASSERT_CL(equal(2.0f, low_pass.update(2.0f)));
 	printf("PASS\n");
 	return 0;
 };
 
-int blockHighPassTest()
+int block_high_pass_test()
 {
 	printf("Test BlockHighPass\t\t: ");
-	BlockHighPass highPass(nullptr, "TEST_HP");
+	BlockHighPass high_pass(nullptr, "TEST_HP");
 	// test initial state
-	ASSERT_CL(equal(10.0f, highPass.getFCut()));
-	ASSERT_CL(equal(0.0f, highPass.getU()));
-	ASSERT_CL(equal(0.0f, highPass.getY()));
-	ASSERT_CL(equal(0.0f, highPass.getDt()));
+	ASSERT_CL(equal(10.0f, high_pass.getFCut()));
+	ASSERT_CL(equal(0.0f, high_pass.getU()));
+	ASSERT_CL(equal(0.0f, high_pass.getY()));
+	ASSERT_CL(equal(0.0f, high_pass.getDt()));
 	// set dt
-	highPass.setDt(0.1f);
-	ASSERT_CL(equal(0.1f, highPass.getDt()));
+	high_pass.setDt(0.1f);
+	ASSERT_CL(equal(0.1f, high_pass.getDt()));
 	// set state
-	highPass.setU(1.0f);
-	ASSERT_CL(equal(1.0f, highPass.getU()));
-	highPass.setY(1.0f);
-	ASSERT_CL(equal(1.0f, highPass.getY()));
+	high_pass.setU(1.0f);
+	ASSERT_CL(equal(1.0f, high_pass.getU()));
+	high_pass.setY(1.0f);
+	ASSERT_CL(equal(1.0f, high_pass.getY()));
 	// test update
-	ASSERT_CL(equal(0.2746051f, highPass.update(2.0f)));
+	ASSERT_CL(equal(0.2746051f, high_pass.update(2.0f)));
 
 	// test end condition
 	for (int i = 0; i < 100; i++) {
-		highPass.update(2.0f);
+		high_pass.update(2.0f);
 	}
 
-	ASSERT_CL(equal(0.0f, highPass.getY()));
-	ASSERT_CL(equal(0.0f, highPass.update(2.0f)));
+	ASSERT_CL(equal(0.0f, high_pass.getY()));
+	ASSERT_CL(equal(0.0f, high_pass.update(2.0f)));
 	printf("PASS\n");
 	return 0;
 }
 
-int blockLowPass2Test()
+int block_low_pass2_test()
 {
 	printf("Test BlockLowPass2\t\t: ");
-	BlockLowPass2 lowPass(nullptr, "TEST_LP", 100);
+	BlockLowPass2 low_pass(nullptr, "TEST_LP", 100);
 	// test initial state
-	ASSERT_CL(equal(10.0f, lowPass.getFCutParam()));
-	ASSERT_CL(equal(0.0f, lowPass.getState()));
-	ASSERT_CL(equal(0.0f, lowPass.getDt()));
+	ASSERT_CL(equal(10.0f, low_pass.getFCutParam()));
+	ASSERT_CL(equal(0.0f, low_pass.getState()));
+	ASSERT_CL(equal(0.0f, low_pass.getDt()));
 	// set dt
-	lowPass.setDt(0.1f);
-	ASSERT_CL(equal(0.1f, lowPass.getDt()));
+	low_pass.setDt(0.1f);
+	ASSERT_CL(equal(0.1f, low_pass.getDt()));
 	// set state
-	lowPass.setState(1.0f);
-	ASSERT_CL(equal(1.0f, lowPass.getState()));
+	low_pass.setState(1.0f);
+	ASSERT_CL(equal(1.0f, low_pass.getState()));
 	// test update
-	ASSERT_CL(equal(1.06745527f, lowPass.update(2.0f)));
+	ASSERT_CL(equal(1.06745527f, low_pass.update(2.0f)));
 
 	// test end condition
 	for (int i = 0; i < 100; i++) {
-		lowPass.update(2.0f);
+		low_pass.update(2.0f);
 	}
 
-	ASSERT_CL(equal(2.0f, lowPass.getState()));
-	ASSERT_CL(equal(2.0f, lowPass.update(2.0f)));
+	ASSERT_CL(equal(2.0f, low_pass.getState()));
+	ASSERT_CL(equal(2.0f, low_pass.update(2.0f)));
 	printf("PASS\n");
 	return 0;
 };
 
-int blockIntegralTest()
+int block_integral_test()
 {
 	printf("Test BlockIntegral\t\t: ");
 	BlockIntegral integral(nullptr, "TEST_I");
@@ -245,7 +245,7 @@ int blockIntegralTest()
 	return 0;
 }
 
-int blockIntegralTrapTest()
+int block_integral_trap_test()
 {
 	printf("Test BlockIntegralTrap\t\t: ");
 	BlockIntegralTrap integral(nullptr, "TEST_I");
@@ -288,7 +288,7 @@ int blockIntegralTrapTest()
 	return 0;
 }
 
-int blockDerivativeTest()
+int block_derivative_test()
 {
 	printf("Test BlockDerivative\t\t: ");
 	BlockDerivative derivative(nullptr, "TEST_D");
@@ -311,178 +311,178 @@ int blockDerivativeTest()
 	return 0;
 }
 
-int blockPTest()
+int block_p_test()
 {
 	printf("Test BlockP\t\t\t: ");
-	BlockP blockP(nullptr, "TEST_P");
+	BlockP block_p(nullptr, "TEST_P");
 	// test initial state
-	ASSERT_CL(equal(0.2f, blockP.getKP()));
-	ASSERT_CL(equal(0.0f, blockP.getDt()));
+	ASSERT_CL(equal(0.2f, block_p.getKP()));
+	ASSERT_CL(equal(0.0f, block_p.getDt()));
 	// set dt
-	blockP.setDt(0.1f);
-	ASSERT_CL(equal(0.1f, blockP.getDt()));
+	block_p.setDt(0.1f);
+	ASSERT_CL(equal(0.1f, block_p.getDt()));
 	// test  update
-	ASSERT_CL(equal(0.4f, blockP.update(2.0f)));
+	ASSERT_CL(equal(0.4f, block_p.update(2.0f)));
 	printf("PASS\n");
 	return 0;
 }
 
-int blockPITest()
+int block_pi_test()
 {
 	printf("Test BlockPI\t\t\t: ");
-	BlockPI blockPI(nullptr, "TEST");
+	BlockPI block_pi(nullptr, "TEST");
 	// test initial state
-	ASSERT_CL(equal(0.2f, blockPI.getKP()));
-	ASSERT_CL(equal(0.1f, blockPI.getKI()));
-	ASSERT_CL(equal(0.0f, blockPI.getDt()));
-	ASSERT_CL(equal(1.0f, blockPI.getIntegral().getMax()));
+	ASSERT_CL(equal(0.2f, block_pi.getKP()));
+	ASSERT_CL(equal(0.1f, block_pi.getKI()));
+	ASSERT_CL(equal(0.0f, block_pi.getDt()));
+	ASSERT_CL(equal(1.0f, block_pi.getIntegral().getMax()));
 	// set dt
-	blockPI.setDt(0.1f);
-	ASSERT_CL(equal(0.1f, blockPI.getDt()));
+	block_pi.setDt(0.1f);
+	ASSERT_CL(equal(0.1f, block_pi.getDt()));
 	// set integral state
-	blockPI.getIntegral().setY(0.1f);
-	ASSERT_CL(equal(0.1f, blockPI.getIntegral().getY()));
+	block_pi.getIntegral().setY(0.1f);
+	ASSERT_CL(equal(0.1f, block_pi.getIntegral().getY()));
 	// test  update
 	// 0.2*2 + 0.1*(2*0.1 + 0.1) = 0.43
-	ASSERT_CL(equal(0.43f, blockPI.update(2.0f)));
+	ASSERT_CL(equal(0.43f, block_pi.update(2.0f)));
 	printf("PASS\n");
 	return 0;
 }
 
-int blockPDTest()
+int block_pd_test()
 {
 	printf("Test BlockPD\t\t\t: ");
-	BlockPD blockPD(nullptr, "TEST");
+	BlockPD block_pd(nullptr, "TEST");
 	// test initial state
-	ASSERT_CL(equal(0.2f, blockPD.getKP()));
-	ASSERT_CL(equal(0.01f, blockPD.getKD()));
-	ASSERT_CL(equal(0.0f, blockPD.getDt()));
-	ASSERT_CL(equal(10.0f, blockPD.getDerivative().getLP()));
+	ASSERT_CL(equal(0.2f, block_pd.getKP()));
+	ASSERT_CL(equal(0.01f, block_pd.getKD()));
+	ASSERT_CL(equal(0.0f, block_pd.getDt()));
+	ASSERT_CL(equal(10.0f, block_pd.getDerivative().getLP()));
 	// set dt
-	blockPD.setDt(0.1f);
-	ASSERT_CL(equal(0.1f, blockPD.getDt()));
+	block_pd.setDt(0.1f);
+	ASSERT_CL(equal(0.1f, block_pd.getDt()));
 	// set derivative state
-	blockPD.getDerivative().setU(1.0f);
-	ASSERT_CL(equal(1.0f, blockPD.getDerivative().getU()));
+	block_pd.getDerivative().setU(1.0f);
+	ASSERT_CL(equal(1.0f, block_pd.getDerivative().getU()));
 	// perform one update so initialized is set
-	blockPD.getDerivative().update(1.0);
-	ASSERT_CL(equal(1.0f, blockPD.getDerivative().getU()));
+	block_pd.getDerivative().update(1.0);
+	ASSERT_CL(equal(1.0f, block_pd.getDerivative().getU()));
 	// test  update
 	// 0.2*2 + 0.1*(0.1*8.626...) = 0.486269744
-	ASSERT_CL(equal(0.486269744f, blockPD.update(2.0f)));
+	ASSERT_CL(equal(0.486269744f, block_pd.update(2.0f)));
 	printf("PASS\n");
 	return 0;
 }
 
-int blockPIDTest()
+int block_pid_test()
 {
 	printf("Test BlockPID\t\t\t: ");
-	BlockPID blockPID(nullptr, "TEST");
+	BlockPID block_pid(nullptr, "TEST");
 	// test initial state
-	ASSERT_CL(equal(0.2f, blockPID.getKP()));
-	ASSERT_CL(equal(0.1f, blockPID.getKI()));
-	ASSERT_CL(equal(0.01f, blockPID.getKD()));
-	ASSERT_CL(equal(0.0f, blockPID.getDt()));
-	ASSERT_CL(equal(10.0f, blockPID.getDerivative().getLP()));
-	ASSERT_CL(equal(1.0f, blockPID.getIntegral().getMax()));
+	ASSERT_CL(equal(0.2f, block_pid.getKP()));
+	ASSERT_CL(equal(0.1f, block_pid.getKI()));
+	ASSERT_CL(equal(0.01f, block_pid.getKD()));
+	ASSERT_CL(equal(0.0f, block_pid.getDt()));
+	ASSERT_CL(equal(10.0f, block_pid.getDerivative().getLP()));
+	ASSERT_CL(equal(1.0f, block_pid.getIntegral().getMax()));
 	// set dt
-	blockPID.setDt(0.1f);
-	ASSERT_CL(equal(0.1f, blockPID.getDt()));
+	block_pid.setDt(0.1f);
+	ASSERT_CL(equal(0.1f, block_pid.getDt()));
 	// set derivative state
-	blockPID.getDerivative().setU(1.0f);
-	ASSERT_CL(equal(1.0f, blockPID.getDerivative().getU()));
+	block_pid.getDerivative().setU(1.0f);
+	ASSERT_CL(equal(1.0f, block_pid.getDerivative().getU()));
 	// perform one update so initialized is set
-	blockPID.getDerivative().update(1.0);
-	ASSERT_CL(equal(1.0f, blockPID.getDerivative().getU()));
+	block_pid.getDerivative().update(1.0);
+	ASSERT_CL(equal(1.0f, block_pid.getDerivative().getU()));
 	// set integral state
-	blockPID.getIntegral().setY(0.1f);
-	ASSERT_CL(equal(0.1f, blockPID.getIntegral().getY()));
+	block_pid.getIntegral().setY(0.1f);
+	ASSERT_CL(equal(0.1f, block_pid.getIntegral().getY()));
 	// test  update
 	// 0.2*2 + 0.1*(2*0.1 + 0.1) + 0.1*(0.1*8.626...) = 0.5162697
-	ASSERT_CL(equal(0.5162697f, blockPID.update(2.0f)));
+	ASSERT_CL(equal(0.5162697f, block_pid.update(2.0f)));
 	printf("PASS\n");
 	return 0;
 }
 
-int blockOutputTest()
+int block_output_test()
 {
 	printf("Test BlockOutput\t\t: ");
-	BlockOutput blockOutput(nullptr, "TEST");
+	BlockOutput block_output(nullptr, "TEST");
 	// test initial state
-	ASSERT_CL(equal(0.0f, blockOutput.getDt()));
-	ASSERT_CL(equal(0.5f, blockOutput.get()));
-	ASSERT_CL(equal(-1.0f, blockOutput.getMin()));
-	ASSERT_CL(equal(1.0f, blockOutput.getMax()));
+	ASSERT_CL(equal(0.0f, block_output.getDt()));
+	ASSERT_CL(equal(0.5f, block_output.get()));
+	ASSERT_CL(equal(-1.0f, block_output.getMin()));
+	ASSERT_CL(equal(1.0f, block_output.getMax()));
 	// test update below min
-	blockOutput.update(-2.0f);
-	ASSERT_CL(equal(-1.0f, blockOutput.get()));
+	block_output.update(-2.0f);
+	ASSERT_CL(equal(-1.0f, block_output.get()));
 	// test update above max
-	blockOutput.update(2.0f);
-	ASSERT_CL(equal(1.0f, blockOutput.get()));
+	block_output.update(2.0f);
+	ASSERT_CL(equal(1.0f, block_output.get()));
 	// test trim
-	blockOutput.update(0.0f);
-	ASSERT_CL(equal(0.5f, blockOutput.get()));
+	block_output.update(0.0f);
+	ASSERT_CL(equal(0.5f, block_output.get()));
 	printf("PASS\n");
 	return 0;
 }
 
-int blockRandUniformTest()
+int block_rand_uniform_test()
 {
 	srand(1234);
 	printf("Test BlockRandUniform\t\t: ");
-	BlockRandUniform blockRandUniform(nullptr, "TEST");
+	BlockRandUniform block_rand_uniform(nullptr, "TEST");
 	// test initial state
-	ASSERT_CL(equal(0.0f, blockRandUniform.getDt()));
-	ASSERT_CL(equal(-1.0f, blockRandUniform.getMin()));
-	ASSERT_CL(equal(1.0f, blockRandUniform.getMax()));
+	ASSERT_CL(equal(0.0f, block_rand_uniform.getDt()));
+	ASSERT_CL(equal(-1.0f, block_rand_uniform.getMin()));
+	ASSERT_CL(equal(1.0f, block_rand_uniform.getMax()));
 	// test update
 	int n = 10000;
-	float mean = blockRandUniform.update();
+	float mean = block_rand_uniform.update();
 
 	for (int i = 2; i < n + 1; i++) {
-		float val = blockRandUniform.update();
+		float val = block_rand_uniform.update();
 		mean += (val - mean) / i;
-		ASSERT_CL(less_than_or_equal(val, blockRandUniform.getMax()));
-		ASSERT_CL(greater_than_or_equal(val, blockRandUniform.getMin()));
+		ASSERT_CL(less_than_or_equal(val, block_rand_uniform.getMax()));
+		ASSERT_CL(greater_than_or_equal(val, block_rand_uniform.getMin()));
 	}
 
-	ASSERT_CL(equal(mean, (blockRandUniform.getMin() +
-			       blockRandUniform.getMax()) / 2, 1e-1));
+	ASSERT_CL(equal(mean, (block_rand_uniform.getMin() +
+			       block_rand_uniform.getMax()) / 2, 1e-1));
 	printf("PASS\n");
 	return 0;
 }
 
-int blockRandGaussTest()
+int block_rand_gauss_test()
 {
 	srand(1234);
 	printf("Test BlockRandGauss\t\t: ");
-	BlockRandGauss blockRandGauss(nullptr, "TEST");
+	BlockRandGauss block_rand_gauss(nullptr, "TEST");
 	// test initial state
-	ASSERT_CL(equal(0.0f, blockRandGauss.getDt()));
-	ASSERT_CL(equal(1.0f, blockRandGauss.getMean()));
-	ASSERT_CL(equal(2.0f, blockRandGauss.getStdDev()));
+	ASSERT_CL(equal(0.0f, block_rand_gauss.getDt()));
+	ASSERT_CL(equal(1.0f, block_rand_gauss.getMean()));
+	ASSERT_CL(equal(2.0f, block_rand_gauss.getStdDev()));
 	// test update
 	int n = 10000;
-	float mean = blockRandGauss.update();
+	float mean = block_rand_gauss.update();
 	float sum = 0;
 
 	// recursive mean, stdev algorithm from Knuth
 	for (int i = 2; i < n + 1; i++) {
-		float val = blockRandGauss.update();
-		float newMean = mean + (val - mean) / i;
-		sum += (val - mean) * (val - newMean);
-		mean = newMean;
+		float val = block_rand_gauss.update();
+		float new_mean = mean + (val - mean) / i;
+		sum += (val - mean) * (val - new_mean);
+		mean = new_mean;
 	}
 
-	float stdDev = sqrtf(sum / (n - 1));
-	(void)(stdDev);
-	ASSERT_CL(equal(mean, blockRandGauss.getMean(), 1e-1));
-	ASSERT_CL(equal(stdDev, blockRandGauss.getStdDev(), 1e-1));
+	float std_dev = sqrtf(sum / (n - 1));
+	(void)(std_dev);
+	ASSERT_CL(equal(mean, block_rand_gauss.getMean(), 1e-1));
+	ASSERT_CL(equal(std_dev, block_rand_gauss.getStdDev(), 1e-1));
 	printf("PASS\n");
 	return 0;
 }
 
-int blockStatsTest()
+int block_stats_test()
 {
 	printf("Test BlockStats\t\t\t: ");
 	BlockStats<float, 1> stats(nullptr, "TEST");
@@ -499,7 +499,7 @@ int blockStatsTest()
 	return 0;
 }
 
-int blockDelayTest()
+int block_delay_test()
 {
 	printf("Test BlockDelay\t\t\t: ");
 	using namespace matrix;
@@ -531,5 +531,5 @@ extern "C" __EXPORT int controllib_test_main(int argc, char *argv[]);
 
 int controllib_test_main(int argc, char *argv[])
 {
-	return basicBlocksTest();
+	return basic_blocks_test();
 }

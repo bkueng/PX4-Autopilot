@@ -93,7 +93,7 @@
 
 
 /* struct for dynamic allocation of satellite info data */
-struct GPS_Sat_Info {
+struct gps_sat_info {
 	struct satellite_info_s 	_data;
 };
 
@@ -115,10 +115,10 @@ public:
 	virtual ~GPS();
 
 	/** @see ModuleBase */
-	static int task_spawn(int argc, char *argv[]);
+	static int taskSpawn(int argc, char *argv[]);
 
 	/** spawn task and select the instance */
-	static int task_spawn(int argc, char *argv[], Instance instance);
+	static int taskSpawn(int argc, char *argv[], Instance instance);
 
 	/** @see ModuleBase */
 	static GPS *instantiate(int argc, char *argv[]);
@@ -126,15 +126,15 @@ public:
 	static GPS *instantiate(int argc, char *argv[], Instance instance);
 
 	/** @see ModuleBase */
-	static int custom_command(int argc, char *argv[]);
+	static int customCommand(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int print_usage(const char *reason = nullptr);
+	static int printUsage(const char *reason = nullptr);
 
 	/**
 	 * task spawn trampoline for the secondary GPS
 	 */
-	static void run_trampoline_secondary(int argc, char *argv[]);
+	static void runTrampolineSecondary(int argc, char *argv[]);
 
 	/** @see ModuleBase::run() */
 	void run() override;
@@ -156,7 +156,7 @@ private:
 	gps_driver_mode_t		_mode;						///< current mode
 	GPSHelper::Interface  _interface;   						///< interface
 	GPSHelper			*_helper;					///< instance of GPS parser
-	GPS_Sat_Info			*_sat_info;					///< instance of GPS sat info data object
+	gps_sat_info			*_sat_info;					///< instance of GPS sat info data object
 	struct vehicle_gps_position_s	_report_gps_pos;				///< uORB topic for gps position
 	orb_advert_t			_report_gps_pos_pub;				///< uORB pub for gps position
 	int					_gps_orb_instance;				///< uORB multi-topic instance
@@ -175,9 +175,9 @@ private:
 	gps_dump_s *_dump_to_device;
 	gps_dump_s *_dump_from_device;
 
-	static volatile bool _is_gps_main_advertised; ///< for the second gps we want to make sure that it gets instance 1
+	static volatile bool is_gps_main_advertised; ///< for the second gps we want to make sure that it gets instance 1
 	/// and thus we wait until the first one publishes at least one message.
-	static volatile GPS *_secondary_instance;
+	static volatile GPS *secondary_instance;
 
 
 	/**
@@ -188,12 +188,12 @@ private:
 	/**
 	 * Set the baudrate of the UART to the GPS
 	 */
-	int set_baudrate(unsigned baud);
+	int setBaudrate(unsigned baud);
 
 	/**
 	 * Send a reset command to the GPS
 	 */
-	void cmd_reset();
+	void cmdReset();
 
 	/**
 	 * Publish the gps struct
@@ -252,8 +252,8 @@ private:
 	void initializeCommunicationDump();
 };
 
-volatile bool GPS::_is_gps_main_advertised = false;
-volatile GPS *GPS::_secondary_instance = nullptr;
+volatile bool GPS::is_gps_main_advertised = false;
+volatile GPS *GPS::secondary_instance = nullptr;
 
 /*
  * Driver 'main' command.
@@ -292,7 +292,7 @@ GPS::GPS(const char *path, gps_driver_mode_t mode, GPSHelper::Interface interfac
 
 	/* create satellite info data object if requested */
 	if (enable_sat_info) {
-		_sat_info = new GPS_Sat_Info();
+		_sat_info = new gps_sat_info();
 		_p_report_sat_info = &_sat_info->_data;
 		memset(_p_report_sat_info, 0, sizeof(*_p_report_sat_info));
 	}
@@ -304,7 +304,7 @@ GPS::GPS(const char *path, gps_driver_mode_t mode, GPSHelper::Interface interfac
 
 GPS::~GPS()
 {
-	GPS *secondary_instance = (GPS *) _secondary_instance;
+	GPS *secondary_instance = (GPS *) secondary_instance;
 
 	if (_instance == Instance::Main && secondary_instance) {
 		secondary_instance->request_stop();
@@ -315,7 +315,7 @@ GPS::~GPS()
 		do {
 			usleep(20000); // 20 ms
 			++i;
-		} while (_secondary_instance && i < 100);
+		} while (secondary_instance && i < 100);
 	}
 
 	if (_sat_info) {
@@ -820,7 +820,7 @@ GPS::run()
 
 
 void
-GPS::cmd_reset()
+GPS::cmdReset()
 {
 #ifdef GPIO_GPS_NRESET
 	PX4_WARN("Toggling GPS reset pin");
@@ -899,8 +899,8 @@ GPS::print_status()
 
 	}
 
-	if (_instance == Instance::Main && _secondary_instance) {
-		GPS *secondary_instance = (GPS *)_secondary_instance;
+	if (_instance == Instance::Main && secondary_instance) {
+		GPS *secondary_instance = (GPS *)secondary_instance;
 		secondary_instance->print_status();
 	}
 
@@ -910,10 +910,10 @@ GPS::print_status()
 void
 GPS::publish()
 {
-	if (_instance == Instance::Main || _is_gps_main_advertised) {
+	if (_instance == Instance::Main || is_gps_main_advertised) {
 		orb_publish_auto(ORB_ID(vehicle_gps_position), &_report_gps_pos_pub, &_report_gps_pos, &_gps_orb_instance,
 				 ORB_PRIO_DEFAULT);
-		_is_gps_main_advertised = true;
+		is_gps_main_advertised = true;
 	}
 }
 
@@ -929,18 +929,18 @@ GPS::publishSatelliteInfo()
 	}
 }
 
-int GPS::custom_command(int argc, char *argv[])
+int GPS::customCommand(int argc, char *argv[])
 {
-	return print_usage("unknown command");
+	return printUsage("unknown command");
 }
 
-int GPS::print_usage(const char *reason)
+int GPS::printUsage(const char *reason)
 {
 	if (reason) {
 		PX4_WARN("%s\n", reason);
 	}
 
-	PRINT_MODULE_DESCRIPTION(
+	print_module_description(
 		R"DESCR_STR(
 ### Description
 GPS driver module that handles the communication with the device and publishes the position via uORB.
@@ -960,34 +960,34 @@ $ gps stop
 $ gps start -f
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("gps", "driver");
+	print_module_usage_name("gps", "driver");
 	PRINT_MODULE_USAGE_COMMAND("start");
-	PRINT_MODULE_USAGE_PARAM_STRING('d', "/dev/ttyS3", "<file:dev>", "GPS device", true);
-	PRINT_MODULE_USAGE_PARAM_STRING('e', nullptr, "<file:dev>", "Optional secondary GPS device", true);
+	print_module_usage_param_string('d', "/dev/ttyS3", "<file:dev>", "GPS device", true);
+	print_module_usage_param_string('e', nullptr, "<file:dev>", "Optional secondary GPS device", true);
 
-	PRINT_MODULE_USAGE_PARAM_FLAG('f', "Fake a GPS signal (useful for testing)", true);
-	PRINT_MODULE_USAGE_PARAM_FLAG('s', "Enable publication of satellite info", true);
+	print_module_usage_param_flag('f', "Fake a GPS signal (useful for testing)", true);
+	print_module_usage_param_flag('s', "Enable publication of satellite info", true);
 
-	PRINT_MODULE_USAGE_PARAM_STRING('i', "uart", "spi|uart", "GPS interface", true);
-	PRINT_MODULE_USAGE_PARAM_STRING('p', nullptr, "ubx|mtk|ash", "GPS Protocol (default=auto select)", true);
+	print_module_usage_param_string('i', "uart", "spi|uart", "GPS interface", true);
+	print_module_usage_param_string('p', nullptr, "ubx|mtk|ash", "GPS Protocol (default=auto select)", true);
 
 	PRINT_MODULE_USAGE_DEFAULT_COMMANDS();
 
 	return 0;
 }
 
-int GPS::task_spawn(int argc, char *argv[])
+int GPS::taskSpawn(int argc, char *argv[])
 {
-	return task_spawn(argc, argv, Instance::Main);
+	return taskSpawn(argc, argv, Instance::Main);
 }
 
-int GPS::task_spawn(int argc, char *argv[], Instance instance)
+int GPS::taskSpawn(int argc, char *argv[], Instance instance)
 {
 	px4_main_t entry_point;
 	if (instance == Instance::Main) {
-		entry_point = (px4_main_t)&run_trampoline;
+		entry_point = (px4_main_t)&runTrampoline;
 	} else {
-		entry_point = (px4_main_t)&run_trampoline_secondary;
+		entry_point = (px4_main_t)&runTrampolineSecondary;
 	}
 
 	int task_id = px4_task_spawn_cmd("gps", SCHED_DEFAULT,
@@ -1000,13 +1000,13 @@ int GPS::task_spawn(int argc, char *argv[], Instance instance)
 	}
 
 	if (instance == Instance::Main) {
-		_task_id = task_id;
+		task_id = task_id;
 	}
 
 	return 0;
 }
 
-void GPS::run_trampoline_secondary(int argc, char *argv[])
+void GPS::runTrampolineSecondary(int argc, char *argv[])
 {
 
 #ifdef __PX4_NUTTX
@@ -1017,10 +1017,10 @@ void GPS::run_trampoline_secondary(int argc, char *argv[])
 
 	GPS *gps = instantiate(argc, argv, Instance::Secondary);
 	if (gps) {
-		_secondary_instance = gps;
+		secondary_instance = gps;
 		gps->run();
 
-		_secondary_instance = nullptr;
+		secondary_instance = nullptr;
 		delete gps;
 	}
 }
@@ -1110,7 +1110,7 @@ GPS *GPS::instantiate(int argc, char *argv[], Instance instance)
 		gps = new GPS(device_name, mode, interface, fake_gps, enable_sat_info, instance);
 
 		if (gps && device_name_secondary) {
-			task_spawn(argc, argv, Instance::Secondary);
+			taskSpawn(argc, argv, Instance::Secondary);
 			// wait until running
 			int i = 0;
 
@@ -1118,7 +1118,7 @@ GPS *GPS::instantiate(int argc, char *argv[], Instance instance)
 				/* wait up to 1s */
 				usleep(2500);
 
-			} while (!_secondary_instance && ++i < 400);
+			} while (!secondary_instance && ++i < 400);
 
 			if (i == 400) {
 				PX4_ERR("Timed out while waiting for thread to start");

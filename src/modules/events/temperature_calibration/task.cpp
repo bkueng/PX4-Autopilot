@@ -83,14 +83,14 @@ public:
 	 */
 	int		start();
 
-	static void do_temperature_calibration(int argc, char *argv[]);
+	static void doTemperatureCalibration(int argc, char *argv[]);
 
-	void		task_main();
+	void		taskMain();
 
 	void exit() { _force_task_exit = true; }
 
 private:
-	void publish_led_control(led_control_s &led_control);
+	void publishLedControl(led_control_s &led_control);
 
 	orb_advert_t _led_control_pub = nullptr;
 
@@ -107,7 +107,7 @@ TemperatureCalibration::TemperatureCalibration(bool accel, bool baro, bool gyro)
 {
 }
 
-void TemperatureCalibration::task_main()
+void TemperatureCalibration::taskMain()
 {
 	// subscribe to all gyro instances
 	int gyro_sub[SENSOR_COUNT_MAX] = {};
@@ -188,9 +188,9 @@ void TemperatureCalibration::task_main()
 	// control LED's: blink, then turn solid according to progress
 	led_control_s led_control = {};
 	led_control.led_mask = 0xff;
-	led_control.mode = led_control_s::MODE_BLINK_NORMAL;
-	led_control.priority = led_control_s::MAX_PRIORITY;
-	led_control.color = led_control_s::COLOR_YELLOW;
+	led_control.mode = led_control_s::mode_blink_normal;
+	led_control.priority = led_control_s::max_priority;
+	led_control.color = led_control_s::color_yellow;
 	led_control.num_blinks = 0;
 	publish_led_control(led_control);
 	int leds_completed = 0;
@@ -258,7 +258,7 @@ void TemperatureCalibration::task_main()
 
 		for (; leds_completed < led_progress; ++leds_completed) {
 			led_control.led_mask = 1 << leds_completed;
-			led_control.mode = led_control_s::MODE_ON;
+			led_control.mode = led_control_s::mode_on;
 			publish_led_control(led_control);
 		}
 
@@ -272,7 +272,7 @@ void TemperatureCalibration::task_main()
 	}
 
 	if (abort_calibration) {
-		led_control.color = led_control_s::COLOR_RED;
+		led_control.color = led_control_s::color_red;
 
 	} else {
 		PX4_INFO("Sensor Measurments completed");
@@ -298,12 +298,12 @@ void TemperatureCalibration::task_main()
 
 		param_control_autosave(true);
 
-		led_control.color = led_control_s::COLOR_GREEN;
+		led_control.color = led_control_s::color_green;
 	}
 
 	// blink the LED's according to success/failure
 	led_control.led_mask = 0xff;
-	led_control.mode = led_control_s::MODE_BLINK_FAST;
+	led_control.mode = led_control_s::mode_blink_fast;
 	led_control.num_blinks = 0;
 	publish_led_control(led_control);
 
@@ -320,7 +320,7 @@ void TemperatureCalibration::task_main()
 	PX4_INFO("Exiting temperature calibration task");
 }
 
-void TemperatureCalibration::do_temperature_calibration(int argc, char *argv[])
+void TemperatureCalibration::doTemperatureCalibration(int argc, char *argv[])
 {
 	temperature_calibration::instance->task_main();
 }
@@ -333,7 +333,7 @@ int TemperatureCalibration::start()
 					   SCHED_DEFAULT,
 					   SCHED_PRIORITY_MAX - 5,
 					   5800,
-					   (px4_main_t)&TemperatureCalibration::do_temperature_calibration,
+					   (px4_main_t)&TemperatureCalibration::doTemperatureCalibration,
 					   nullptr);
 
 	if (_control_task < 0) {
@@ -346,12 +346,12 @@ int TemperatureCalibration::start()
 	return 0;
 }
 
-void TemperatureCalibration::publish_led_control(led_control_s &led_control)
+void TemperatureCalibration::publishLedControl(led_control_s &led_control)
 {
 	led_control.timestamp = hrt_absolute_time();
 
 	if (_led_control_pub == nullptr) {
-		_led_control_pub = orb_advertise_queue(ORB_ID(led_control), &led_control, LED_UORB_QUEUE_LENGTH);
+		_led_control_pub = orb_advertise_queue(ORB_ID(led_control), &led_control, led_uorb_queue_length);
 
 	} else {
 		orb_publish(ORB_ID(led_control), _led_control_pub, &led_control);

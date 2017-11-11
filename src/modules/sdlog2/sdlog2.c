@@ -129,21 +129,21 @@ static bool main_thread_should_exit = false;		/**< Deamon exit flag */
 static bool thread_running = false;			/**< Deamon status flag */
 static int deamon_task;						/**< Handle of deamon task / thread */
 static bool logwriter_should_exit = false;	/**< Logwriter thread exit flag */
-static const unsigned MAX_NO_LOGFOLDER = 999;	/**< Maximum number of log dirs */
-static const unsigned MAX_NO_LOGFILE = 999;		/**< Maximum number of log files */
-static const int LOG_BUFFER_SIZE_DEFAULT = 8192;
+static const unsigned max_no_logfolder = 999;	/**< Maximum number of log dirs */
+static const unsigned max_no_logfile = 999;		/**< Maximum number of log files */
+static const int log_buffer_size_default = 8192;
 
 #if defined __PX4_POSIX
-static const int MAX_WRITE_CHUNK = 2048;
-static const int MIN_BYTES_TO_WRITE = 512;
+static const int max_write_chunk = 2048;
+static const int min_bytes_to_write = 512;
 #else
 static const int MAX_WRITE_CHUNK = 512;
 static const int MIN_BYTES_TO_WRITE = 512;
 #endif
 
-static bool _extended_logging = false;
-static bool _gpstime_only = false;
-static int32_t _utc_offset = 0;
+static bool extended_logging = false;
+static bool gpstime_only = false;
+static int32_t utc_offset = 0;
 
 #if !defined(__PX4_POSIX_EAGLE) && !defined(__PX4_POSIX_EXCELSIOR)
 #define MOUNTPOINT PX4_ROOTFSDIR"/fs/microsd"
@@ -418,7 +418,7 @@ bool get_log_time_tt(struct tm *tt, bool boot_time) {
 	/* use RTC time for log file naming, e.g. /fs/microsd/2014-01-19/19_37_52.px4log */
 	time_t utc_time_sec = 0;
 
-	if (_gpstime_only && has_gps_3d_fix) {
+	if (gpstime_only && has_gps_3d_fix) {
 		utc_time_sec = gps_time_sec;
 	} else {
 		utc_time_sec = ts.tv_sec + (ts.tv_nsec / 1e9);
@@ -431,7 +431,7 @@ bool get_log_time_tt(struct tm *tt, bool boot_time) {
 		}
 
 		/* apply utc offset (min, not hour) */
-		utc_time_sec += _utc_offset*60;
+		utc_time_sec += utc_offset*60;
 
 		struct tm *ttp = gmtime_r(&utc_time_sec, tt);
 		return (ttp != NULL);
@@ -467,7 +467,7 @@ int create_log_dir()
 		/* Look for the next dir that does not exist.
 		 * However, if we've already crated a sessXXX folder in this session
 		 * let's re-use it. */
-		while (dir_number <= MAX_NO_LOGFOLDER && !sess_folder_created) {
+		while (dir_number <= max_no_logfolder && !sess_folder_created) {
 			/* format log dir: e.g. /fs/microsd/sess001 */
 			int n = snprintf(log_dir, sizeof(log_dir), "%s/sess%03u", log_root, dir_number);
 			if (n >= sizeof(log_dir)) {
@@ -490,9 +490,9 @@ int create_log_dir()
 			dir_number++;
 		}
 
-		if (dir_number >= MAX_NO_LOGFOLDER) {
+		if (dir_number >= max_no_logfolder) {
 			/* we should not end up here, either we have more than MAX_NO_LOGFOLDER on the SD card, or another problem */
-			PX4_WARN("all %d possible dirs exist already", MAX_NO_LOGFOLDER);
+			PX4_WARN("all %d possible dirs exist already", max_no_logfolder);
 			return -1;
 		}
 	}
@@ -521,7 +521,7 @@ int open_log_file()
 		uint16_t file_number = 1; // start with file log001
 
 		/* look for the next file that does not exist */
-		while (file_number <= MAX_NO_LOGFILE) {
+		while (file_number <= max_no_logfile) {
 			/* format log file path: e.g. /fs/microsd/sess001/log001.px4log */
 			snprintf(log_file_name, sizeof(log_file_name), "log%03u.px4log", file_number);
 			snprintf(log_file_path, sizeof(log_file_path), "%s/%s", log_dir, log_file_name);
@@ -533,9 +533,9 @@ int open_log_file()
 			file_number++;
 		}
 
-		if (file_number > MAX_NO_LOGFILE) {
+		if (file_number > max_no_logfile) {
 			/* we should not end up here, either we have more than MAX_NO_LOGFILE on the SD card, or another problem */
-			mavlink_log_critical(&mavlink_log_pub, "[blackbox] ERR: max files %d", MAX_NO_LOGFILE);
+			mavlink_log_critical(&mavlink_log_pub, "[blackbox] ERR: max files %d", max_no_logfile);
 			return -1;
 		}
 	}
@@ -573,7 +573,7 @@ int open_perf_file(const char* str)
 		unsigned file_number = 1; // start with file log001
 
 		/* look for the next file that does not exist */
-		while (file_number <= MAX_NO_LOGFILE) {
+		while (file_number <= max_no_logfile) {
 			/* format log file path: e.g. /fs/microsd/sess001/log001.txt */
 			snprintf(log_file_name, sizeof(log_file_name), "perf%03u.txt", file_number);
 			snprintf(log_file_path, sizeof(log_file_path), "%s/%s_%s", log_dir, str, log_file_name);
@@ -585,9 +585,9 @@ int open_perf_file(const char* str)
 			file_number++;
 		}
 
-		if (file_number > MAX_NO_LOGFILE) {
+		if (file_number > max_no_logfile) {
 			/* we should not end up here, either we have more than MAX_NO_LOGFILE on the SD card, or another problem */
-			mavlink_log_critical(&mavlink_log_pub, "[blackbox] ERR: max files %d", MAX_NO_LOGFILE);
+			mavlink_log_critical(&mavlink_log_pub, "[blackbox] ERR: max files %d", max_no_logfile);
 			return -1;
 		}
 	}
@@ -662,8 +662,8 @@ static void *logwriter_thread(void *arg)
 		if (available > 0) {
 
 			/* do heavy IO here */
-			if (available > MAX_WRITE_CHUNK) {
-				n = MAX_WRITE_CHUNK;
+			if (available > max_write_chunk) {
+				n = max_write_chunk;
 
 			} else {
 				n = available;
@@ -861,15 +861,15 @@ int write_version(int fd)
 	struct {
 		LOG_PACKET_HEADER;
 		struct log_VER_s body;
-	} log_msg_VER = {
+	} log_msg_ver = {
 		LOG_PACKET_HEADER_INIT(LOG_VER_MSG),
 	};
 
 	/* fill version message and write it */
-	strncpy(log_msg_VER.body.fw_git, px4_firmware_version_string(), sizeof(log_msg_VER.body.fw_git));
-	strncpy(log_msg_VER.body.arch, px4_board_name(), sizeof(log_msg_VER.body.arch));
-	log_msg_VER.body.arch[sizeof(log_msg_VER.body.arch) - 1] = '\0';
-	return write(fd, &log_msg_VER, sizeof(log_msg_VER));
+	strncpy(log_msg_ver.body.fw_git, px4_firmware_version_string(), sizeof(log_msg_ver.body.fw_git));
+	strncpy(log_msg_ver.body.arch, px4_board_name(), sizeof(log_msg_ver.body.arch));
+	log_msg_ver.body.arch[sizeof(log_msg_ver.body.arch) - 1] = '\0';
+	return write(fd, &log_msg_ver, sizeof(log_msg_ver));
 }
 
 int write_parameters(int fd)
@@ -878,7 +878,7 @@ int write_parameters(int fd)
 	struct {
 		LOG_PACKET_HEADER;
 		struct log_PARM_s body;
-	} log_msg_PARM = {
+	} log_msg_parm = {
 		LOG_PACKET_HEADER_INIT(LOG_PARM_MSG),
 	};
 
@@ -887,8 +887,8 @@ int write_parameters(int fd)
 
 	for (param_t param = 0; param < params_cnt; param++) {
 		/* fill parameter message and write it */
-		strncpy(log_msg_PARM.body.name, param_name(param), sizeof(log_msg_PARM.body.name));
-		log_msg_PARM.body.name[sizeof(log_msg_PARM.body.name) - 1] = '\0';
+		strncpy(log_msg_parm.body.name, param_name(param), sizeof(log_msg_parm.body.name));
+		log_msg_parm.body.name[sizeof(log_msg_parm.body.name) - 1] = '\0';
 		float value = NAN;
 
 		switch (param_type(param)) {
@@ -907,8 +907,8 @@ int write_parameters(int fd)
 			break;
 		}
 
-		log_msg_PARM.body.value = value;
-		written += write(fd, &log_msg_PARM, sizeof(log_msg_PARM));
+		log_msg_parm.body.value = value;
+		written += write(fd, &log_msg_parm, sizeof(log_msg_parm));
 	}
 
 	return written;
@@ -953,7 +953,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 {
 	/* default log rate: 50 Hz */
 	int32_t log_rate = 50;
-	int log_buffer_size = LOG_BUFFER_SIZE_DEFAULT;
+	int log_buffer_size = log_buffer_size_default;
 	logging_enabled = false;
 	/* enable logging on start (-e option) */
 	bool log_on_start = false;
@@ -1020,7 +1020,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 			break;
 
 		case 'x':
-			_extended_logging = true;
+			extended_logging = true;
 			break;
 
 		case '?':
@@ -1080,9 +1080,9 @@ int sdlog2_thread_main(int argc, char *argv[])
 		param_get(log_ext_ph, &param_log_extended);
 
 		if (param_log_extended > 0) {
-			_extended_logging = true;
+			extended_logging = true;
 		} else if (param_log_extended == 0) {
-			_extended_logging = false;
+			extended_logging = false;
 		}
 		/* any other value means to ignore the parameter, so no else case */
 
@@ -1096,9 +1096,9 @@ int sdlog2_thread_main(int argc, char *argv[])
 		param_get(log_gpstime_ph, &param_log_gpstime);
 
 		if (param_log_gpstime > 0) {
-			_gpstime_only = true;
+			gpstime_only = true;
 		} else if (param_log_gpstime == 0) {
-			_gpstime_only = false;
+			gpstime_only = false;
 		}
 		/* any other value means to ignore the parameter, so no else case */
 
@@ -1109,7 +1109,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 	if ( log_utc_offset != PARAM_INVALID ) {
 	    int32_t param_utc_offset;
 	    param_get(log_utc_offset, &param_utc_offset);
-	    _utc_offset = param_utc_offset;
+	    utc_offset = param_utc_offset;
 	}
 
 	if (check_free_space() != OK) {
@@ -1513,30 +1513,30 @@ int sdlog2_thread_main(int argc, char *argv[])
 			if (fds[0].revents & POLLIN) {
 				orb_copy(ORB_ID(sensor_combined), subs.sensor_sub, &buf.sensor);
 
-				bool write_IMU = false;
-				bool write_SENS = false;
+				bool write_imu = false;
+				bool write_sens = false;
 
 				if (buf.sensor.timestamp != gyro_timestamp) {
 					gyro_timestamp = buf.sensor.timestamp;
-					write_IMU = true;
+					write_imu = true;
 				}
 
 				if (buf.sensor.timestamp + buf.sensor.accelerometer_timestamp_relative != accelerometer_timestamp) {
 					accelerometer_timestamp = buf.sensor.timestamp + buf.sensor.accelerometer_timestamp_relative;
-					write_IMU = true;
+					write_imu = true;
 				}
 
 				if (buf.sensor.timestamp + buf.sensor.magnetometer_timestamp_relative != magnetometer_timestamp) {
 					magnetometer_timestamp = buf.sensor.timestamp + buf.sensor.magnetometer_timestamp_relative;
-					write_IMU = true;
+					write_imu = true;
 				}
 
 				if (buf.sensor.timestamp + buf.sensor.baro_timestamp_relative != barometer_timestamp) {
 					barometer_timestamp = buf.sensor.timestamp + buf.sensor.baro_timestamp_relative;
-					write_SENS = true;
+					write_sens = true;
 				}
 
-				if (write_IMU) {
+				if (write_imu) {
 					log_msg.msg_type = LOG_IMU_MSG;
 
 					log_msg.body.log_IMU.gyro_x = buf.sensor.gyro_rad[0];
@@ -1554,7 +1554,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 					LOGBUFFER_WRITE_AND_COUNT(IMU);
 				}
 
-				if (write_SENS) {
+				if (write_sens) {
 					log_msg.msg_type = LOG_SENS_MSG;
 
 					log_msg.body.log_SENS.baro_pres = 0;
@@ -1618,7 +1618,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 			}
 
 			/* --- SATELLITE INFO - UNIT #1 --- */
-			if (_extended_logging) {
+			if (extended_logging) {
 
 				if (copy_if_updated(ORB_ID(satellite_info), &subs.sat_info_sub, &buf.sat_info)) {
 
@@ -2144,7 +2144,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 		pthread_mutex_lock(&logbuffer_mutex);
 
 		/* signal the other thread new data, but not yet unlock */
-		if (logbuffer_count(&lb) > MIN_BYTES_TO_WRITE) {
+		if (logbuffer_count(&lb) > min_bytes_to_write) {
 			/* only request write if several packets can be written at once */
 			pthread_cond_signal(&logbuffer_cond);
 		}
@@ -2170,7 +2170,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 
 void sdlog2_status()
 {
-	PX4_WARN("extended logging: %s", (_extended_logging) ? "ON" : "OFF");
+	PX4_WARN("extended logging: %s", (extended_logging) ? "ON" : "OFF");
 	PX4_WARN("time: gps: %u seconds", (unsigned)gps_time_sec);
 	if (!logging_enabled) {
 		PX4_WARN("not logging");

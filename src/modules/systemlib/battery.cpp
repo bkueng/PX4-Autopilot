@@ -59,7 +59,7 @@ Battery::Battery() :
 	_remaining_capacity(1.0f),
 	_remaining(1.0f),
 	_scale(1.0f),
-	_warning(battery_status_s::BATTERY_WARNING_NONE),
+	_warning(battery_status_s::battery_warning_none),
 	_last_timestamp(0)
 {
 	/* load initial params */
@@ -79,7 +79,7 @@ Battery::reset(battery_status_s *battery_status)
 	battery_status->scale = 1.0f;
 	battery_status->cell_count = _param_n_cells.get();
 	// TODO: check if it is sane to reset warning to NONE
-	battery_status->warning = battery_status_s::BATTERY_WARNING_NONE;
+	battery_status->warning = battery_status_s::battery_warning_none;
 	battery_status->connected = false;
 }
 
@@ -226,14 +226,14 @@ Battery::determineWarning(bool connected)
 {
 	if (connected) {
 		// propagate warning state only if the state is higher, otherwise remain in current warning state
-		if (_remaining < _param_emergency_thr.get() || (_warning == battery_status_s::BATTERY_WARNING_EMERGENCY)) {
-			_warning = battery_status_s::BATTERY_WARNING_EMERGENCY;
+		if (_remaining < _param_emergency_thr.get() || (_warning == battery_status_s::battery_warning_emergency)) {
+			_warning = battery_status_s::battery_warning_emergency;
 
-		} else if (_remaining < _param_crit_thr.get() || (_warning == battery_status_s::BATTERY_WARNING_CRITICAL)) {
-			_warning = battery_status_s::BATTERY_WARNING_CRITICAL;
+		} else if (_remaining < _param_crit_thr.get() || (_warning == battery_status_s::battery_warning_critical)) {
+			_warning = battery_status_s::battery_warning_critical;
 
-		} else if (_remaining < _param_low_thr.get() || (_warning == battery_status_s::BATTERY_WARNING_LOW)) {
-			_warning = battery_status_s::BATTERY_WARNING_LOW;
+		} else if (_remaining < _param_low_thr.get() || (_warning == battery_status_s::battery_warning_low)) {
+			_warning = battery_status_s::battery_warning_low;
 		}
 	}
 }

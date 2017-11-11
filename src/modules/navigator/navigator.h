@@ -100,14 +100,14 @@ public:
 	/**
 	 * Load fence from file
 	 */
-	void		load_fence_from_file(const char *filename);
+	void		loadFenceFromFile(const char *filename);
 
 	/**
 	 * Publish the geofence result
 	 */
-	void		publish_geofence_result();
+	void		publishGeofenceResult();
 
-	void		publish_vehicle_cmd(vehicle_command_s *vcmd);
+	void		publishVehicleCmd(vehicle_command_s *vcmd);
 
 	/**
 	 * Generate an artificial traffic indication
@@ -119,72 +119,72 @@ public:
 	 * @param hor_velocity Horizontal velocity of traffic, in m/s
 	 * @param ver_velocity Vertical velocity of traffic, in m/s
 	 */
-	void		fake_traffic(const char *callsign, float distance, float direction, float traffic_heading, float altitude_diff,
+	void		fakeTraffic(const char *callsign, float distance, float direction, float traffic_heading, float altitude_diff,
 				     float hor_velocity, float ver_velocity);
 
 	/**
 	 * Check nearby traffic for potential collisions
 	 */
-	void		check_traffic();
+	void		checkTraffic();
 
 	/**
 	 * Setters
 	 */
-	void		set_can_loiter_at_sp(bool can_loiter) { _can_loiter_at_sp = can_loiter; }
-	void		set_position_setpoint_triplet_updated() { _pos_sp_triplet_updated = true; }
-	void		set_mission_result_updated() { _mission_result_updated = true; }
+	void		setCanLoiterAtSp(bool can_loiter) { _can_loiter_at_sp = can_loiter; }
+	void		setPositionSetpointTripletUpdated() { _pos_sp_triplet_updated = true; }
+	void		setMissionResultUpdated() { _mission_result_updated = true; }
 
 	/**
 	 * Getters
 	 */
-	struct fw_pos_ctrl_status_s *get_fw_pos_ctrl_status() { return &_fw_pos_ctrl_status; }
-	struct home_position_s *get_home_position() { return &_home_pos; }
-	struct mission_result_s *get_mission_result() { return &_mission_result; }
-	struct position_setpoint_triplet_s *get_position_setpoint_triplet() { return &_pos_sp_triplet; }
-	struct position_setpoint_triplet_s *get_reposition_triplet() { return &_reposition_triplet; }
-	struct position_setpoint_triplet_s *get_takeoff_triplet() { return &_takeoff_triplet; }
-	struct vehicle_global_position_s *get_global_position() { return &_global_pos; }
-	struct vehicle_land_detected_s *get_land_detected() { return &_land_detected; }
-	struct vehicle_local_position_s *get_local_position() { return &_local_pos; }
-	struct vehicle_status_s *get_vstatus() { return &_vstatus; }
+	struct fw_pos_ctrl_status_s *getFwPosCtrlStatus() { return &_fw_pos_ctrl_status; }
+	struct home_position_s *getHomePosition() { return &_home_pos; }
+	struct mission_result_s *getMissionResult() { return &_mission_result; }
+	struct position_setpoint_triplet_s *getPositionSetpointTriplet() { return &_pos_sp_triplet; }
+	struct position_setpoint_triplet_s *getRepositionTriplet() { return &_reposition_triplet; }
+	struct position_setpoint_triplet_s *getTakeoffTriplet() { return &_takeoff_triplet; }
+	struct vehicle_global_position_s *getGlobalPosition() { return &_global_pos; }
+	struct vehicle_land_detected_s *getLandDetected() { return &_land_detected; }
+	struct vehicle_local_position_s *getLocalPosition() { return &_local_pos; }
+	struct vehicle_status_s *getVstatus() { return &_vstatus; }
 
-	const vehicle_roi_s &get_vroi() { return _vroi; }
+	const vehicle_roi_s &getVroi() { return _vroi; }
 
-	bool home_position_valid() { return (_home_pos.timestamp > 0); }
+	bool homePositionValid() { return (_home_pos.timestamp > 0); }
 
-	int		get_onboard_mission_sub() { return _onboard_mission_sub; }
-	int		get_offboard_mission_sub() { return _offboard_mission_sub; }
+	int		getOnboardMissionSub() { return _onboard_mission_sub; }
+	int		getOffboardMissionSub() { return _offboard_mission_sub; }
 
-	Geofence	&get_geofence() { return _geofence; }
+	Geofence	&getGeofence() { return _geofence; }
 
-	bool		get_can_loiter_at_sp() { return _can_loiter_at_sp; }
-	float		get_loiter_radius() { return _param_loiter_radius.get(); }
+	bool		getCanLoiterAtSp() { return _can_loiter_at_sp; }
+	float		getLoiterRadius() { return _param_loiter_radius.get(); }
 
 	/**
 	 * Returns the default acceptance radius defined by the parameter
 	 */
-	float		get_default_acceptance_radius();
+	float		getDefaultAcceptanceRadius();
 
 	/**
 	 * Get the acceptance radius
 	 *
 	 * @return the distance at which the next waypoint should be used
 	 */
-	float		get_acceptance_radius();
+	float		getAcceptanceRadius();
 
 	/**
 	 * Get the altitude acceptance radius
 	 *
 	 * @return the distance from the target altitude before considering the waypoint reached
 	 */
-	float		get_altitude_acceptance_radius();
+	float		getAltitudeAcceptanceRadius();
 
 	/**
 	 * Get the cruising speed
 	 *
 	 * @return the desired cruising speed for this mission
 	 */
-	float		get_cruising_speed();
+	float		getCruisingSpeed();
 
 	/**
 	 * Set the cruising speed
@@ -195,32 +195,32 @@ public:
 	 * For VTOL: sets cruising speed for current mode only (multirotor or fixed-wing).
 	 *
 	 */
-	void		set_cruising_speed(float speed = -1.0f);
+	void		setCruisingSpeed(float speed = -1.0f);
 
 	/**
 	 * Reset cruising speed to default values
 	 *
 	 * For VTOL: resets both cruising speeds.
 	 */
-	void		reset_cruising_speed();
+	void		resetCruisingSpeed();
 
 
 	/**
 	 *  Set triplets to invalid
 	 */
-	void 		reset_triplets();
+	void 		resetTriplets();
 
 	/**
 	 * Get the target throttle
 	 *
 	 * @return the desired throttle for this mission
 	 */
-	float		get_cruising_throttle();
+	float		getCruisingThrottle();
 
 	/**
 	 * Set the target throttle
 	 */
-	void		set_cruising_throttle(float throttle = -1.0f) { _mission_throttle = throttle; }
+	void		setCruisingThrottle(float throttle = -1.0f) { _mission_throttle = throttle; }
 
 	/**
 	 * Get the acceptance radius given the mission item preset radius
@@ -229,21 +229,21 @@ public:
 	 *
 	 * @return the distance at which the next waypoint should be used
 	 */
-	float		get_acceptance_radius(float mission_item_radius);
+	float		getAcceptanceRadius(float mission_item_radius);
 
-	orb_advert_t	*get_mavlink_log_pub() { return &_mavlink_log_pub; }
+	orb_advert_t	*getMavlinkLogPub() { return &_mavlink_log_pub; }
 
-	void		increment_mission_instance_count() { _mission_instance_count++; }
+	void		incrementMissionInstanceCount() { _mission_instance_count++; }
 
-	void 		set_mission_failure(const char *reason);
+	void 		setMissionFailure(const char *reason);
 
-	bool		is_planned_mission() { return _navigation_mode == &_mission; }
+	bool		isPlannedMission() { return _navigation_mode == &_mission; }
 
-	bool		abort_landing();
+	bool		abortLanding();
 
-	float		get_loiter_min_alt() const { return _param_loiter_min_alt.get(); }
+	float		getLoiterMinAlt() const { return _param_loiter_min_alt.get(); }
 
-	bool		force_vtol() const { return _vstatus.is_vtol && !_vstatus.is_rotary_wing && _param_force_vtol.get(); }
+	bool		forceVtol() const { return _vstatus.is_vtol && !_vstatus.is_rotary_wing && _param_force_vtol.get(); }
 
 private:
 
@@ -332,36 +332,36 @@ private:
 	float _mission_throttle{-1.0f};
 
 	// update subscriptions
-	void		fw_pos_ctrl_status_update(bool force = false);
-	void		global_position_update();
-	void		gps_position_update();
-	void		home_position_update(bool force = false);
-	void		local_position_update();
-	void		params_update();
-	void		sensor_combined_update();
-	void		vehicle_land_detected_update();
-	void		vehicle_status_update();
+	void		fwPosCtrlStatusUpdate(bool force = false);
+	void		globalPositionUpdate();
+	void		gpsPositionUpdate();
+	void		homePositionUpdate(bool force = false);
+	void		localPositionUpdate();
+	void		paramsUpdate();
+	void		sensorCombinedUpdate();
+	void		vehicleLandDetectedUpdate();
+	void		vehicleStatusUpdate();
 
 	/**
 	 * Shim for calling task_main from task_create.
 	 */
-	static void	task_main_trampoline(int argc, char *argv[]);
+	static void	taskMainTrampoline(int argc, char *argv[]);
 
 	/**
 	 * Main task.
 	 */
-	void		task_main();
+	void		taskMain();
 
 	/**
 	 * Publish a new position setpoint triplet for position controllers
 	 */
-	void		publish_position_setpoint_triplet();
+	void		publishPositionSetpointTriplet();
 
 	/**
 	 * Publish the mission result so commander and mavlink know what is going on
 	 */
-	void		publish_mission_result();
+	void		publishMissionResult();
 
-	void		publish_vehicle_command_ack(const vehicle_command_s &cmd, uint8_t result);
+	void		publishVehicleCommandAck(const vehicle_command_s &cmd, uint8_t result);
 };
 #endif

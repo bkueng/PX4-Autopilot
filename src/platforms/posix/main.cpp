@@ -71,21 +71,21 @@ const unsigned path_max_len = PATH_MAX;
 const unsigned path_max_len = 1024;
 #endif
 
-static volatile bool _ExitFlag = false;
+static volatile bool exit_flag = false;
 
 static struct termios orig_term;
 
 extern "C" {
-	void _SigIntHandler(int sig_num);
-	void _SigIntHandler(int sig_num)
+	void sig_int_handler(int sig_num);
+	void sig_int_handler(int sig_num)
 	{
 		cout.flush();
 		cout << endl << "Exiting..." << endl;
 		cout.flush();
-		_ExitFlag = true;
+		exit_flag = true;
 	}
-	void _SigFpeHandler(int sig_num);
-	void _SigFpeHandler(int sig_num)
+	void sig_fpe_handler(int sig_num);
+	void sig_fpe_handler(int sig_num)
 	{
 		cout.flush();
 		cout << endl << "floating point exception" << endl;
@@ -94,13 +94,13 @@ extern "C" {
 	}
 }
 
-static inline bool fileExists(const string &name)
+static inline bool file_exists(const string &name)
 {
 	struct stat buffer;
 	return (stat(name.c_str(), &buffer) == 0);
 }
 
-static inline bool dirExists(const string &path)
+static inline bool dir_exists(const string &path)
 {
 	struct stat info;
 
@@ -268,7 +268,7 @@ static void restore_term()
 
 bool px4_exit_requested(void)
 {
-	return _ExitFlag;
+	return exit_flag;
 }
 
 static void set_cpu_scaling()
@@ -302,12 +302,12 @@ int main(int argc, char **argv)
 
 	struct sigaction sig_int;
 	memset(&sig_int, 0, sizeof(struct sigaction));
-	sig_int.sa_handler = _SigIntHandler;
+	sig_int.sa_handler = sig_int_handler;
 	sig_int.sa_flags = 0;// not SA_RESTART!;
 
 	struct sigaction sig_fpe;
 	memset(&sig_fpe, 0, sizeof(struct sigaction));
-	sig_fpe.sa_handler = _SigFpeHandler;
+	sig_fpe.sa_handler = sig_fpe_handler;
 	sig_fpe.sa_flags = 0;// not SA_RESTART!;
 
 	sigaction(SIGINT, &sig_int, nullptr);
@@ -392,7 +392,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	if (!fileExists(commands_file)) {
+	if (!file_exists(commands_file)) {
 		PX4_ERR("Error opening commands file, does not exist: %s", commands_file.c_str());
 		return -1;
 	}
@@ -412,7 +412,7 @@ int main(int argc, char **argv)
 
 			PX4_DEBUG("Creating symlink %s -> %s", src_path.c_str(), dest_path.c_str());
 
-			if (dirExists(path_sym_link)) { continue; }
+			if (dir_exists(path_sym_link)) { continue; }
 
 			// create sym-links
 			int ret = symlink(src_path.c_str(), dest_path.c_str());
@@ -433,13 +433,13 @@ int main(int argc, char **argv)
 	const string eeprom_path = "./rootfs/eeprom/";
 	const string microsd_path = "./rootfs/fs/microsd/";
 
-	if (!fileExists(eeprom_path + "parameters")) {
+	if (!file_exists(eeprom_path + "parameters")) {
 		cout << "creating new parameters file" << endl;
 		mkpath(eeprom_path.c_str(), S_IRUSR | S_IWUSR | S_IXUSR);
 		touch(eeprom_path + "parameters");
 	}
 
-	if (!fileExists(microsd_path + "dataman")) {
+	if (!file_exists(microsd_path + "dataman")) {
 		cout << "creating new dataman file" << endl;
 		mkpath(microsd_path.c_str(), S_IRUSR | S_IWUSR | S_IXUSR);
 		touch(microsd_path + "dataman");
@@ -516,7 +516,7 @@ int main(int argc, char **argv)
 		tcsetattr(0, TCSANOW, &term);
 		setbuf(stdin, nullptr);
 
-		while (!_ExitFlag) {
+		while (!exit_flag) {
 
 			char c = getchar();
 
@@ -600,7 +600,7 @@ int main(int argc, char **argv)
 		}
 
 	} else {
-		while (!_ExitFlag) {
+		while (!exit_flag) {
 			usleep(100000);
 		}
 	}

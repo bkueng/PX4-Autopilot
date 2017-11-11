@@ -60,7 +60,7 @@ public:
 	~Hysteresis()
 	{}
 
-	void set_hysteresis_time_from(const bool from_state, const hrt_abstime new_hysteresis_time_us)
+	void setHysteresisTimeFrom(const bool from_state, const hrt_abstime new_hysteresis_time_us)
 	{
 		if (from_state == true) {
 			_hysteresis_time_from_true_us = new_hysteresis_time_us;
@@ -70,12 +70,12 @@ public:
 		}
 	}
 
-	bool get_state() const
+	bool getState() const
 	{
 		return _state;
 	}
 
-	void set_state_and_update(const bool new_state);
+	void setStateAndUpdate(const bool new_state);
 
 	void update();
 

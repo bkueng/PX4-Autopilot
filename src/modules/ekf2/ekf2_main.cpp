@@ -85,23 +85,23 @@ public:
 	~Ekf2() override = default;
 
 	/** @see ModuleBase */
-	static int task_spawn(int argc, char *argv[]);
+	static int taskSpawn(int argc, char *argv[]);
 
 	/** @see ModuleBase */
 	static Ekf2 *instantiate(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int custom_command(int argc, char *argv[]);
+	static int customCommand(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int print_usage(const char *reason = nullptr);
+	static int printUsage(const char *reason = nullptr);
 
 	/** @see ModuleBase::run() */
 	void run() override;
 
-	void set_replay_mode(bool replay) { _replay_mode = replay; }
+	void setReplayMode(bool replay) { _replay_mode = replay; }
 
-	static void	task_main_trampoline(int argc, char *argv[]);
+	static void	taskMainTrampoline(int argc, char *argv[]);
 
 	int print_status() override;
 
@@ -147,13 +147,13 @@ private:
 	Vector3f _vel_innov_lpf_ned = {};	///< Preflight low pass filtered velocity innovations (m/sec)
 	float _hgt_innov_lpf = 0.0f;		///< Preflight low pass filtered height innovation (m)
 
-	static constexpr float _innov_lpf_tau_inv = 0.2f;	///< Preflight low pass filter time constant inverse (1/sec)
-	static constexpr float _vel_innov_test_lim =
+	static constexpr float innov_lpf_tau_inv = 0.2f;	///< Preflight low pass filter time constant inverse (1/sec)
+	static constexpr float vel_innov_test_lim =
 		0.5f;	///< Maximum permissible velocity innovation to pass pre-flight checks (m/sec)
-	static constexpr float _hgt_innov_test_lim =
+	static constexpr float hgt_innov_test_lim =
 		1.5f;	///< Maximum permissible height innovation to pass pre-flight checks (m)
-	const float _vel_innov_spike_lim = 2.0f * _vel_innov_test_lim;	///< preflight velocity innovation spike limit (m/sec)
-	const float _hgt_innov_spike_lim = 2.0f * _hgt_innov_test_lim;	///< preflight position innovation spike limit (m)
+	const float _vel_innov_spike_lim = 2.0f * vel_innov_test_lim;	///< preflight velocity innovation spike limit (m/sec)
+	const float _hgt_innov_spike_lim = 2.0f * hgt_innov_test_lim;	///< preflight position innovation spike limit (m)
 
 	orb_advert_t _att_pub{nullptr};
 	orb_advert_t _wind_pub{nullptr};
@@ -162,8 +162,8 @@ private:
 	orb_advert_t _ekf2_timestamps_pub{nullptr};
 	orb_advert_t _sensor_bias_pub{nullptr};
 
-	uORB::Publication<vehicle_local_position_s> _vehicle_local_position_pub;
-	uORB::Publication<vehicle_global_position_s> _vehicle_global_position_pub;
+	u_orb::Publication<vehicle_local_position_s> _vehicle_local_position_pub;
+	u_orb::Publication<vehicle_global_position_s> _vehicle_global_position_pub;
 
 	// Used to correct baro data for positional errors
 	Vector3f _vel_body_wind = {};	// XYZ velocity relative to wind in body frame (m/s)
@@ -650,7 +650,7 @@ void Ekf2::run()
 		_ekf.setIMUData(now, sensors.gyro_integral_dt, sensors.accelerometer_integral_dt, gyro_integral, accel_integral);
 
 		// read mag data
-		if (sensors.magnetometer_timestamp_relative == sensor_combined_s::RELATIVE_TIMESTAMP_INVALID) {
+		if (sensors.magnetometer_timestamp_relative == sensor_combined_s::relative_timestamp_invalid) {
 			// set a zero timestamp to let the ekf replay program know that this data is not valid
 			_timestamp_mag_us = 0;
 
@@ -673,7 +673,7 @@ void Ekf2::run()
 					}
 				}
 
-				if ((vehicle_status.arming_state != vehicle_status_s::ARMING_STATE_ARMED) && (_invalid_mag_id_count > 100)) {
+				if ((vehicle_status.arming_state != vehicle_status_s::arming_state_armed) && (_invalid_mag_id_count > 100)) {
 					// the sensor ID used for the last saved mag bias is not confirmed to be the same as the current sensor ID
 					// this means we need to reset the learned bias values to zero
 					_mag_bias_x.set(0.f);
@@ -720,7 +720,7 @@ void Ekf2::run()
 		}
 
 		// read baro data
-		if (sensors.baro_timestamp_relative == sensor_combined_s::RELATIVE_TIMESTAMP_INVALID) {
+		if (sensors.baro_timestamp_relative == sensor_combined_s::relative_timestamp_invalid) {
 			// set a zero timestamp to let the ekf replay program know that this data is not valid
 			_timestamp_balt_us = 0;
 
@@ -748,16 +748,16 @@ void Ekf2::run()
 					// model position error sensitivity as a body fixed ellipse with different scale in the positive and negtive X direction
 					float max_airspeed_sq = _aspd_max.get();
 					max_airspeed_sq *= max_airspeed_sq;
-					float K_pstatic_coef_x;
+					float k_pstatic_coef_x;
 
 					if (_vel_body_wind(0) >= 0.0f) {
-						K_pstatic_coef_x = _K_pstatic_coef_xp.get();
+						k_pstatic_coef_x = _K_pstatic_coef_xp.get();
 
 					} else {
-						K_pstatic_coef_x = _K_pstatic_coef_xn.get();
+						k_pstatic_coef_x = _K_pstatic_coef_xn.get();
 					}
 
-					float pstatic_err = 0.5f * rho * (K_pstatic_coef_x * fminf(_vel_body_wind(0) * _vel_body_wind(0), max_airspeed_sq) +
+					float pstatic_err = 0.5f * rho * (k_pstatic_coef_x * fminf(_vel_body_wind(0) * _vel_body_wind(0), max_airspeed_sq) +
 									  _K_pstatic_coef_y.get() * fminf(_vel_body_wind(1) * _vel_body_wind(1), max_airspeed_sq) +
 									  _K_pstatic_coef_z.get() * fminf(_vel_body_wind(2) * _vel_body_wind(2), max_airspeed_sq));
 
@@ -1106,7 +1106,7 @@ void Ekf2::run()
 
 				// Check if conditions are OK to for learning of magnetometer bias values
 				if (!vehicle_land_detected.landed && // not on ground
-				    (vehicle_status.arming_state == vehicle_status_s::ARMING_STATE_ARMED) && // vehicle is armed
+				    (vehicle_status.arming_state == vehicle_status_s::arming_state_armed) && // vehicle is armed
 				    (status.filter_fault_flags == 0) && // there are no filter faults
 				    (status.control_mode_flags & (1 << 5))) { // the EKF is operating in the correct mode
 
@@ -1156,7 +1156,7 @@ void Ekf2::run()
 				}
 
 				// Check and save the last valid calibration when we are disarmed
-				if ((vehicle_status.arming_state == vehicle_status_s::ARMING_STATE_STANDBY)
+				if ((vehicle_status.arming_state == vehicle_status_s::arming_state_standby)
 				    && (status.filter_fault_flags == 0)
 				    && (sensor_selection.mag_device_id == _mag_bias_id.get())) {
 
@@ -1193,20 +1193,20 @@ void Ekf2::run()
 
 					// Calculate wind-compensated velocity in body frame
 					Vector3f v_wind_comp(velocity);
-					matrix::Dcmf R_to_body(q.inversed());
+					matrix::Dcmf r_to_body(q.inversed());
 
-					float velNE_wind[2];
-					_ekf.get_wind_velocity(velNE_wind);
+					float vel_ne_wind[2];
+					_ekf.get_wind_velocity(vel_ne_wind);
 
-					v_wind_comp(0) -= velNE_wind[0];
-					v_wind_comp(1) -= velNE_wind[1];
-					_vel_body_wind = R_to_body * v_wind_comp; // TODO: move this elsewhere
+					v_wind_comp(0) -= vel_ne_wind[0];
+					v_wind_comp(1) -= vel_ne_wind[1];
+					_vel_body_wind = r_to_body * v_wind_comp; // TODO: move this elsewhere
 
 					// Publish wind estimate
 					wind_estimate_s wind_estimate;
 					wind_estimate.timestamp = now;
-					wind_estimate.windspeed_north = velNE_wind[0];
-					wind_estimate.windspeed_east = velNE_wind[1];
+					wind_estimate.windspeed_north = vel_ne_wind[0];
+					wind_estimate.windspeed_east = vel_ne_wind[1];
 					wind_estimate.variance_north = status.covariances[22];
 					wind_estimate.variance_east = status.covariances[23];
 
@@ -1244,8 +1244,8 @@ void Ekf2::run()
 				_ekf.get_output_tracking_error(&innovations.output_tracking_error[0]);
 
 				// calculate noise filtered velocity innovations which are used for pre-flight checking
-				if (vehicle_status.arming_state == vehicle_status_s::ARMING_STATE_STANDBY) {
-					float alpha = constrain(sensors.accelerometer_integral_dt / 1.e6f * _innov_lpf_tau_inv, 0.0f, 1.0f);
+				if (vehicle_status.arming_state == vehicle_status_s::arming_state_standby) {
+					float alpha = constrain(sensors.accelerometer_integral_dt / 1.e6f * innov_lpf_tau_inv, 0.0f, 1.0f);
 					float beta = 1.0f - alpha;
 					_vel_innov_lpf_ned(0) = beta * _vel_innov_lpf_ned(0) + alpha * constrain(innovations.vel_pos_innov[0],
 								-_vel_innov_spike_lim, _vel_innov_spike_lim);
@@ -1255,8 +1255,8 @@ void Ekf2::run()
 								-_vel_innov_spike_lim, _vel_innov_spike_lim);
 					_hgt_innov_lpf = beta * _hgt_innov_lpf + alpha * constrain(innovations.vel_pos_innov[5], -_hgt_innov_spike_lim,
 							 _hgt_innov_spike_lim);
-					_vel_innov_preflt_fail = ((_vel_innov_lpf_ned.norm() > _vel_innov_test_lim)
-								  || (fabsf(_hgt_innov_lpf) > _hgt_innov_test_lim));
+					_vel_innov_preflt_fail = ((_vel_innov_lpf_ned.norm() > vel_innov_test_lim)
+								  || (fabsf(_hgt_innov_lpf) > hgt_innov_test_lim));
 
 				} else {
 					_vel_innov_lpf_ned.zero();
@@ -1296,7 +1296,7 @@ void Ekf2::run()
 				ekf2_timestamps.gps_timestamp_rel = (int16_t)((int64_t)gps.timestamp / 100 - (int64_t)ekf2_timestamps.timestamp / 100);
 
 			} else {
-				ekf2_timestamps.gps_timestamp_rel = ekf2_timestamps_s::RELATIVE_TIMESTAMP_INVALID;
+				ekf2_timestamps.gps_timestamp_rel = ekf2_timestamps_s::relative_timestamp_invalid;
 			}
 
 			if (optical_flow_updated) {
@@ -1304,7 +1304,7 @@ void Ekf2::run()
 						(int64_t)ekf2_timestamps.timestamp / 100);
 
 			} else {
-				ekf2_timestamps.optical_flow_timestamp_rel = ekf2_timestamps_s::RELATIVE_TIMESTAMP_INVALID;
+				ekf2_timestamps.optical_flow_timestamp_rel = ekf2_timestamps_s::relative_timestamp_invalid;
 			}
 
 			if (range_finder_updated) {
@@ -1312,7 +1312,7 @@ void Ekf2::run()
 						(int64_t)ekf2_timestamps.timestamp / 100);
 
 			} else {
-				ekf2_timestamps.distance_sensor_timestamp_rel = ekf2_timestamps_s::RELATIVE_TIMESTAMP_INVALID;
+				ekf2_timestamps.distance_sensor_timestamp_rel = ekf2_timestamps_s::relative_timestamp_invalid;
 			}
 
 			if (airspeed_updated) {
@@ -1320,7 +1320,7 @@ void Ekf2::run()
 						(int64_t)ekf2_timestamps.timestamp / 100);
 
 			} else {
-				ekf2_timestamps.airspeed_timestamp_rel = ekf2_timestamps_s::RELATIVE_TIMESTAMP_INVALID;
+				ekf2_timestamps.airspeed_timestamp_rel = ekf2_timestamps_s::relative_timestamp_invalid;
 			}
 
 			if (vision_position_updated) {
@@ -1328,7 +1328,7 @@ void Ekf2::run()
 						(int64_t)ekf2_timestamps.timestamp / 100);
 
 			} else {
-				ekf2_timestamps.vision_position_timestamp_rel = ekf2_timestamps_s::RELATIVE_TIMESTAMP_INVALID;
+				ekf2_timestamps.vision_position_timestamp_rel = ekf2_timestamps_s::relative_timestamp_invalid;
 			}
 
 			if (vision_attitude_updated) {
@@ -1336,7 +1336,7 @@ void Ekf2::run()
 						(int64_t)ekf2_timestamps.timestamp / 100);
 
 			} else {
-				ekf2_timestamps.vision_attitude_timestamp_rel = ekf2_timestamps_s::RELATIVE_TIMESTAMP_INVALID;
+				ekf2_timestamps.vision_attitude_timestamp_rel = ekf2_timestamps_s::relative_timestamp_invalid;
 			}
 
 			if (_ekf2_timestamps_pub == nullptr) {
@@ -1377,7 +1377,7 @@ int Ekf2::getRangeSubIndex(const int *subs)
 			orb_copy(ORB_ID(distance_sensor), subs[i], &report);
 
 			// only use the first instace which has the correct orientation
-			if (report.orientation == distance_sensor_s::ROTATION_DOWNWARD_FACING) {
+			if (report.orientation == distance_sensor_s::rotation_downward_facing) {
 				PX4_INFO("Found range finder with instance %d", i);
 				return i;
 			}
@@ -1400,18 +1400,18 @@ Ekf2 *Ekf2::instantiate(int argc, char *argv[])
 	return instance;
 }
 
-int Ekf2::custom_command(int argc, char *argv[])
+int Ekf2::customCommand(int argc, char *argv[])
 {
-	return print_usage("unknown command");
+	return printUsage("unknown command");
 }
 
-int Ekf2::print_usage(const char *reason)
+int Ekf2::printUsage(const char *reason)
 {
 	if (reason) {
 		PX4_WARN("%s\n", reason);
 	}
 
-	PRINT_MODULE_DESCRIPTION(
+	print_module_description(
 		R"DESCR_STR(
 ### Description
 Attitude and position estimator using an Extended Kalman Filter. It is used for Multirotors and Fixed-Wing.
@@ -1423,25 +1423,25 @@ timestamps from the sensor topics.
 
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("ekf2", "estimator");
+	print_module_usage_name("ekf2", "estimator");
 	PRINT_MODULE_USAGE_COMMAND("start");
-	PRINT_MODULE_USAGE_PARAM_FLAG('r', "Enable replay mode", true);
+	print_module_usage_param_flag('r', "Enable replay mode", true);
 	PRINT_MODULE_USAGE_DEFAULT_COMMANDS();
 
 	return 0;
 }
 
-int Ekf2::task_spawn(int argc, char *argv[])
+int Ekf2::taskSpawn(int argc, char *argv[])
 {
-	_task_id = px4_task_spawn_cmd("ekf2",
+	task_id = px4_task_spawn_cmd("ekf2",
 				      SCHED_DEFAULT,
 				      SCHED_PRIORITY_ESTIMATOR,
 				      5720,
-				      (px4_main_t)&run_trampoline,
+				      (px4_main_t)&runTrampoline,
 				      (char *const *)argv);
 
-	if (_task_id < 0) {
-		_task_id = -1;
+	if (task_id < 0) {
+		task_id = -1;
 		return -errno;
 	}
 

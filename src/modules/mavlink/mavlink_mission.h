@@ -85,11 +85,11 @@ public:
 	 */
 	void send(const hrt_abstime t);
 
-	void handle_message(const mavlink_message_t *msg);
+	void handleMessage(const mavlink_message_t *msg);
 
-	void set_verbose(bool v) { _verbose = v; }
+	void setVerbose(bool v) { _verbose = v; }
 
-	void check_active_mission(void);
+	void checkActiveMission(void);
 
 private:
 	enum MAVLINK_WPM_STATES _state;					///< Current state
@@ -106,14 +106,14 @@ private:
 
 	unsigned		_filesystem_errcount;			///< File system error count
 
-	static int		_dataman_id;				///< Global Dataman storage ID for active mission
+	static int		dataman_id;				///< Global Dataman storage ID for active mission
 	int			_my_dataman_id;				///< class Dataman storage ID
-	static bool		_dataman_init;				///< Dataman initialized
+	static bool		dataman_init;				///< Dataman initialized
 
-	static unsigned		_count[3];				///< Count of items in (active) mission for each MAV_MISSION_TYPE
-	static int		_current_seq;				///< Current item sequence in active mission
+	static unsigned		count[3];				///< Count of items in (active) mission for each MAV_MISSION_TYPE
+	static int		current_seq;				///< Current item sequence in active mission
 
-	static int		_last_reached;				///< Last reached waypoint in active mission (-1 means nothing reached)
+	static int		last_reached;				///< Last reached waypoint in active mission (-1 means nothing reached)
 
 	int			_transfer_dataman_id;			///< Dataman storage ID for current transmission
 	unsigned		_transfer_count;			///< Items count in current transmission
@@ -121,13 +121,13 @@ private:
 	unsigned		_transfer_current_seq;			///< Current item ID for current transmission (-1 means not initialized)
 	unsigned		_transfer_partner_sysid;		///< Partner system ID for current transmission
 	unsigned		_transfer_partner_compid;		///< Partner component ID for current transmission
-	static bool		_transfer_in_progress;			///< Global variable checking for current transmission
+	static bool		transfer_in_progress;			///< Global variable checking for current transmission
 
 	int			_offboard_mission_sub;
 	int			_mission_result_sub;
 	orb_advert_t		_offboard_mission_pub;
 
-	static uint16_t _geofence_update_counter;
+	static uint16_t geofence_update_counter;
 	bool		_geofence_locked; ///< if true, we currently hold the dm_lock for the geofence (transaction in progress)
 
 	MavlinkRateLimiter	_slow_rate_limiter;
@@ -136,9 +136,9 @@ private:
 
 	Mavlink *_mavlink;
 
-	static constexpr unsigned int	FILESYSTEM_ERRCOUNT_NOTIFY_LIMIT =
+	static constexpr unsigned int	filesystem_errcount_notify_limit =
 		2;	///< Error count limit before stopping to report FS errors
-	static constexpr unsigned	MAX_COUNT[] = {
+	static constexpr unsigned	max_count[] = {
 		DM_KEY_WAYPOINTS_OFFBOARD_0_MAX,
 		DM_KEY_FENCE_POINTS_MAX - 1,
 		DM_KEY_SAFE_POINTS_MAX - 1
@@ -146,35 +146,35 @@ private:
 					(fence & save points use the first item for the stats) */
 
 	/** get the maximum number of item count for the current _mission_type */
-	inline unsigned current_max_item_count();
+	inline unsigned currentMaxItemCount();
 
 	/** get the number of item count for the current _mission_type */
-	inline unsigned current_item_count();
+	inline unsigned currentItemCount();
 
 	/* do not allow top copying this class */
 	MavlinkMissionManager(MavlinkMissionManager &);
 	MavlinkMissionManager &operator = (const MavlinkMissionManager &);
 
-	void init_offboard_mission();
+	void initOffboardMission();
 
-	int update_active_mission(int dataman_id, unsigned count, int seq);
+	int updateActiveMission(int dataman_id, unsigned count, int seq);
 
 	/** store the geofence count to dataman */
-	int update_geofence_count(unsigned count);
+	int updateGeofenceCount(unsigned count);
 
 	/** store the safepoint count to dataman */
-	int update_safepoint_count(unsigned count);
+	int updateSafepointCount(unsigned count);
 
 	/** load geofence stats from dataman */
-	int load_geofence_stats();
+	int loadGeofenceStats();
 
 	/** load safe point stats from dataman */
-	int load_safepoint_stats();
+	int loadSafepointStats();
 
 	/**
 	 *  @brief Sends an waypoint ack message
 	 */
-	void send_mission_ack(uint8_t sysid, uint8_t compid, uint8_t type);
+	void sendMissionAck(uint8_t sysid, uint8_t compid, uint8_t type);
 
 	/**
 	 *  @brief Broadcasts the new target waypoint and directs the MAV to fly there
@@ -185,13 +185,13 @@ private:
 	 *
 	 *  @param seq The waypoint sequence number the MAV should fly to.
 	 */
-	void send_mission_current(uint16_t seq);
+	void sendMissionCurrent(uint16_t seq);
 
-	void send_mission_count(uint8_t sysid, uint8_t compid, uint16_t count, MAV_MISSION_TYPE mission_type);
+	void sendMissionCount(uint8_t sysid, uint8_t compid, uint16_t count, MAV_MISSION_TYPE mission_type);
 
-	void send_mission_item(uint8_t sysid, uint8_t compid, uint16_t seq);
+	void sendMissionItem(uint8_t sysid, uint8_t compid, uint16_t seq);
 
-	void send_mission_request(uint8_t sysid, uint8_t compid, uint16_t seq);
+	void sendMissionRequest(uint8_t sysid, uint8_t compid, uint16_t seq);
 
 	/**
 	 *  @brief emits a message that a waypoint reached
@@ -200,25 +200,25 @@ private:
 	 *
 	 *  @param seq The waypoint sequence number the MAV has reached.
 	 */
-	void send_mission_item_reached(uint16_t seq);
+	void sendMissionItemReached(uint16_t seq);
 
-	void handle_mission_ack(const mavlink_message_t *msg);
+	void handleMissionAck(const mavlink_message_t *msg);
 
-	void handle_mission_set_current(const mavlink_message_t *msg);
+	void handleMissionSetCurrent(const mavlink_message_t *msg);
 
-	void handle_mission_request_list(const mavlink_message_t *msg);
+	void handleMissionRequestList(const mavlink_message_t *msg);
 
-	void handle_mission_request(const mavlink_message_t *msg);
-	void handle_mission_request_int(const mavlink_message_t *msg);
-	void handle_mission_request_both(const mavlink_message_t *msg);
+	void handleMissionRequest(const mavlink_message_t *msg);
+	void handleMissionRequestInt(const mavlink_message_t *msg);
+	void handleMissionRequestBoth(const mavlink_message_t *msg);
 
-	void handle_mission_count(const mavlink_message_t *msg);
+	void handleMissionCount(const mavlink_message_t *msg);
 
-	void handle_mission_item(const mavlink_message_t *msg);
-	void handle_mission_item_int(const mavlink_message_t *msg);
-	void handle_mission_item_both(const mavlink_message_t *msg);
+	void handleMissionItem(const mavlink_message_t *msg);
+	void handleMissionItemInt(const mavlink_message_t *msg);
+	void handleMissionItemBoth(const mavlink_message_t *msg);
 
-	void handle_mission_clear_all(const mavlink_message_t *msg);
+	void handleMissionClearAll(const mavlink_message_t *msg);
 
 	/**
 	 * Parse mavlink MISSION_ITEM message to get mission_item_s.
@@ -227,7 +227,7 @@ private:
 	 *			       depending on _int_mode
 	 * @param mission_item	       pointer to mission_item to construct
 	 */
-	int parse_mavlink_mission_item(const mavlink_mission_item_t *mavlink_mission_item, struct mission_item_s *mission_item);
+	int parseMavlinkMissionItem(const mavlink_mission_item_t *mavlink_mission_item, struct mission_item_s *mission_item);
 
 	/**
 	 * Format mission_item_s as mavlink MISSION_ITEM(_INT) message.
@@ -236,11 +236,11 @@ private:
 	 * @param mavlink_mission_item: pointer to mavlink_mission_item_t or mavlink_mission_item_int_t
 	 *				depending on _int_mode.
 	 */
-	int format_mavlink_mission_item(const struct mission_item_s *mission_item,
+	int formatMavlinkMissionItem(const struct mission_item_s *mission_item,
 					mavlink_mission_item_t *mavlink_mission_item);
 
 	/**
 	 * set _state to idle (and do necessary cleanup)
 	 */
-	void switch_to_idle_state();
+	void switchToIdleState();
 };

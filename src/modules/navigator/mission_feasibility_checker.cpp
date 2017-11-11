@@ -56,9 +56,9 @@ MissionFeasibilityChecker::checkMissionFeasible(const mission_s &mission,
 		bool land_start_req)
 {
 	dm_item_t dm_current = DM_KEY_WAYPOINTS_OFFBOARD(mission.dataman_id);
-	const size_t nMissionItems = mission.count;
+	const size_t n_mission_items = mission.count;
 
-	const bool isRotarywing = (_navigator->get_vstatus()->is_rotary_wing || _navigator->get_vstatus()->is_vtol);
+	const bool is_rotarywing = (_navigator->get_vstatus()->is_rotary_wing || _navigator->get_vstatus()->is_vtol);
 
 	Geofence &geofence = _navigator->get_geofence();
 	fw_pos_ctrl_status_s *fw_pos_ctrl_status = _navigator->get_fw_pos_ctrl_status();
@@ -81,23 +81,23 @@ MissionFeasibilityChecker::checkMissionFeasible(const mission_s &mission,
 
 	} else {
 		failed = failed ||
-			 !checkDistanceToFirstWaypoint(dm_current, nMissionItems, max_distance_to_1st_waypoint, warning_issued);
+			 !checkDistanceToFirstWaypoint(dm_current, n_mission_items, max_distance_to_1st_waypoint, warning_issued);
 	}
 
 	// check if all mission item commands are supported
-	failed = failed || !checkMissionItemValidity(dm_current, nMissionItems, landed);
+	failed = failed || !checkMissionItemValidity(dm_current, n_mission_items, landed);
 	failed = failed
-		 || !checkDistancesBetweenWaypoints(dm_current, nMissionItems, max_distance_between_waypoints, warning_issued);
-	failed = failed || !checkGeofence(dm_current, nMissionItems, geofence, home_alt, home_valid);
-	failed = failed || !checkHomePositionAltitude(dm_current, nMissionItems, home_alt, home_valid, warned);
+		 || !checkDistancesBetweenWaypoints(dm_current, n_mission_items, max_distance_between_waypoints, warning_issued);
+	failed = failed || !checkGeofence(dm_current, n_mission_items, geofence, home_alt, home_valid);
+	failed = failed || !checkHomePositionAltitude(dm_current, n_mission_items, home_alt, home_valid, warned);
 
-	if (isRotarywing) {
+	if (is_rotarywing) {
 		failed = failed
-			 || !checkRotarywing(dm_current, nMissionItems, home_alt, home_valid, default_altitude_acceptance_rad);
+			 || !checkRotarywing(dm_current, n_mission_items, home_alt, home_valid, default_altitude_acceptance_rad);
 
 	} else {
 		failed = failed
-			 || !checkFixedwing(dm_current, nMissionItems, fw_pos_ctrl_status, home_alt, home_valid,
+			 || !checkFixedwing(dm_current, n_mission_items, fw_pos_ctrl_status, home_alt, home_valid,
 					    default_acceptance_rad, land_start_req);
 	}
 
@@ -105,10 +105,10 @@ MissionFeasibilityChecker::checkMissionFeasible(const mission_s &mission,
 }
 
 bool
-MissionFeasibilityChecker::checkRotarywing(dm_item_t dm_current, size_t nMissionItems,
+MissionFeasibilityChecker::checkRotarywing(dm_item_t dm_current, size_t n_mission_items,
 		float home_alt, bool home_valid, float default_altitude_acceptance_rad)
 {
-	for (size_t i = 0; i < nMissionItems; i++) {
+	for (size_t i = 0; i < n_mission_items; i++) {
 		struct mission_item_s missionitem = {};
 		const ssize_t len = sizeof(struct mission_item_s);
 
@@ -143,20 +143,20 @@ MissionFeasibilityChecker::checkRotarywing(dm_item_t dm_current, size_t nMission
 }
 
 bool
-MissionFeasibilityChecker::checkFixedwing(dm_item_t dm_current, size_t nMissionItems,
+MissionFeasibilityChecker::checkFixedwing(dm_item_t dm_current, size_t n_mission_items,
 		fw_pos_ctrl_status_s *fw_pos_ctrl_status, float home_alt, bool home_valid,
 		float default_acceptance_rad, bool land_start_req)
 {
 	/* Perform checks and issue feedback to the user for all checks */
-	bool resTakeoff = checkFixedWingTakeoff(dm_current, nMissionItems, home_alt, home_valid, land_start_req);
-	bool resLanding = checkFixedWingLanding(dm_current, nMissionItems, fw_pos_ctrl_status, land_start_req);
+	bool res_takeoff = checkFixedWingTakeoff(dm_current, n_mission_items, home_alt, home_valid, land_start_req);
+	bool res_landing = checkFixedWingLanding(dm_current, n_mission_items, fw_pos_ctrl_status, land_start_req);
 
 	/* Mission is only marked as feasible if all checks return true */
-	return (resTakeoff && resLanding);
+	return (res_takeoff && res_landing);
 }
 
 bool
-MissionFeasibilityChecker::checkGeofence(dm_item_t dm_current, size_t nMissionItems, Geofence &geofence, float home_alt,
+MissionFeasibilityChecker::checkGeofence(dm_item_t dm_current, size_t n_mission_items, Geofence &geofence, float home_alt,
 		bool home_valid)
 {
 
@@ -167,7 +167,7 @@ MissionFeasibilityChecker::checkGeofence(dm_item_t dm_current, size_t nMissionIt
 
 	/* Check if all mission items are inside the geofence (if we have a valid geofence) */
 	if (geofence.valid()) {
-		for (size_t i = 0; i < nMissionItems; i++) {
+		for (size_t i = 0; i < n_mission_items; i++) {
 			struct mission_item_s missionitem = {};
 			const ssize_t len = sizeof(missionitem);
 
@@ -184,7 +184,7 @@ MissionFeasibilityChecker::checkGeofence(dm_item_t dm_current, size_t nMissionIt
 			// Geofence function checks against home altitude amsl
 			missionitem.altitude = missionitem.altitude_is_relative ? missionitem.altitude + home_alt : missionitem.altitude;
 
-			if (MissionBlock::item_contains_position(missionitem) &&
+			if (MissionBlock::itemContainsPosition(missionitem) &&
 			    !geofence.check(missionitem)) {
 
 				mavlink_log_critical(_navigator->get_mavlink_log_pub(), "Geofence violation for waypoint %d", i + 1);
@@ -197,11 +197,11 @@ MissionFeasibilityChecker::checkGeofence(dm_item_t dm_current, size_t nMissionIt
 }
 
 bool
-MissionFeasibilityChecker::checkHomePositionAltitude(dm_item_t dm_current, size_t nMissionItems,
+MissionFeasibilityChecker::checkHomePositionAltitude(dm_item_t dm_current, size_t n_mission_items,
 		float home_alt, bool home_valid, bool &warning_issued, bool throw_error)
 {
 	/* Check if all waypoints are above the home altitude */
-	for (size_t i = 0; i < nMissionItems; i++) {
+	for (size_t i = 0; i < n_mission_items; i++) {
 		struct mission_item_s missionitem = {};
 		const ssize_t len = sizeof(struct mission_item_s);
 
@@ -212,7 +212,7 @@ MissionFeasibilityChecker::checkHomePositionAltitude(dm_item_t dm_current, size_
 		}
 
 		/* reject relative alt without home set */
-		if (missionitem.altitude_is_relative && !home_valid && MissionBlock::item_contains_position(missionitem)) {
+		if (missionitem.altitude_is_relative && !home_valid && MissionBlock::itemContainsPosition(missionitem)) {
 
 			warning_issued = true;
 
@@ -229,7 +229,7 @@ MissionFeasibilityChecker::checkHomePositionAltitude(dm_item_t dm_current, size_
 		/* calculate the global waypoint altitude */
 		float wp_alt = (missionitem.altitude_is_relative) ? missionitem.altitude + home_alt : missionitem.altitude;
 
-		if ((home_alt > wp_alt) && MissionBlock::item_contains_position(missionitem)) {
+		if ((home_alt > wp_alt) && MissionBlock::itemContainsPosition(missionitem)) {
 
 			warning_issued = true;
 
@@ -248,10 +248,10 @@ MissionFeasibilityChecker::checkHomePositionAltitude(dm_item_t dm_current, size_
 }
 
 bool
-MissionFeasibilityChecker::checkMissionItemValidity(dm_item_t dm_current, size_t nMissionItems, bool landed)
+MissionFeasibilityChecker::checkMissionItemValidity(dm_item_t dm_current, size_t n_mission_items, bool landed)
 {
 	// do not allow mission if we find unsupported item
-	for (size_t i = 0; i < nMissionItems; i++) {
+	for (size_t i = 0; i < n_mission_items; i++) {
 		struct mission_item_s missionitem;
 		const ssize_t len = sizeof(struct mission_item_s);
 
@@ -326,10 +326,10 @@ MissionFeasibilityChecker::checkMissionItemValidity(dm_item_t dm_current, size_t
 }
 
 bool
-MissionFeasibilityChecker::checkFixedWingTakeoff(dm_item_t dm_current, size_t nMissionItems,
+MissionFeasibilityChecker::checkFixedWingTakeoff(dm_item_t dm_current, size_t n_mission_items,
 		float home_alt, bool home_valid, float default_acceptance_rad)
 {
-	for (size_t i = 0; i < nMissionItems; i++) {
+	for (size_t i = 0; i < n_mission_items; i++) {
 		struct mission_item_s missionitem = {};
 		const ssize_t len = sizeof(struct mission_item_s);
 
@@ -366,7 +366,7 @@ MissionFeasibilityChecker::checkFixedWingTakeoff(dm_item_t dm_current, size_t nM
 }
 
 bool
-MissionFeasibilityChecker::checkFixedWingLanding(dm_item_t dm_current, size_t nMissionItems,
+MissionFeasibilityChecker::checkFixedWingLanding(dm_item_t dm_current, size_t n_mission_items,
 		fw_pos_ctrl_status_s *fw_pos_ctrl_status, bool land_start_req)
 {
 	/* Go through all mission items and search for a landing waypoint
@@ -378,7 +378,7 @@ MissionFeasibilityChecker::checkFixedWingLanding(dm_item_t dm_current, size_t nM
 	size_t do_land_start_index = 0;
 	size_t landing_approach_index = 0;
 
-	for (size_t i = 0; i < nMissionItems; i++) {
+	for (size_t i = 0; i < n_mission_items; i++) {
 		struct mission_item_s missionitem;
 		const ssize_t len = sizeof(missionitem);
 
@@ -410,7 +410,7 @@ MissionFeasibilityChecker::checkFixedWingLanding(dm_item_t dm_current, size_t nM
 					return false;
 				}
 
-				if (MissionBlock::item_contains_position(missionitem_previous)) {
+				if (MissionBlock::itemContainsPosition(missionitem_previous)) {
 					float wp_distance = get_distance_to_next_waypoint(missionitem_previous.lat, missionitem_previous.lon, missionitem.lat,
 							    missionitem.lon);
 
@@ -478,7 +478,7 @@ MissionFeasibilityChecker::checkFixedWingLanding(dm_item_t dm_current, size_t nM
 }
 
 bool
-MissionFeasibilityChecker::checkDistanceToFirstWaypoint(dm_item_t dm_current, size_t nMissionItems,
+MissionFeasibilityChecker::checkDistanceToFirstWaypoint(dm_item_t dm_current, size_t n_mission_items,
 		float max_distance, bool &warning_issued)
 {
 	if (max_distance <= 0.0f) {
@@ -487,7 +487,7 @@ MissionFeasibilityChecker::checkDistanceToFirstWaypoint(dm_item_t dm_current, si
 	}
 
 	/* find first waypoint (with lat/lon) item in datamanager */
-	for (size_t i = 0; i < nMissionItems; i++) {
+	for (size_t i = 0; i < n_mission_items; i++) {
 
 		struct mission_item_s mission_item {};
 
@@ -498,7 +498,7 @@ MissionFeasibilityChecker::checkDistanceToFirstWaypoint(dm_item_t dm_current, si
 		}
 
 		/* check only items with valid lat/lon */
-		if (!MissionBlock::item_contains_position(mission_item)) {
+		if (!MissionBlock::itemContainsPosition(mission_item)) {
 			continue;
 		}
 
@@ -533,7 +533,7 @@ MissionFeasibilityChecker::checkDistanceToFirstWaypoint(dm_item_t dm_current, si
 }
 
 bool
-MissionFeasibilityChecker::checkDistancesBetweenWaypoints(dm_item_t dm_current, size_t nMissionItems,
+MissionFeasibilityChecker::checkDistancesBetweenWaypoints(dm_item_t dm_current, size_t n_mission_items,
 		float max_distance, bool &warning_issued)
 {
 	if (max_distance <= 0.0f) {
@@ -545,7 +545,7 @@ MissionFeasibilityChecker::checkDistancesBetweenWaypoints(dm_item_t dm_current, 
 	double last_lon = NAN;
 
 	/* Go through all waypoints */
-	for (size_t i = 0; i < nMissionItems; i++) {
+	for (size_t i = 0; i < n_mission_items; i++) {
 
 		struct mission_item_s mission_item {};
 
@@ -556,7 +556,7 @@ MissionFeasibilityChecker::checkDistancesBetweenWaypoints(dm_item_t dm_current, 
 		}
 
 		/* check only items with valid lat/lon */
-		if (!MissionBlock::item_contains_position(mission_item)) {
+		if (!MissionBlock::itemContainsPosition(mission_item)) {
 			continue;
 		}
 

@@ -70,7 +70,7 @@ MixerGroup::~MixerGroup()
 }
 
 void
-MixerGroup::add_mixer(Mixer *mixer)
+MixerGroup::addMixer(Mixer *mixer)
 {
 	Mixer **mpp;
 
@@ -123,7 +123,7 @@ MixerGroup::mix(float *outputs, unsigned space)
  * and returns _rotor_count.
  */
 unsigned
-MixerGroup::set_trims(int16_t *values, unsigned n)
+MixerGroup::setTrims(int16_t *values, unsigned n)
 {
 	Mixer	*mixer = _first;
 	unsigned index = 0;
@@ -197,7 +197,7 @@ MixerGroup::groups_required(uint32_t &groups)
 }
 
 int
-MixerGroup::load_from_buf(const char *buf, unsigned &buflen)
+MixerGroup::loadFromBuf(const char *buf, unsigned &buflen)
 {
 	int ret = -1;
 	const char *end = buf + buflen;
@@ -216,19 +216,19 @@ MixerGroup::load_from_buf(const char *buf, unsigned &buflen)
 		 */
 		switch (*p) {
 		case 'Z':
-			m = NullMixer::from_text(p, resid);
+			m = NullMixer::fromText(p, resid);
 			break;
 
 		case 'M':
-			m = SimpleMixer::from_text(_control_cb, _cb_handle, p, resid);
+			m = SimpleMixer::fromText(_control_cb, _cb_handle, p, resid);
 			break;
 
 		case 'R':
-			m = MultirotorMixer::from_text(_control_cb, _cb_handle, p, resid);
+			m = MultirotorMixer::fromText(_control_cb, _cb_handle, p, resid);
 			break;
 
 		case 'H':
-			m = HelicopterMixer::from_text(_control_cb, _cb_handle, p, resid);
+			m = HelicopterMixer::fromText(_control_cb, _cb_handle, p, resid);
 			break;
 
 		default:

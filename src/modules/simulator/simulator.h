@@ -68,7 +68,7 @@ namespace simulator
 
 // FIXME - what is the endianness of these on actual device?
 #pragma pack(push, 1)
-struct RawAccelData {
+struct raw_accel_data {
 	float temperature;
 	float x;
 	float y;
@@ -77,7 +77,7 @@ struct RawAccelData {
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct RawMagData {
+struct raw_mag_data {
 	float temperature;
 	float x;
 	float y;
@@ -86,7 +86,7 @@ struct RawMagData {
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct RawMPUData {
+struct raw_mpu_data {
 	float	accel_x;
 	float	accel_y;
 	float	accel_z;
@@ -98,7 +98,7 @@ struct RawMPUData {
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct RawBaroData {
+struct raw_baro_data {
 	float pressure;
 	float altitude;
 	float temperature;
@@ -106,14 +106,14 @@ struct RawBaroData {
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct RawAirspeedData {
+struct raw_airspeed_data {
 	float temperature;
 	float diff_pressure;
 };
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct RawGPSData {
+struct raw_gps_data {
 	int64_t timestamp;
 	int32_t lat;
 	int32_t lon;
@@ -164,15 +164,15 @@ public:
 	}
 
 protected:
-	void read_lock() { px4_sem_wait(&_lock); }
-	void read_unlock() { px4_sem_post(&_lock); }
-	void write_lock()
+	void readLock() { px4_sem_wait(&_lock); }
+	void readUnlock() { px4_sem_post(&_lock); }
+	void writeLock()
 	{
 		for (int i = 0; i < _max_readers; i++) {
 			px4_sem_wait(&_lock);
 		}
 	}
-	void write_unlock()
+	void writeUnlock()
 	{
 		for (int i = 0; i < _max_readers; i++) {
 			px4_sem_post(&_lock);
@@ -216,12 +216,12 @@ public:
 	bool getGPSSample(uint8_t *buf, int len);
 	bool getAirspeedSample(uint8_t *buf, int len);
 
-	void write_MPU_data(void *buf);
-	void write_accel_data(void *buf);
-	void write_mag_data(void *buf);
-	void write_baro_data(void *buf);
-	void write_gps_data(void *buf);
-	void write_airspeed_data(void *buf);
+	void writeMpuData(void *buf);
+	void writeAccelData(void *buf);
+	void writeMagData(void *buf);
+	void writeBaroData(void *buf);
+	void writeGpsData(void *buf);
+	void writeAirspeedData(void *buf);
 
 	bool isInitialized() { return _initialized; }
 
@@ -287,7 +287,7 @@ private:
 			_actuator_outputs_sub[i] = -1;
 		}
 
-		simulator::RawGPSData gps_data{};
+		simulator::raw_gps_data gps_data{};
 		gps_data.eph = UINT16_MAX;
 		gps_data.epv = UINT16_MAX;
 		_gps.writeData(&gps_data);
@@ -296,24 +296,24 @@ private:
 	}
 	~Simulator()
 	{
-		if (_instance != nullptr) {
-			delete _instance;
+		if (instance != nullptr) {
+			delete instance;
 		}
 
-		_instance = NULL;
+		instance = NULL;
 	}
 
 	void initializeSensorData();
 
-	static Simulator *_instance;
+	static Simulator *instance;
 
 	// simulated sensor instances
-	simulator::Report<simulator::RawAccelData>	_accel;
-	simulator::Report<simulator::RawMPUData>	_mpu;
-	simulator::Report<simulator::RawBaroData>	_baro;
-	simulator::Report<simulator::RawMagData>	_mag;
-	simulator::Report<simulator::RawGPSData>	_gps;
-	simulator::Report<simulator::RawAirspeedData> _airspeed;
+	simulator::Report<simulator::raw_accel_data>	_accel;
+	simulator::Report<simulator::raw_mpu_data>	_mpu;
+	simulator::Report<simulator::raw_baro_data>	_baro;
+	simulator::Report<simulator::raw_mag_data>	_mag;
+	simulator::Report<simulator::raw_gps_data>	_gps;
+	simulator::Report<simulator::raw_airspeed_data> _airspeed;
 
 	perf_counter_t _perf_accel;
 	perf_counter_t _perf_mpu;
@@ -349,10 +349,10 @@ private:
 	int32_t _system_type;
 
 	// class methods
-	int publish_sensor_topics(mavlink_hil_sensor_t *imu);
-	int publish_flow_topic(mavlink_hil_optical_flow_t *flow);
-	int publish_ev_topic(mavlink_vision_position_estimate_t *ev_mavlink);
-	int publish_distance_topic(mavlink_distance_sensor_t *dist);
+	int publishSensorTopics(mavlink_hil_sensor_t *imu);
+	int publishFlowTopic(mavlink_hil_optical_flow_t *flow);
+	int publishEvTopic(mavlink_vision_position_estimate_t *ev_mavlink);
+	int publishDistanceTopic(mavlink_distance_sensor_t *dist);
 
 #ifndef __PX4_QURT
 	// uORB publisher handlers
@@ -384,17 +384,17 @@ private:
 
 	control::BlockParamFloat _battery_drain_interval_s; ///< battery drain interval
 
-	void poll_topics();
-	void handle_message(mavlink_message_t *msg, bool publish);
-	void send_controls();
+	void pollTopics();
+	void handleMessage(mavlink_message_t *msg, bool publish);
+	void sendControls();
 	void pollForMAVLinkMessages(bool publish, int udp_port);
 
-	void pack_actuator_message(mavlink_hil_actuator_controls_t &actuator_msg, unsigned index);
-	void send_mavlink_message(const uint8_t msgid, const void *msg, uint8_t component_ID);
-	void update_sensors(mavlink_hil_sensor_t *imu);
-	void update_gps(mavlink_hil_gps_t *gps_sim);
-	void parameters_update(bool force);
-	static void *sending_trampoline(void *);
+	void packActuatorMessage(mavlink_hil_actuator_controls_t &actuator_msg, unsigned index);
+	void sendMavlinkMessage(const uint8_t msgid, const void *msg, uint8_t component_id);
+	void updateSensors(mavlink_hil_sensor_t *imu);
+	void updateGps(mavlink_hil_gps_t *gps_sim);
+	void parametersUpdate(bool force);
+	static void *sendingTrampoline(void *);
 	void send();
 #endif
 };

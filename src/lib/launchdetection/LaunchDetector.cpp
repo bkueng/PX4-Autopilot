@@ -45,7 +45,7 @@ namespace launchdetection
 
 LaunchDetector::LaunchDetector() :
 	SuperBlock(nullptr, "LAUN"),
-	launchdetection_on(this, "ALL_ON")
+	_launchdetection_on(this, "ALL_ON")
 {
 	/* init all detectors */
 	launchMethods[0] = new CatapultLaunchMethod(this);
@@ -62,8 +62,8 @@ LaunchDetector::~LaunchDetector()
 void LaunchDetector::reset()
 {
 	/* Reset all detectors */
-	for (const auto launchMethod : launchMethods) {
-		launchMethod->reset();
+	for (const auto launch_method : launchMethods) {
+		launch_method->reset();
 	}
 
 	/* Reset active launchdetector */
@@ -73,8 +73,8 @@ void LaunchDetector::reset()
 void LaunchDetector::update(float accel_x)
 {
 	if (launchDetectionEnabled()) {
-		for (const auto launchMethod : launchMethods) {
-			launchMethod->update(accel_x);
+		for (const auto launch_method : launchMethods) {
+			launch_method->update(accel_x);
 		}
 	}
 }
@@ -100,24 +100,24 @@ LaunchDetectionResult LaunchDetector::getLaunchDetected()
 	return LAUNCHDETECTION_RES_NONE;
 }
 
-float LaunchDetector::getPitchMax(float pitchMaxDefault)
+float LaunchDetector::getPitchMax(float pitch_max_default)
 {
 	if (!launchDetectionEnabled()) {
-		return pitchMaxDefault;
+		return pitch_max_default;
 	}
 
 	/* if a lauchdetectionmethod is active or only one exists return the pitch limit from this method,
 	 * otherwise use the default limit */
 	if (activeLaunchDetectionMethodIndex < 0) {
 		if (sizeof(launchMethods) / sizeof(LaunchMethod *) > 1) {
-			return pitchMaxDefault;
+			return pitch_max_default;
 
 		} else {
-			return launchMethods[0]->getPitchMax(pitchMaxDefault);
+			return launchMethods[0]->getPitchMax(pitch_max_default);
 		}
 
 	} else {
-		return launchMethods[activeLaunchDetectionMethodIndex]->getPitchMax(pitchMaxDefault);
+		return launchMethods[activeLaunchDetectionMethodIndex]->getPitchMax(pitch_max_default);
 	}
 }
 

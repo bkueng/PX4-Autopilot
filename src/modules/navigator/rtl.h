@@ -63,23 +63,23 @@ public:
 	void on_activation() override;
 	void on_active() override;
 
-	void set_return_alt_min(bool min);
+	void setReturnAltMin(bool min);
 
 private:
 	/**
 	 * Set the RTL item
 	 */
-	void		set_rtl_item();
+	void		setRtlItem();
 
 	/**
 	 * Move to next RTL item
 	 */
-	void		advance_rtl();
+	void		advanceRtl();
 
 	/**
 	 * Get RTL altitude
 	 */
-	float 		get_rtl_altitude();
+	float 		getRtlAltitude();
 
 
 	enum RTLState {

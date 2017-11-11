@@ -311,7 +311,7 @@ int fixedwing_control_thread_main(int argc, char *argv[])
 
 
 	/* publish actuator controls with zero values */
-	for (unsigned i = 0; i < actuator_controls_s::NUM_ACTUATOR_CONTROLS; i++) {
+	for (unsigned i = 0; i < actuator_controls_s::num_actuator_controls; i++) {
 		actuators.control[i] = 0.0f;
 	}
 
@@ -431,7 +431,7 @@ int fixedwing_control_thread_main(int argc, char *argv[])
 	thread_running = false;
 
 	/* kill all outputs */
-	for (unsigned i = 0; i < actuator_controls_s::NUM_ACTUATOR_CONTROLS; i++) {
+	for (unsigned i = 0; i < actuator_controls_s::num_actuator_controls; i++) {
 		actuators.control[i] = 0.0f;
 	}
 

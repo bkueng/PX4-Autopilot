@@ -105,7 +105,7 @@ public:
 	 * @param count		The number of items to read.
 	 * @return		The number of items read on success, negative errno otherwise.
 	 */
-	virtual int	dev_read(unsigned address, void *data, unsigned count);
+	virtual int	devRead(unsigned address, void *data, unsigned count);
 
 	/**
 	 * Write directly to the device.
@@ -117,7 +117,7 @@ public:
 	 * @param count		The number of items to write.
 	 * @return		The number of items written on success, negative errno otherwise.
 	 */
-	virtual int	dev_write(unsigned address, void *data, unsigned count);
+	virtual int	devWrite(unsigned address, void *data, unsigned count);
 
 	/**
 	 * Perform a device-specific operation.
@@ -126,7 +126,7 @@ public:
 	 * @param arg           An argument to the operation.
 	 * @return              Negative errno on error, OK or positive value on success.
 	 */
-	virtual int     dev_ioctl(unsigned operation, unsigned arg);
+	virtual int     devIoctl(unsigned operation, unsigned arg);
 
 	/*
 	  device bus types for DEVID
@@ -145,7 +145,7 @@ public:
 	  which makes it possible to transport over the MAVLink
 	  parameter protocol without loss of information.
 	 */
-	struct DeviceStructure {
+	struct device_structure {
 		enum DeviceBusType bus_type : 3;
 		uint8_t bus: 5;    // which instance of the bus type
 		uint8_t address;   // address on the bus (eg. I2C address)
@@ -153,7 +153,7 @@ public:
 	};
 
 	union DeviceId {
-		struct DeviceStructure devid_s;
+		struct device_structure devid_s;
 		uint32_t devid;
 	};
 
@@ -246,7 +246,7 @@ public:
 	 *
 	 * @return              True if the device is currently open.
 	 */
-	bool            is_open() { return _open_count > 0; }
+	bool            isOpen() { return _open_count > 0; }
 
 	/**
 	 * Handle an open of the device.
@@ -330,12 +330,12 @@ public:
 	 *
 	 * @return the file system string of the device handle
 	 */
-	const char	*get_devname() { return _devname; }
+	const char	*getDevname() { return _devname; }
 
 protected:
 
-	int register_driver(const char *name, void *data);
-	int unregister_driver(const char *name);
+	int registerDriver(const char *name, void *data);
+	int unregisterDriver(const char *name);
 
 	/**
 	 * Check the current state of the device for poll events from the
@@ -351,7 +351,7 @@ protected:
 	 * @param filep		The file that's interested.
 	 * @return		The current set of poll events.
 	 */
-	virtual pollevent_t poll_state(file_t *filep);
+	virtual pollevent_t pollState(file_t *filep);
 
 	/**
 	 * Report new poll events.
@@ -361,7 +361,7 @@ protected:
 	 *
 	 * @param events	The new event(s) being announced.
 	 */
-	virtual void	poll_notify(pollevent_t events);
+	virtual void	pollNotify(pollevent_t events);
 
 	/**
 	 * Internal implementation of poll_notify.
@@ -371,7 +371,7 @@ protected:
 	 * @param fds		A poll waiter to notify.
 	 * @param events	The event(s) to send to the waiter.
 	 */
-	virtual void	poll_notify_one(px4_pollfd_struct_t *fds, pollevent_t events);
+	virtual void	pollNotifyOne(px4_pollfd_struct_t *fds, pollevent_t events);
 
 	/**
 	 * Notification of the first open.
@@ -384,7 +384,7 @@ protected:
 	 * @param filep		Pointer to the NuttX file structure.
 	 * @return		OK if the open should proceed, -errno otherwise.
 	 */
-	virtual int	open_first(file_t *filep);
+	virtual int	openFirst(file_t *filep);
 
 	/**
 	 * Notification of the last close.
@@ -397,7 +397,7 @@ protected:
 	 * @param filep		Pointer to the NuttX file structure.
 	 * @return		OK if the open should return OK, -errno otherwise.
 	 */
-	virtual int	close_last(file_t *filep);
+	virtual int	closeLast(file_t *filep);
 
 	/**
 	 * Register a class device name, automatically adding device
@@ -406,7 +406,7 @@ protected:
 	 * @param class_devname   Device class name
 	 * @return class_instamce Class instance created, or -errno on failure
 	 */
-	virtual int register_class_devname(const char *class_devname);
+	virtual int registerClassDevname(const char *class_devname);
 
 	/**
 	 * Register a class device name, automatically adding device
@@ -416,7 +416,7 @@ protected:
 	 * @param class_instance  Device class instance from register_class_devname()
 	 * @return		  OK on success, -errno otherwise
 	 */
-	virtual int unregister_class_devname(const char *class_devname, unsigned class_instance);
+	virtual int unregisterClassDevname(const char *class_devname, unsigned class_instance);
 
 	bool		_pub_blocked;		/**< true if publishing should be blocked */
 
@@ -435,14 +435,14 @@ private:
 	 *
 	 * @return		OK, or -errno on error.
 	 */
-	int		store_poll_waiter(px4_pollfd_struct_t *fds);
+	int		storePollWaiter(px4_pollfd_struct_t *fds);
 
 	/**
 	 * Remove a poll waiter.
 	 *
 	 * @return		OK, or -errno on error.
 	 */
-	int		remove_poll_waiter(px4_pollfd_struct_t *fds);
+	int		removePollWaiter(px4_pollfd_struct_t *fds);
 
 	/* do not allow copying this class */
 	CDev(const CDev &);

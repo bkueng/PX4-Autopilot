@@ -44,7 +44,7 @@
 
 #include "GroundRoverPositionControl.hpp"
 
-static int _control_task = -1;			/**< task handle for sensor task */
+static int control_task = -1;			/**< task handle for sensor task */
 
 using matrix::Eulerf;
 using matrix::Quatf;
@@ -93,7 +93,7 @@ GroundRoverPositionControl::GroundRoverPositionControl() :
 
 GroundRoverPositionControl::~GroundRoverPositionControl()
 {
-	if (_control_task != -1) {
+	if (control_task != -1) {
 
 		/* task wakes up every 100ms or so at the longest */
 		_task_should_exit = true;
@@ -107,17 +107,17 @@ GroundRoverPositionControl::~GroundRoverPositionControl()
 
 			/* if we have given up, kill it */
 			if (++i > 50) {
-				px4_task_delete(_control_task);
+				px4_task_delete(control_task);
 				break;
 			}
-		} while (_control_task != -1);
+		} while (control_task != -1);
 	}
 
 	gnd_control::g_control = nullptr;
 }
 
 int
-GroundRoverPositionControl::parameters_update()
+GroundRoverPositionControl::parametersUpdate()
 {
 	/* L1 control parameters */
 	param_get(_parameter_handles.l1_damping, &(_parameters.l1_damping));
@@ -160,7 +160,7 @@ GroundRoverPositionControl::parameters_update()
 }
 
 void
-GroundRoverPositionControl::vehicle_control_mode_poll()
+GroundRoverPositionControl::vehicleControlModePoll()
 {
 	bool updated;
 	orb_check(_control_mode_sub, &updated);
@@ -171,7 +171,7 @@ GroundRoverPositionControl::vehicle_control_mode_poll()
 }
 
 void
-GroundRoverPositionControl::manual_control_setpoint_poll()
+GroundRoverPositionControl::manualControlSetpointPoll()
 {
 	bool manual_updated;
 	orb_check(_manual_control_sub, &manual_updated);
@@ -182,7 +182,7 @@ GroundRoverPositionControl::manual_control_setpoint_poll()
 }
 
 void
-GroundRoverPositionControl::position_setpoint_triplet_poll()
+GroundRoverPositionControl::positionSetpointTripletPoll()
 {
 	bool pos_sp_triplet_updated;
 	orb_check(_pos_sp_triplet_sub, &pos_sp_triplet_updated);
@@ -192,7 +192,7 @@ GroundRoverPositionControl::position_setpoint_triplet_poll()
 	}
 }
 
-void GroundRoverPositionControl::gnd_pos_ctrl_status_publish()
+void GroundRoverPositionControl::gndPosCtrlStatusPublish()
 {
 	_gnd_pos_ctrl_status.timestamp = hrt_absolute_time();
 
@@ -205,7 +205,7 @@ void GroundRoverPositionControl::gnd_pos_ctrl_status_publish()
 }
 
 bool
-GroundRoverPositionControl::control_position(const math::Vector<2> &current_position,
+GroundRoverPositionControl::controlPosition(const math::Vector<2> &current_position,
 		const math::Vector<3> &ground_speed, const position_setpoint_triplet_s &pos_sp_triplet)
 {
 	float dt = 0.01; // Using non zero value to a avoid division by zero
@@ -253,8 +253,8 @@ GroundRoverPositionControl::control_position(const math::Vector<2> &current_posi
 			}
 
 			// Velocity in body frame
-			const Dcmf R_to_body(Quatf(_sub_attitude.get().q).inversed());
-			const Vector3f vel = R_to_body * Vector3f(ground_speed(0), ground_speed(1), ground_speed(2));
+			const Dcmf r_to_body(Quatf(_sub_attitude.get().q).inversed());
+			const Vector3f vel = r_to_body * Vector3f(ground_speed(0), ground_speed(1), ground_speed(2));
 
 			const float x_vel = vel(0);
 			const float x_acc = _sub_sensors.get().accel_x;
@@ -275,14 +275,14 @@ GroundRoverPositionControl::control_position(const math::Vector<2> &current_posi
 			}
 		}
 
-		if (pos_sp_triplet.current.type == position_setpoint_s::SETPOINT_TYPE_IDLE) {
+		if (pos_sp_triplet.current.type == position_setpoint_s::setpoint_type_idle) {
 			_att_sp.roll_body = 0.0f;
 			_att_sp.pitch_body = 0.0f;
 			_att_sp.yaw_body = 0.0f;
 			_att_sp.thrust = 0.0f;
 
-		} else if ((pos_sp_triplet.current.type == position_setpoint_s::SETPOINT_TYPE_POSITION)
-			   || (pos_sp_triplet.current.type == position_setpoint_s::SETPOINT_TYPE_TAKEOFF)) {
+		} else if ((pos_sp_triplet.current.type == position_setpoint_s::setpoint_type_position)
+			   || (pos_sp_triplet.current.type == position_setpoint_s::setpoint_type_takeoff)) {
 
 			/* waypoint is a plain navigation waypoint or the takeoff waypoint, does not matter */
 			_gnd_control.navigate_waypoints(prev_wp, curr_wp, current_position, ground_speed_2d);
@@ -292,7 +292,7 @@ GroundRoverPositionControl::control_position(const math::Vector<2> &current_posi
 			_att_sp.fw_control_yaw = true;
 			_att_sp.thrust = mission_throttle;
 
-		} else if (pos_sp_triplet.current.type == position_setpoint_s::SETPOINT_TYPE_LOITER) {
+		} else if (pos_sp_triplet.current.type == position_setpoint_s::setpoint_type_loiter) {
 
 			/* waypoint is a loiter waypoint so we want to stop*/
 			_gnd_control.navigate_loiter(curr_wp, current_position, pos_sp_triplet.current.loiter_radius,
@@ -327,7 +327,7 @@ GroundRoverPositionControl::control_position(const math::Vector<2> &current_posi
 }
 
 void
-GroundRoverPositionControl::task_main()
+GroundRoverPositionControl::taskMain()
 {
 	_control_mode_sub = orb_subscribe(ORB_ID(vehicle_control_mode));
 	_global_pos_sub = orb_subscribe(ORB_ID(vehicle_global_position));
@@ -476,11 +476,11 @@ GroundRoverPositionControl::task_main()
 
 	warnx("exiting.\n");
 
-	_control_task = -1;
+	control_task = -1;
 }
 
 void
-GroundRoverPositionControl::task_main_trampoline(int argc, char *argv[])
+GroundRoverPositionControl::taskMainTrampoline(int argc, char *argv[])
 {
 	gnd_control::g_control = new GroundRoverPositionControl();
 
@@ -502,15 +502,15 @@ GroundRoverPositionControl::start()
 	warn("Starting by marco");
 
 	/* start the task */
-	_control_task = px4_task_spawn_cmd("gnd_pos_ctrl",
+	control_task = px4_task_spawn_cmd("gnd_pos_ctrl",
 					   SCHED_DEFAULT,
 					   SCHED_PRIORITY_POSITION_CONTROL,
 					   1700,
-					   (px4_main_t)&GroundRoverPositionControl::task_main_trampoline,
+					   (px4_main_t)&GroundRoverPositionControl::taskMainTrampoline,
 					   nullptr);
 	warn("done");
 
-	if (_control_task < 0) {
+	if (control_task < 0) {
 		warn("task start failed");
 		return -errno;
 	}

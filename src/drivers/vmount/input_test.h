@@ -61,10 +61,10 @@ public:
 	/** check whether the test finished, and thus the main thread can quit */
 	bool finished();
 
-	virtual int update(unsigned int timeout_ms, ControlData **control_data, bool already_active);
+	virtual int update(unsigned int timeout_ms, control_data **control_data, bool already_active);
 
 protected:
-	virtual int update_impl(unsigned int timeout_ms, ControlData **control_data, bool already_active) { return 0; } //not needed
+	virtual int update_impl(unsigned int timeout_ms, control_data **control_data, bool already_active) { return 0; } //not needed
 
 	virtual int initialize();
 

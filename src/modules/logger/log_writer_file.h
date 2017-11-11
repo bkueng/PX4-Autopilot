@@ -60,18 +60,18 @@ public:
 	 * start the thread
 	 * @return 0 on success, error number otherwise (@see pthread_create)
 	 */
-	int thread_start();
+	int threadStart();
 
-	void thread_stop();
+	void threadStop();
 
-	void start_log(const char *filename);
+	void startLog(const char *filename);
 
-	void stop_log();
+	void stopLog();
 
-	bool is_started() const { return _should_run; }
+	bool isStarted() const { return _should_run; }
 
 	/** @see LogWriter::write_message() */
-	int write_message(void *ptr, size_t size, uint64_t dropout_start = 0);
+	int writeMessage(void *ptr, size_t size, uint64_t dropout_start = 0);
 
 	void lock()
 	{
@@ -88,39 +88,39 @@ public:
 		pthread_cond_broadcast(&_cv);
 	}
 
-	size_t get_total_written() const
+	size_t getTotalWritten() const
 	{
 		return _total_written;
 	}
 
-	size_t get_buffer_size() const
+	size_t getBufferSize() const
 	{
 		return _buffer_size;
 	}
 
-	size_t get_buffer_fill_count() const
+	size_t getBufferFillCount() const
 	{
 		return _count;
 	}
 
-	void set_need_reliable_transfer(bool need_reliable)
+	void setNeedReliableTransfer(bool need_reliable)
 	{
 		_need_reliable_transfer = need_reliable;
 	}
 
-	bool need_reliable_transfer() const
+	bool needReliableTransfer() const
 	{
 		return _need_reliable_transfer;
 	}
 
 private:
-	static void *run_helper(void *);
+	static void *runHelper(void *);
 
 	void run();
 
-	size_t get_read_ptr(void **ptr, bool *is_part);
+	size_t getReadPtr(void **ptr, bool *is_part);
 
-	void mark_read(size_t n)
+	void markRead(size_t n)
 	{
 		_count -= n;
 	}
@@ -131,7 +131,7 @@ private:
 	 * @param log_file path to the log file
 	 * @return 0 on success, <0 errno otherwise
 	 */
-	int hardfault_store_filename(const char *log_file);
+	int hardfaultStoreFilename(const char *log_file);
 
 	/**
 	 * write w/o waiting/blocking
@@ -141,10 +141,10 @@ private:
 	/**
 	 * Write to the buffer but assuming there is enough space
 	 */
-	inline void write_no_check(void *ptr, size_t size);
+	inline void writeNoCheck(void *ptr, size_t size);
 
 	/* 512 didn't seem to work properly, 4096 should match the FAT cluster size */
-	static constexpr size_t	_min_write_chunk = 4096;
+	static constexpr size_t	min_write_chunk = 4096;
 
 	int			_fd = -1;
 	uint8_t 	*_buffer = nullptr;

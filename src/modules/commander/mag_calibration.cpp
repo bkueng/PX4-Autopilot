@@ -69,14 +69,14 @@ static unsigned int calibration_sides = 6;			///< The total number of sides
 static constexpr unsigned int calibration_total_points = 240;		///< The total points per magnetometer
 static constexpr unsigned int calibraton_duration_seconds = 42; 	///< The total duration the routine is allowed to take
 
-static constexpr float MAG_MAX_OFFSET_LEN =
+static constexpr float mag_max_offset_len =
 	1.3f;	///< The maximum measurement range is ~1.9 Ga, the earth field is ~0.6 Ga, so an offset larger than ~1.3 Ga means the mag will saturate in some directions.
 
 int32_t	device_ids[max_mags];
 bool internal[max_mags];
 int device_prio_max = 0;
 int32_t device_id_primary = 0;
-static unsigned _last_mag_progress = 0;
+static unsigned last_mag_progress = 0;
 
 calibrate_return mag_calibrate_all(orb_advert_t *mavlink_log_pub);
 
@@ -136,7 +136,7 @@ int do_mag_calibration(orb_advert_t *mavlink_log_pub)
 		device_ids[i] = 0; // signals no mag
 	}
 
-	_last_mag_progress = 0;
+	last_mag_progress = 0;
 
 	for (unsigned cur_mag = 0; cur_mag < max_mags; cur_mag++) {
 #ifdef __PX4_NUTTX
@@ -315,7 +315,7 @@ static calibrate_return check_calibration_result(float offset_x, float offset_y,
 	// Notify if offsets are too large
 	const int num_not_huge = sizeof(should_be_not_huge) / sizeof(*should_be_not_huge);
 	for (unsigned i = 0; i < num_not_huge; ++i) {
-		if (fabsf(should_be_not_huge[i]) > MAG_MAX_OFFSET_LEN) {
+		if (fabsf(should_be_not_huge[i]) > mag_max_offset_len) {
 			calibration_log_critical(mavlink_log_pub, "Warning: %s mag with large offsets",
 							(internal[cur_mag]) ? "autopilot, internal" : "GPS unit, external");
 			break;
@@ -483,14 +483,14 @@ static calibrate_return mag_calibration_worker(detect_orientation_return orienta
 							(unsigned)((100 / calibration_sides) * ((float)calibration_counter_side / (float)
 									worker_data->calibration_points_perside));
 
-				if (new_progress - _last_mag_progress > 3) {
+				if (new_progress - last_mag_progress > 3) {
 					// Progress indicator for side
 					calibration_log_info(worker_data->mavlink_log_pub,
 							     "[cal] %s side calibration: progress <%u>",
 							     detect_orientation_str(orientation), new_progress);
 					usleep(20000);
 
-					_last_mag_progress = new_progress;
+					last_mag_progress = new_progress;
 				}
 			}
 

@@ -64,19 +64,19 @@ public:
 	MissionBlock(const MissionBlock &) = delete;
 	MissionBlock &operator=(const MissionBlock &) = delete;
 
-	static bool item_contains_position(const mission_item_s &item);
+	static bool itemContainsPosition(const mission_item_s &item);
 
 protected:
 	/**
 	 * Check if mission item has been reached
 	 * @return true if successfully reached
 	 */
-	bool is_mission_item_reached();
+	bool isMissionItemReached();
 
 	/**
 	 * Reset all reached flags
 	 */
-	void reset_mission_item_reached();
+	void resetMissionItemReached();
 
 	/**
 	 * Convert a mission item to a position setpoint
@@ -84,43 +84,43 @@ protected:
 	 * @param the mission item to convert
 	 * @param the position setpoint that needs to be set
 	 */
-	bool mission_item_to_position_setpoint(const mission_item_s &item, position_setpoint_s *sp);
+	bool missionItemToPositionSetpoint(const mission_item_s &item, position_setpoint_s *sp);
 
 	/**
 	 * Set previous position setpoint to current setpoint
 	 */
-	void set_previous_pos_setpoint();
+	void setPreviousPosSetpoint();
 
 	/**
 	 * Set a loiter mission item, if possible reuse the position setpoint, otherwise take the current position
 	 */
-	void set_loiter_item(struct mission_item_s *item, float min_clearance = -1.0f);
+	void setLoiterItem(struct mission_item_s *item, float min_clearance = -1.0f);
 
 	/**
 	 * Set a takeoff mission item
 	 */
-	void set_takeoff_item(struct mission_item_s *item, float abs_altitude, float min_pitch = 0.0f);
+	void setTakeoffItem(struct mission_item_s *item, float abs_altitude, float min_pitch = 0.0f);
 
 	/**
 	 * Set a land mission item
 	 */
-	void set_land_item(struct mission_item_s *item, bool at_current_location);
+	void setLandItem(struct mission_item_s *item, bool at_current_location);
 
-	void set_current_position_item(struct mission_item_s *item);
+	void setCurrentPositionItem(struct mission_item_s *item);
 
 	/**
 	 * Set idle mission item
 	 */
-	void set_idle_item(struct mission_item_s *item);
+	void setIdleItem(struct mission_item_s *item);
 
 	/**
 	 * General function used to adjust the mission item based on vehicle specific limitations
 	 */
-	void	mission_apply_limitation(mission_item_s &item);
+	void	missionApplyLimitation(mission_item_s &item);
 
-	void issue_command(const mission_item_s &item);
+	void issueCommand(const mission_item_s &item);
 
-	float get_time_inside(const struct mission_item_s &item);
+	float getTimeInside(const struct mission_item_s &item);
 
 	mission_item_s _mission_item{};
 

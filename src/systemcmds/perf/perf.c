@@ -46,13 +46,13 @@ __EXPORT int perf_main(int argc, char *argv[]);
 
 static void print_usage(void)
 {
-	PRINT_MODULE_DESCRIPTION("Tool to print performance counters");
+	print_module_description("Tool to print performance counters");
 
-	PRINT_MODULE_USAGE_NAME_SIMPLE("perf", "command");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("reset", "Reset all counters");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("latency", "Print HRT timer latency histogram");
+	print_module_usage_name_simple("perf", "command");
+	print_module_usage_command_descr("reset", "Reset all counters");
+	print_module_usage_command_descr("latency", "Print HRT timer latency histogram");
 
-	PRINT_MODULE_USAGE_PARAM_COMMENT("Prints all performance counters if no arguments given");
+	print_module_usage_param_comment("Prints all performance counters if no arguments given");
 }
 
 

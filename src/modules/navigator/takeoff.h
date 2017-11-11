@@ -63,7 +63,7 @@ public:
 private:
 	control::BlockParamFloat _param_min_alt;
 
-	void set_takeoff_position();
+	void setTakeoffPosition();
 };
 
 #endif

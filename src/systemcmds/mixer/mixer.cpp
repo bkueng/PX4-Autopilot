@@ -110,7 +110,7 @@ usage(const char *reason)
 		PX4_INFO("%s", reason);
 	}
 
-	PRINT_MODULE_DESCRIPTION(
+	print_module_description(
 		R"DESCR_STR(
 ### Description
 Load or append mixer files to the ESC driver.
@@ -119,12 +119,12 @@ Note that the driver must support the used ioctl's, which is the case on NuttX, 
 )DESCR_STR");
 
 
-	PRINT_MODULE_USAGE_NAME("mixer", "command");
+	print_module_usage_name("mixer", "command");
 
 	PRINT_MODULE_USAGE_COMMAND("load");
-	PRINT_MODULE_USAGE_ARG("<file:dev> <file>", "Output device (eg. /dev/pwm_output0) and mixer file", false);
+	print_module_usage_arg("<file:dev> <file>", "Output device (eg. /dev/pwm_output0) and mixer file", false);
 	PRINT_MODULE_USAGE_COMMAND("append");
-	PRINT_MODULE_USAGE_ARG("<file:dev> <file>", "Output device (eg. /dev/pwm_output0) and mixer file", false);
+	print_module_usage_arg("<file:dev> <file>", "Output device (eg. /dev/pwm_output0) and mixer file", false);
 }
 
 static int

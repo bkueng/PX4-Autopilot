@@ -72,7 +72,7 @@ void TemperatureCalibrationGyro::reset_calibration()
 	}
 }
 
-int TemperatureCalibrationGyro::update_sensor_instance(PerSensorData &data, int sensor_sub)
+int TemperatureCalibrationGyro::update_sensor_instance(per_sensor_data &data, int sensor_sub)
 {
 	bool finished = data.hot_soaked;
 
@@ -169,7 +169,7 @@ int TemperatureCalibrationGyro::finish()
 	return result;
 }
 
-int TemperatureCalibrationGyro::finish_sensor_instance(PerSensorData &data, int sensor_index)
+int TemperatureCalibrationGyro::finishSensorInstance(per_sensor_data &data, int sensor_index)
 {
 	if (!data.hot_soaked || data.tempcal_complete) {
 		return 0;

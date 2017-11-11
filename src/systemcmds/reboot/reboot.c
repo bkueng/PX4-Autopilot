@@ -49,12 +49,12 @@ __EXPORT int reboot_main(int argc, char *argv[]);
 
 static void print_usage(void)
 {
-	PRINT_MODULE_DESCRIPTION("Reboot the system");
+	print_module_description("Reboot the system");
 
-	PRINT_MODULE_USAGE_NAME_SIMPLE("reboot", "command");
-	PRINT_MODULE_USAGE_PARAM_FLAG('b', "Reboot into bootloader", true);
+	print_module_usage_name_simple("reboot", "command");
+	print_module_usage_param_flag('b', "Reboot into bootloader", true);
 
-	PRINT_MODULE_USAGE_ARG("lock|unlock", "Take/release the shutdown lock (for testing)", true);
+	print_module_usage_arg("lock|unlock", "Take/release the shutdown lock (for testing)", true);
 }
 
 int reboot_main(int argc, char *argv[])

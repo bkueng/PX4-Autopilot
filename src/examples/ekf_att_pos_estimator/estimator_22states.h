@@ -42,8 +42,8 @@
 #include "estimator_utilities.h"
 #include <cstddef>
 
-constexpr size_t EKF_STATE_ESTIMATES = 22;
-constexpr size_t EKF_DATA_BUFFER_SIZE = 50;
+constexpr size_t ekf_state_estimates = 22;
+constexpr size_t ekf_data_buffer_size = 50;
 
 class AttPosEKF {
 
@@ -114,25 +114,25 @@ public:
 
 
     // Global variables
-    float KH[EKF_STATE_ESTIMATES][EKF_STATE_ESTIMATES]; //  intermediate result used for covariance updates
-    float KHP[EKF_STATE_ESTIMATES][EKF_STATE_ESTIMATES]; // intermediate result used for covariance updates
-    float P[EKF_STATE_ESTIMATES][EKF_STATE_ESTIMATES]; // covariance matrix
-    float Kfusion[EKF_STATE_ESTIMATES]; // Kalman gains
-    float states[EKF_STATE_ESTIMATES]; // state matrix
-    float resetStates[EKF_STATE_ESTIMATES];
-    float storedStates[EKF_STATE_ESTIMATES][EKF_DATA_BUFFER_SIZE]; // state vectors stored for the last 50 time steps
-    uint32_t statetimeStamp[EKF_DATA_BUFFER_SIZE]; // time stamp for each state vector stored
+    float KH[ekf_state_estimates][ekf_state_estimates]; //  intermediate result used for covariance updates
+    float KHP[ekf_state_estimates][ekf_state_estimates]; // intermediate result used for covariance updates
+    float P[ekf_state_estimates][ekf_state_estimates]; // covariance matrix
+    float Kfusion[ekf_state_estimates]; // Kalman gains
+    float states[ekf_state_estimates]; // state matrix
+    float resetStates[ekf_state_estimates];
+    float storedStates[ekf_state_estimates][ekf_data_buffer_size]; // state vectors stored for the last 50 time steps
+    uint32_t statetimeStamp[ekf_data_buffer_size]; // time stamp for each state vector stored
 
     // Times
     uint64_t lastVelPosFusion;  // the time of the last velocity fusion, in the standard time unit of the filter
 
-    float statesAtVelTime[EKF_STATE_ESTIMATES]; // States at the effective measurement time for posNE and velNED measurements
-    float statesAtPosTime[EKF_STATE_ESTIMATES]; // States at the effective measurement time for posNE and velNED measurements
-    float statesAtHgtTime[EKF_STATE_ESTIMATES]; // States at the effective measurement time for the hgtMea measurement
-    float statesAtMagMeasTime[EKF_STATE_ESTIMATES]; // filter satates at the effective measurement time
-    float statesAtVtasMeasTime[EKF_STATE_ESTIMATES]; // filter states at the effective measurement time
-    float statesAtRngTime[EKF_STATE_ESTIMATES]; // filter states at the effective measurement time
-    float statesAtFlowTime[EKF_STATE_ESTIMATES]; // States at the effective optical flow measurement time
+    float statesAtVelTime[ekf_state_estimates]; // States at the effective measurement time for posNE and velNED measurements
+    float statesAtPosTime[ekf_state_estimates]; // States at the effective measurement time for posNE and velNED measurements
+    float statesAtHgtTime[ekf_state_estimates]; // States at the effective measurement time for the hgtMea measurement
+    float statesAtMagMeasTime[ekf_state_estimates]; // filter satates at the effective measurement time
+    float statesAtVtasMeasTime[ekf_state_estimates]; // filter states at the effective measurement time
+    float statesAtRngTime[ekf_state_estimates]; // filter states at the effective measurement time
+    float statesAtFlowTime[ekf_state_estimates]; // States at the effective optical flow measurement time
     float omegaAcrossFlowTime[3]; // angular rates at the effective optical flow measurement time
 
     Vector3f correctedDelAng; // delta angles about the xyz body axes corrected for errors (rad)
@@ -232,7 +232,7 @@ public:
     unsigned storeIndex;
 
     // Optical Flow error estimation
-    float storedOmega[3][EKF_DATA_BUFFER_SIZE]; // angular rate vector stored for the last 50 time steps used by optical flow eror estimators
+    float storedOmega[3][ekf_data_buffer_size]; // angular rate vector stored for the last 50 time steps used by optical flow eror estimators
 
     // Two state EKF used to estimate focal length scale factor and terrain position
     float Popt[2][2];                       // state covariance matrix
@@ -256,17 +256,17 @@ public:
 
     void updateDtHgtFilt(float dt);
 
-    void UpdateStrapdownEquationsNED();
+    void updateStrapdownEquationsNed();
 
-    void CovariancePrediction(float dt);
+    void covariancePrediction(float dt);
 
-    void FuseVelposNED();
+    void fuseVelposNed();
 
-    void FuseMagnetometer();
+    void fuseMagnetometer();
 
-    void FuseAirspeed();
+    void fuseAirspeed();
 
-    void FuseOptFlow();
+    void fuseOptFlow();
 
     /**
     * @brief
@@ -274,16 +274,16 @@ public:
     *    This fiter requires optical flow rates that are not motion compensated
     *    Range to ground measurement is assumed to be via a narrow beam type sensor - eg laser
     **/
-    void OpticalFlowEKF();
+    void opticalFlowEkf();
 
-    void zeroRows(float (&covMat)[EKF_STATE_ESTIMATES][EKF_STATE_ESTIMATES], uint8_t first, uint8_t last);
+    void zeroRows(float (&cov_mat)[ekf_state_estimates][ekf_state_estimates], uint8_t first, uint8_t last);
 
-    void zeroCols(float (&covMat)[EKF_STATE_ESTIMATES][EKF_STATE_ESTIMATES], uint8_t first, uint8_t last);
+    void zeroCols(float (&cov_mat)[ekf_state_estimates][ekf_state_estimates], uint8_t first, uint8_t last);
 
-    void quatNorm(float (&quatOut)[4], const float quatIn[4]);
+    void quatNorm(float (&quat_out)[4], const float quat_in[4]);
 
     // store staes along with system time stamp in msces
-    void StoreStates(uint64_t timestamp_ms);
+    void storeStates(uint64_t timestamp_ms);
 
     /**
      * Recall the state vector.
@@ -295,11 +295,11 @@ public:
      *         time-wise where valid states were updated and invalid remained at the old
      *         value.
      */
-    int RecallStates(float *statesForFusion, uint64_t msec);
+    int recallStates(float *states_for_fusion, uint64_t msec);
 
-    void RecallOmega(float *omegaForFusion, uint64_t msec);
+    void recallOmega(float *omega_for_fusion, uint64_t msec);
 
-    void quat2Tbn(Mat3f &TBodyNed, const float (&quat)[4]);
+    void quat2Tbn(Mat3f &t_body_ned, const float (&quat)[4]);
 
     void calcEarthRateNED(Vector3f &omega, float latitude);
 
@@ -309,25 +309,25 @@ public:
 
     //static void quat2Tnb(Mat3f &Tnb, const float (&quat)[4]);
 
-    static inline float sq(float valIn) {return valIn * valIn;}
+    static inline float sq(float val_in) {return val_in * val_in;}
 
     /**
     * @brief
     *   Tell the EKF if the vehicle has landed
     **/
-    void setOnGround(const bool isLanded);
+    void setOnGround(const bool is_landed);
 
-    void CovarianceInit();
+    void covarianceInit();
 
-    void InitialiseFilter(float (&initvelNED)[3], double referenceLat, double referenceLon, float referenceHgt, float declination);
+    void initialiseFilter(float (&initvel_ned)[3], double reference_lat, double reference_lon, float reference_hgt, float declination);
 
-    float ConstrainFloat(float val, float min, float maxf);
+    float constrainFloat(float val, float min, float maxf);
 
-    void ConstrainVariances();
+    void constrainVariances();
 
-    void ConstrainStates();
+    void constrainStates();
 
-    void ForceSymmetry();
+    void forceSymmetry();
 
     /**
     * @brief
@@ -339,7 +339,7 @@ public:
     *   updated, but before any of the fusion steps are
     *   executed.
     */
-    int CheckAndBound(struct ekf_status_report *last_error);
+    int checkAndBound(struct ekf_status_report *last_error);
 
     /**
      * @brief
@@ -348,21 +348,21 @@ public:
      *   This resets the position to the last GPS measurement
      *   or to zero in case of static position.
      */
-    void ResetPosition();
+    void resetPosition();
 
     /**
      * @brief
      *   Reset the velocity state.
      */
-    void ResetVelocity();
+    void resetVelocity();
 
-    void GetFilterState(struct ekf_status_report *state);
+    void getFilterState(struct ekf_status_report *state);
 
-    void GetLastErrorState(struct ekf_status_report *last_error);
+    void getLastErrorState(struct ekf_status_report *last_error);
 
-    bool StatesNaN();
+    bool statesNaN();
 
-    void InitializeDynamic(float (&initvelNED)[3], float declination);
+    void initializeDynamic(float (&initvel_ned)[3], float declination);
 
     /**
     * @brief
@@ -372,15 +372,15 @@ public:
     * @param fixedWing
     *   true if the vehicle moves like a Fixed Wing, false otherwise
     **/
-    void setIsFixedWing(const bool fixedWing);
+    void setIsFixedWing(const bool fixed_wing);
     
     /**
      * @brief
      *   Reset internal filter states and clear all variables to zero value
      */
-    void ZeroVariables();
+    void zeroVariables();
 
-    void get_covariance(float c[28]);
+    void getCovariance(float c[28]);
 
     float getAccNavMagHorizontal() { return _accNavMagHorizontal; }
 
@@ -390,15 +390,15 @@ protected:
     * @brief 
     *   Initializes algorithm parameters to safe default values
     **/
-    void InitialiseParameters();
+    void initialiseParameters();
 
     void updateDtVelPosFilt(float dt);
 
-    bool FilterHealthy();
+    bool filterHealthy();
 
-    bool GyroOffsetsDiverged();
+    bool gyroOffsetsDiverged();
 
-    bool VelNEDDiverged();
+    bool velNedDiverged();
 
     /**
      * @brief
@@ -406,11 +406,11 @@ protected:
      *  
      *   This resets the height state with the last altitude measurements
      */
-    void ResetHeight();
+    void resetHeight();
 
-    void AttitudeInit(float ax, float ay, float az, float mx, float my, float mz, float declination, float *initQuat);
+    void attitudeInit(float ax, float ay, float az, float mx, float my, float mz, float declination, float *init_quat);
 
-    void ResetStoredStates();
+    void resetStoredStates();
 
 private:
     bool _isFixedWing;               ///< True if the vehicle is a fixed-wing frame type
@@ -420,5 +420,5 @@ private:
 
 uint32_t millis();
 
-uint64_t getMicros();
+uint64_t get_micros();
 

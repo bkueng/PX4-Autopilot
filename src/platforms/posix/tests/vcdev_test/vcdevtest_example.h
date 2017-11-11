@@ -52,10 +52,10 @@ public:
 
 	int main();
 
-	static px4::AppState appState; /* track requests to terminate app */
+	static px4::AppState app_state; /* track requests to terminate app */
 
 private:
-	int do_poll(int fd, int timeout, int iterations, int delayms_after_poll);
+	int doPoll(int fd, int timeout, int iterations, int delayms_after_poll);
 
 	VCDevNode *_node;
 };

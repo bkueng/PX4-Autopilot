@@ -134,15 +134,15 @@ public:
 	/**
 	 * Diagnostics - print some basic information about the driver.
 	 */
-	void			print_info();
+	void			printInfo();
 
-	void			print_registers();
+	void			printRegisters();
 
 protected:
 	friend class GYROSIM_gyro;
 
-	virtual ssize_t		gyro_read(void *buffer, size_t buflen);
-	virtual int		gyro_ioctl(unsigned long cmd, unsigned long arg);
+	virtual ssize_t		gyroRead(void *buffer, size_t buflen);
+	virtual int		gyroIoctl(unsigned long cmd, unsigned long arg);
 
 private:
 	GYROSIM_gyro		*_gyro;
@@ -198,7 +198,7 @@ private:
 	 * @param		The register to read.
 	 * @return		The value that was read.
 	 */
-	uint8_t			read_reg(unsigned reg);
+	uint8_t			readReg(unsigned reg);
 
 	/**
 	 * Write a register in the GYROSIM
@@ -206,7 +206,7 @@ private:
 	 * @param reg		The register to write.
 	 * @param value		The new value to write.
 	 */
-	void			write_reg(unsigned reg, uint8_t value);
+	void			writeReg(unsigned reg, uint8_t value);
 
 	/**
 	 * Set the GYROSIM measurement range.
@@ -214,7 +214,7 @@ private:
 	 * @param max_g		The maximum G value the range must support.
 	 * @return		OK if the value can be supported, -ERANGE otherwise.
 	 */
-	int			set_accel_range(unsigned max_g);
+	int			setAccelRange(unsigned max_g);
 
 	/**
 	 * Swap a 16-bit value read from the GYROSIM to native byte order.
@@ -226,26 +226,26 @@ private:
 	 *
 	 * @return 0 on success, 1 on failure
 	 */
-	int 			self_test();
+	int 			selfTest();
 
 	/**
 	 * Accel self test
 	 *
 	 * @return 0 on success, 1 on failure
 	 */
-	int 			accel_self_test();
+	int 			accelSelfTest();
 
 	/**
 	 * Gyro self test
 	 *
 	 * @return 0 on success, 1 on failure
 	 */
-	int 			gyro_self_test();
+	int 			gyroSelfTest();
 
 	/*
 	  set sample rate (approximate) - 1kHz to 5Hz
 	*/
-	void _set_sample_rate(unsigned desired_sample_rate_hz);
+	void setSampleRate(unsigned desired_sample_rate_hz);
 
 	/* do not allow to copy this class due to pointer data members */
 	GYROSIM(const GYROSIM &);
@@ -256,7 +256,7 @@ private:
 	 * Report conversation within the GYROSIM, including command byte and
 	 * interrupt status.
 	 */
-	struct MPUReport {
+	struct mpu_report {
 		uint8_t		cmd;
 		uint8_t		status;
 		float		accel_x;
@@ -493,9 +493,9 @@ GYROSIM::transfer(uint8_t *send, uint8_t *recv, unsigned len)
 {
 	uint8_t cmd = send[0];
 	uint8_t reg = cmd & 0x7F;
-	const uint8_t MPUREAD = MPUREG_INT_STATUS | DIR_READ;
+	const uint8_t mpuread = MPUREG_INT_STATUS | DIR_READ;
 
-	if (cmd == MPUREAD) {
+	if (cmd == mpuread) {
 		// Get data from the simulator
 		Simulator *sim = Simulator::getInstance();
 
@@ -528,7 +528,7 @@ GYROSIM::transfer(uint8_t *send, uint8_t *recv, unsigned len)
   set sample rate (approximate) - 1kHz to 5Hz, for both accel and gyro
 */
 void
-GYROSIM::_set_sample_rate(unsigned desired_sample_rate_hz)
+GYROSIM::setSampleRate(unsigned desired_sample_rate_hz)
 {
 	PX4_DEBUG("_set_sample_rate %u Hz", desired_sample_rate_hz);
 
@@ -595,7 +595,7 @@ GYROSIM::devRead(void *buffer, size_t buflen)
 }
 
 int
-GYROSIM::self_test()
+GYROSIM::selfTest()
 {
 	if (perf_event_count(_sample_perf) == 0) {
 		_measure();
@@ -606,7 +606,7 @@ GYROSIM::self_test()
 }
 
 int
-GYROSIM::accel_self_test()
+GYROSIM::accelSelfTest()
 {
 	return OK;
 
@@ -618,7 +618,7 @@ GYROSIM::accel_self_test()
 }
 
 int
-GYROSIM::gyro_self_test()
+GYROSIM::gyroSelfTest()
 {
 	return OK;
 
@@ -669,7 +669,7 @@ GYROSIM::gyro_self_test()
 }
 
 ssize_t
-GYROSIM::gyro_read(void *buffer, size_t buflen)
+GYROSIM::gyroRead(void *buffer, size_t buflen)
 {
 	unsigned count = buflen / sizeof(gyro_report);
 
@@ -834,7 +834,7 @@ GYROSIM::devIOCTL(unsigned long cmd, unsigned long arg)
 }
 
 int
-GYROSIM::gyro_ioctl(unsigned long cmd, unsigned long arg)
+GYROSIM::gyroIoctl(unsigned long cmd, unsigned long arg)
 {
 	switch (cmd) {
 
@@ -900,7 +900,7 @@ GYROSIM::gyro_ioctl(unsigned long cmd, unsigned long arg)
 }
 
 uint8_t
-GYROSIM::read_reg(unsigned reg)
+GYROSIM::readReg(unsigned reg)
 {
 	uint8_t cmd[2] = { (uint8_t)(reg | DIR_READ), 0};
 
@@ -911,7 +911,7 @@ GYROSIM::read_reg(unsigned reg)
 }
 
 void
-GYROSIM::write_reg(unsigned reg, uint8_t value)
+GYROSIM::writeReg(unsigned reg, uint8_t value)
 {
 	uint8_t	cmd[2];
 
@@ -923,7 +923,7 @@ GYROSIM::write_reg(unsigned reg, uint8_t value)
 }
 
 int
-GYROSIM::set_accel_range(unsigned max_g_in)
+GYROSIM::setAccelRange(unsigned max_g_in)
 {
 	// workaround for bugged versions of MPU6k (rev C)
 	switch (_product) {
@@ -997,7 +997,7 @@ GYROSIM::_measure()
 	}
 
 #endif
-	struct MPUReport mpu_report = {};
+	struct mpu_report mpu_report = {};
 
 	/* start measuring */
 	perf_begin(_sample_perf);
@@ -1123,7 +1123,7 @@ GYROSIM::_measure()
 }
 
 void
-GYROSIM::print_info()
+GYROSIM::printInfo()
 {
 	perf_print_counter(_sample_perf);
 	perf_print_counter(_accel_reads);
@@ -1136,7 +1136,7 @@ GYROSIM::print_info()
 }
 
 void
-GYROSIM::print_registers()
+GYROSIM::printRegisters()
 {
 	char buf[6 * 13 + 1];
 	int i = 0;

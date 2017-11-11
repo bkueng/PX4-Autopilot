@@ -39,7 +39,7 @@
 #include "Publication.hpp"
 #include <px4_defines.h>
 
-namespace uORB
+namespace u_orb
 {
 
 PublicationBase::PublicationBase(const struct orb_metadata *meta, int priority) :

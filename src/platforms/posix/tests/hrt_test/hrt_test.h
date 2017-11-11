@@ -50,5 +50,5 @@ public:
 
 	int main();
 
-	static px4::AppState appState; /* track requests to terminate app */
+	static px4::AppState app_state; /* track requests to terminate app */
 };

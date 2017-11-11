@@ -37,7 +37,7 @@
 #include <stdint.h>
 
 
-namespace uORBCommunicator
+namespace u_orb_communicator
 {
 class IChannel;
 class IChannelRxHandler;
@@ -48,7 +48,7 @@ class IChannelRxHandler;
  * shall manage the communication channel. It can be fastRPC or tcp or ip.
  */
 
-class uORBCommunicator::IChannel
+class u_orb_communicator::IChannel
 {
 public:
 
@@ -67,7 +67,7 @@ public:
 	 * 		Note: This does not mean that the receiver as received it.
 	 *  otherwise = failure.
 	 */
-	virtual int16_t topic_advertised(const char *messageName) = 0;
+	virtual int16_t topicAdvertised(const char *message_name) = 0;
 
 	/**
 	 * @brief Interface to notify the remote entity of a topic being unadvertised
@@ -98,7 +98,7 @@ public:
 	 *  otherwise = failure.
 	 */
 
-	virtual int16_t add_subscription(const char *messageName, int32_t msgRateInHz) = 0;
+	virtual int16_t addSubscription(const char *message_name, int32_t msg_rate_in_hz) = 0;
 
 
 
@@ -114,13 +114,13 @@ public:
 	 *  otherwise = failure.
 	 */
 
-	virtual int16_t remove_subscription(const char *messageName) = 0;
+	virtual int16_t removeSubscription(const char *message_name) = 0;
 
 
 	/**
 	 * Register Message Handler.  This is internal for the IChannel implementer*
 	 */
-	virtual int16_t register_handler(uORBCommunicator::IChannelRxHandler *handler) = 0;
+	virtual int16_t registerHandler(u_orb_communicator::IChannelRxHandler *handler) = 0;
 
 
 	//=========================================================================
@@ -142,7 +142,7 @@ public:
 	 *  otherwise = failure.
 	 */
 
-	virtual int16_t send_message(const char *messageName, int32_t length, uint8_t *data) = 0;
+	virtual int16_t sendMessage(const char *message_name, int32_t length, uint8_t *data) = 0;
 
 };
 
@@ -150,7 +150,7 @@ public:
  * Class passed to the communication link implement to provide callback for received
  * messages over a channel.
  */
-class uORBCommunicator::IChannelRxHandler
+class u_orb_communicator::IChannelRxHandler
 {
 public:
 
@@ -167,7 +167,7 @@ public:
 	 *  otherwise = failure.
 	 */
 
-	virtual int16_t process_remote_topic(const char *topic_name, bool isAdvertisement) = 0;
+	virtual int16_t processRemoteTopic(const char *topic_name, bool is_advertisement) = 0;
 
 	/**
 	 * Interface to process a received AddSubscription from remote.
@@ -182,7 +182,7 @@ public:
 	 *  otherwise = failure.
 	 */
 
-	virtual int16_t process_add_subscription(const char *messageName, int32_t msgRateInHz) = 0;
+	virtual int16_t processAddSubscription(const char *message_name, int32_t msg_rate_in_hz) = 0;
 
 
 	/**
@@ -196,7 +196,7 @@ public:
 	 *  otherwise = failure.
 	 */
 
-	virtual int16_t process_remove_subscription(const char *messageName) = 0;
+	virtual int16_t processRemoveSubscription(const char *message_name) = 0;
 
 
 	/**
@@ -214,7 +214,7 @@ public:
 	 *  otherwise = failure.
 	 */
 
-	virtual int16_t process_received_message(const char *messageName, int32_t length, uint8_t *data) = 0;
+	virtual int16_t processReceivedMessage(const char *message_name, int32_t length, uint8_t *data) = 0;
 
 };
 

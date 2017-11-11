@@ -83,8 +83,8 @@ MultirotorMixer::MultirotorMixer(ControlCallback control_cb,
 	_idle_speed(-1.0f + idle_speed * 2.0f),	/* shift to output range here to avoid runtime calculation */
 	_delta_out_max(0.0f),
 	_thrust_factor(0.0f),
-	_rotor_count(_config_rotor_count[(MultirotorGeometryUnderlyingType)geometry]),
-	_rotors(_config_index[(MultirotorGeometryUnderlyingType)geometry]),
+	_rotor_count(config_rotor_count[(MultirotorGeometryUnderlyingType)geometry]),
+	_rotors(config_index[(MultirotorGeometryUnderlyingType)geometry]),
 	_outputs_prev(new float[_rotor_count])
 {
 	memset(_outputs_prev, _idle_speed, _rotor_count * sizeof(float));
@@ -98,7 +98,7 @@ MultirotorMixer::~MultirotorMixer()
 }
 
 MultirotorMixer *
-MultirotorMixer::from_text(Mixer::ControlCallback control_cb, uintptr_t cb_handle, const char *buf, unsigned &buflen)
+MultirotorMixer::fromText(Mixer::ControlCallback control_cb, uintptr_t cb_handle, const char *buf, unsigned &buflen)
 {
 	MultirotorGeometry geometry;
 	char geomname[8];
@@ -106,7 +106,7 @@ MultirotorMixer::from_text(Mixer::ControlCallback control_cb, uintptr_t cb_handl
 	int used;
 
 	/* enforce that the mixer ends with a new line */
-	if (!string_well_formed(buf, buflen)) {
+	if (!stringWellFormed(buf, buflen)) {
 		return nullptr;
 	}
 
@@ -412,7 +412,7 @@ MultirotorMixer::mix(float *outputs, unsigned space)
  * clipping_low: true if the motor demand is being limited in the negative direction
 */
 void
-MultirotorMixer::update_saturation_status(unsigned index, bool clipping_high, bool clipping_low)
+MultirotorMixer::updateSaturationStatus(unsigned index, bool clipping_high, bool clipping_low)
 {
 	// The motor is saturated at the upper limit
 	// check which control axes and which directions are contributing

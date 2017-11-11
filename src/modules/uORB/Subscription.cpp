@@ -39,7 +39,7 @@
 #include "Subscription.hpp"
 #include <px4_defines.h>
 
-namespace uORB
+namespace u_orb
 {
 
 SubscriptionBase::SubscriptionBase(const struct orb_metadata *meta, unsigned interval, unsigned instance) :
@@ -64,13 +64,13 @@ SubscriptionBase::SubscriptionBase(const struct orb_metadata *meta, unsigned int
 
 bool SubscriptionBase::updated()
 {
-	bool isUpdated = false;
+	bool is_updated = false;
 
-	if (orb_check(_handle, &isUpdated) != PX4_OK) {
+	if (orb_check(_handle, &is_updated) != PX4_OK) {
 		PX4_ERR("%s check failed", _meta->o_name);
 	}
 
-	return isUpdated;
+	return is_updated;
 }
 
 bool SubscriptionBase::update(void *data)

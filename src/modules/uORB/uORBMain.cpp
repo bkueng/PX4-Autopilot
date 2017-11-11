@@ -41,10 +41,10 @@
 
 extern "C" { __EXPORT int uorb_main(int argc, char *argv[]); }
 
-static uORB::DeviceMaster *g_dev = nullptr;
+static u_orb::DeviceMaster *g_dev = nullptr;
 static void usage()
 {
-	PRINT_MODULE_DESCRIPTION(
+	print_module_description(
 		R"DESCR_STR(
 ### Description
 uORB is the internal pub-sub messaging system, used for communication between modules.
@@ -72,12 +72,12 @@ Monitor topic publication rates. Besides `top`, this is an important command for
 $ uorb top
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("uorb", "communication");
+	print_module_usage_name("uorb", "communication");
 	PRINT_MODULE_USAGE_COMMAND("start");
 	PRINT_MODULE_USAGE_COMMAND_DESCR("status", "Print topic statistics");
 	PRINT_MODULE_USAGE_COMMAND_DESCR("top", "Monitor topic publication rates");
-	PRINT_MODULE_USAGE_PARAM_FLAG('a', "print all instead of only currently publishing topics", true);
-	PRINT_MODULE_USAGE_ARG("<filter1> [<filter2>]", "topic(s) to match (implies -a)", true);
+	print_module_usage_param_flag('a', "print all instead of only currently publishing topics", true);
+	print_module_usage_arg("<filter1> [<filter2>]", "topic(s) to match (implies -a)", true);
 }
 
 int
@@ -99,13 +99,13 @@ uorb_main(int argc, char *argv[])
 			return 0;
 		}
 
-		if (!uORB::Manager::initialize()) {
+		if (!u_orb::Manager::initialize()) {
 			PX4_ERR("uorb manager alloc failed");
 			return -ENOMEM;
 		}
 
 		/* create the driver */
-		g_dev = uORB::Manager::get_instance()->get_device_master(uORB::PUBSUB);
+		g_dev = u_orb::Manager::getInstance()->get_device_master(u_orb::PUBSUB);
 
 		if (g_dev == nullptr) {
 			return -errno;

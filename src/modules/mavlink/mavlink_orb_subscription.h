@@ -77,7 +77,7 @@ public:
 	 * @return true if there has been an update which has been
 	 * copied successfully.
 	 */
-	bool update_if_changed(void *data);
+	bool updateIfChanged(void *data);
 
 	/**
 	 * Check if the topic has been published.
@@ -86,14 +86,14 @@ public:
 	 * @return true if the topic has been published at least once.
 	 * If no data is available the buffer will be filled with zeros.
 	 */
-	bool is_published();
+	bool isPublished();
 
-	void subscribe_from_beginning(bool from_beginning);
+	void subscribeFromBeginning(bool from_beginning);
 
-	orb_id_t get_topic() const;
-	int get_instance() const;
+	orb_id_t getTopic() const;
+	int getInstance() const;
 
-	int get_fd() { return _fd; }
+	int getFd() { return _fd; }
 
 private:
 	const orb_id_t _topic;		///< topic metadata

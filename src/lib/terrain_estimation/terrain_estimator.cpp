@@ -52,7 +52,7 @@ TerrainEstimator::TerrainEstimator() :
 	_P.setIdentity();
 }
 
-bool TerrainEstimator::is_distance_valid(float distance)
+bool TerrainEstimator::isDistanceValid(float distance)
 {
 	return (distance < 40.0f && distance > 0.00001f);
 }
@@ -61,42 +61,42 @@ void TerrainEstimator::predict(float dt, const struct vehicle_attitude_s *attitu
 			       const struct sensor_combined_s *sensor,
 			       const struct distance_sensor_s *distance)
 {
-	matrix::Dcmf R_att = matrix::Quatf(attitude->q);
+	matrix::Dcmf r_att = matrix::Quatf(attitude->q);
 	matrix::Vector<float, 3> a(&sensor->accelerometer_m_s2[0]);
 	matrix::Vector<float, 3> u;
-	u = R_att * a;
+	u = r_att * a;
 	_u_z = u(2) + CONSTANTS_ONE_G; // compensate for gravity
 
 	// dynamics matrix
-	matrix::Matrix<float, n_x, n_x> A;
-	A.setZero();
-	A(0, 1) = 1;
-	A(1, 2) = 1;
+	matrix::Matrix<float, n_x, n_x> a;
+	a.setZero();
+	a(0, 1) = 1;
+	a(1, 2) = 1;
 
 	// input matrix
-	matrix::Matrix<float, n_x, 1>  B;
-	B.setZero();
-	B(1, 0) = 1;
+	matrix::Matrix<float, n_x, 1>  b;
+	b.setZero();
+	b(1, 0) = 1;
 
 	// input noise variance
-	float R = 0.135f;
+	float r = 0.135f;
 
 	// process noise convariance
-	matrix::Matrix<float, n_x, n_x>  Q;
-	Q(0, 0) = 0;
-	Q(1, 1) = 0;
+	matrix::Matrix<float, n_x, n_x>  q;
+	q(0, 0) = 0;
+	q(1, 1) = 0;
 
 	// do prediction
-	matrix::Vector<float, n_x>  dx = (A * _x) * dt;
-	dx(1) += B(1, 0) * _u_z * dt;
+	matrix::Vector<float, n_x>  dx = (a * _x) * dt;
+	dx(1) += b(1, 0) * _u_z * dt;
 
 	// propagate state and covariance matrix
 	_x += dx;
-	_P += (A * _P + _P * A.transpose() +
-	       B * R * B.transpose() + Q) * dt;
+	_P += (a * _P + _P * a.transpose() +
+	       b * r * b.transpose() + q) * dt;
 }
 
-void TerrainEstimator::measurement_update(uint64_t time_ref, const struct vehicle_gps_position_s *gps,
+void TerrainEstimator::measurementUpdate(uint64_t time_ref, const struct vehicle_gps_position_s *gps,
 		const struct distance_sensor_s *distance,
 		const struct vehicle_attitude_s *attitude)
 {
@@ -110,26 +110,26 @@ void TerrainEstimator::measurement_update(uint64_t time_ref, const struct vehicl
 		matrix::Eulerf euler(q);
 		float d = distance->current_distance;
 
-		matrix::Matrix<float, 1, n_x> C;
-		C(0, 0) = -1; // measured altitude,
+		matrix::Matrix<float, 1, n_x> c;
+		c(0, 0) = -1; // measured altitude,
 
-		float R = 0.009f;
+		float r = 0.009f;
 
 		matrix::Vector<float, 1> y;
 		y(0) = d * cosf(euler.phi()) * cosf(euler.theta());
 
 		// residual
-		matrix::Matrix<float, 1, 1> S_I = (C * _P * C.transpose());
-		S_I(0, 0) += R;
-		S_I = matrix::inv<float, 1> (S_I);
-		matrix::Vector<float, 1> r = y - C * _x;
+		matrix::Matrix<float, 1, 1> s_i = (c * _P * c.transpose());
+		s_i(0, 0) += r;
+		s_i = matrix::inv<float, 1> (s_i);
+		matrix::Vector<float, 1> r = y - c * _x;
 
-		matrix::Matrix<float, n_x, 1> K = _P * C.transpose() * S_I;
+		matrix::Matrix<float, n_x, 1> k = _P * c.transpose() * s_i;
 
 		// some sort of outlayer rejection
 		if (fabsf(distance->current_distance - _distance_last) < 1.0f) {
-			_x += K * r;
-			_P -= K * C * _P;
+			_x += k * r;
+			_P -= k * c * _P;
 		}
 
 		// if the current and the last range measurement are bad then we consider the terrain
@@ -146,23 +146,23 @@ void TerrainEstimator::measurement_update(uint64_t time_ref, const struct vehicl
 	}
 
 	if (gps->timestamp > _time_last_gps && gps->fix_type >= 3) {
-		matrix::Matrix<float, 1, n_x> C;
-		C(0, 1) = 1;
+		matrix::Matrix<float, 1, n_x> c;
+		c(0, 1) = 1;
 
-		float R = 0.056f;
+		float r = 0.056f;
 
 		matrix::Vector<float, 1> y;
 		y(0) = gps->vel_d_m_s;
 
 		// residual
-		matrix::Matrix<float, 1, 1> S_I = (C * _P * C.transpose());
-		S_I(0, 0) += R;
-		S_I = matrix::inv<float, 1>(S_I);
-		matrix::Vector<float, 1> r = y - C * _x;
+		matrix::Matrix<float, 1, 1> s_i = (c * _P * c.transpose());
+		s_i(0, 0) += r;
+		s_i = matrix::inv<float, 1>(s_i);
+		matrix::Vector<float, 1> r = y - c * _x;
 
-		matrix::Matrix<float, n_x, 1> K = _P * C.transpose() * S_I;
-		_x += K * r;
-		_P -= K * C * _P;
+		matrix::Matrix<float, n_x, 1> k = _P * c.transpose() * s_i;
+		_x += k * r;
+		_P -= k * c * _P;
 
 		_time_last_gps = gps->timestamp;
 	}

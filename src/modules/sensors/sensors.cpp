@@ -137,16 +137,16 @@ public:
 	~Sensors() {}
 
 	/** @see ModuleBase */
-	static int task_spawn(int argc, char *argv[]);
+	static int taskSpawn(int argc, char *argv[]);
 
 	/** @see ModuleBase */
 	static Sensors *instantiate(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int custom_command(int argc, char *argv[]);
+	static int customCommand(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int print_usage(const char *reason = nullptr);
+	static int printUsage(const char *reason = nullptr);
 
 	/** @see ModuleBase::run() */
 	void run() override;
@@ -188,8 +188,8 @@ private:
 
 	Battery		_battery[BOARD_NUMBER_BRICKS];			/**< Helper lib to publish battery_status topic. */
 
-	Parameters		_parameters{};			/**< local copies of interesting parameters */
-	ParameterHandles	_parameter_handles{};		/**< handles for interesting parameters */
+	parameters		_parameters{};			/**< local copies of interesting parameters */
+	parameter_handles	_parameter_handles{};		/**< handles for interesting parameters */
 
 	RCUpdate		_rc_update;
 	VotedSensorsUpdate _voted_sensors_update;
@@ -198,12 +198,12 @@ private:
 	/**
 	 * Update our local parameter cache.
 	 */
-	int		parameters_update();
+	int		parametersUpdate();
 
 	/**
 	 * Do adc-related initialisation.
 	 */
-	int		adc_init();
+	int		adcInit();
 
 	/**
 	 * Poll the differential pressure sensor for updated data.
@@ -211,17 +211,17 @@ private:
 	 * @param raw			Combined sensor data structure into which
 	 *				data should be returned.
 	 */
-	void		diff_pres_poll(struct sensor_combined_s &raw);
+	void		diffPresPoll(struct sensor_combined_s &raw);
 
 	/**
 	 * Check for changes in vehicle control mode.
 	 */
-	void		vehicle_control_mode_poll();
+	void		vehicleControlModePoll();
 
 	/**
 	 * Check for changes in parameters.
 	 */
-	void 		parameter_update_poll(bool forced = false);
+	void 		parameterUpdatePoll(bool forced = false);
 
 	/**
 	 * Poll the ADC and update readings to suit.
@@ -229,7 +229,7 @@ private:
 	 * @param raw			Combined sensor data structure into which
 	 *				data should be returned.
 	 */
-	void		adc_poll(struct sensor_combined_s &raw);
+	void		adcPoll(struct sensor_combined_s &raw);
 };
 
 Sensors::Sensors(bool hil_enabled) :
@@ -245,7 +245,7 @@ Sensors::Sensors(bool hil_enabled) :
 }
 
 int
-Sensors::parameters_update()
+Sensors::parametersUpdate()
 {
 	if (_armed) {
 		return 0;
@@ -290,7 +290,7 @@ Sensors::parameters_update()
 
 
 int
-Sensors::adc_init()
+Sensors::adcInit()
 {
 	DevMgr::getHandle(ADC0_DEVICE_PATH, _h_adc);
 
@@ -303,7 +303,7 @@ Sensors::adc_init()
 }
 
 void
-Sensors::diff_pres_poll(struct sensor_combined_s &raw)
+Sensors::diffPresPoll(struct sensor_combined_s &raw)
 {
 	bool updated;
 	orb_check(_diff_pres_sub, &updated);
@@ -366,7 +366,7 @@ Sensors::diff_pres_poll(struct sensor_combined_s &raw)
 }
 
 void
-Sensors::vehicle_control_mode_poll()
+Sensors::vehicleControlModePoll()
 {
 	struct vehicle_control_mode_s vcontrol_mode;
 	bool vcontrol_mode_updated;
@@ -381,7 +381,7 @@ Sensors::vehicle_control_mode_poll()
 }
 
 void
-Sensors::parameter_update_poll(bool forced)
+Sensors::parameterUpdatePoll(bool forced)
 {
 	bool param_updated = false;
 
@@ -419,7 +419,7 @@ Sensors::parameter_update_poll(bool forced)
 }
 
 void
-Sensors::adc_poll(struct sensor_combined_s &raw)
+Sensors::adcPoll(struct sensor_combined_s &raw)
 {
 	/* only read if not in HIL mode */
 	if (_hil_enabled) {
@@ -560,7 +560,7 @@ Sensors::adc_poll(struct sensor_combined_s &raw)
 
 					_battery[b].updateBatteryStatus(t, bat_voltage_v[b], bat_current_a[b],
 									connected, selected_source == b, b,
-									ctrl.control[actuator_controls_s::INDEX_THROTTLE],
+									ctrl.control[actuator_controls_s::index_throttle],
 									_armed,  &_battery_status[b]);
 					int instance;
 					orb_publish_auto(ORB_ID(battery_status), &_battery_pub[b], &_battery_status[b], &instance, ORB_PRIO_DEFAULT);
@@ -726,18 +726,18 @@ Sensors::run()
 	_voted_sensors_update.deinit();
 }
 
-int Sensors::task_spawn(int argc, char *argv[])
+int Sensors::taskSpawn(int argc, char *argv[])
 {
 	/* start the task */
-	_task_id = px4_task_spawn_cmd("sensors",
+	task_id = px4_task_spawn_cmd("sensors",
 				      SCHED_DEFAULT,
 				      SCHED_PRIORITY_SENSOR_HUB,
 				      2000,
-				      (px4_main_t)&run_trampoline,
+				      (px4_main_t)&runTrampoline,
 				      (char *const *)argv);
 
-	if (_task_id < 0) {
-		_task_id = -1;
+	if (task_id < 0) {
+		task_id = -1;
 		return -errno;
 	}
 
@@ -754,18 +754,18 @@ int Sensors::print_status()
 	return 0;
 }
 
-int Sensors::custom_command(int argc, char *argv[])
+int Sensors::customCommand(int argc, char *argv[])
 {
-	return print_usage("unknown command");
+	return printUsage("unknown command");
 }
 
-int Sensors::print_usage(const char *reason)
+int Sensors::printUsage(const char *reason)
 {
 	if (reason) {
 		PX4_WARN("%s\n", reason);
 	}
 
-	PRINT_MODULE_DESCRIPTION(
+	print_module_description(
 		R"DESCR_STR(
 ### Description
 The sensors module is central to the whole system. It takes low-level output from drivers, turns
@@ -790,9 +790,9 @@ It runs in its own thread and polls on the currently selected gyro topic.
 
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("sensors", "system");
+	print_module_usage_name("sensors", "system");
 	PRINT_MODULE_USAGE_COMMAND("start");
-	PRINT_MODULE_USAGE_PARAM_FLAG('h', "Start in HIL mode", true);
+	print_module_usage_param_flag('h', "Start in HIL mode", true);
 	PRINT_MODULE_USAGE_DEFAULT_COMMANDS();
 
 	return 0;

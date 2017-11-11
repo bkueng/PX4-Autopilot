@@ -52,12 +52,12 @@
 
 #define RC_INPUT_MAP_UNMAPPED 0
 
-int rc_calibration_check(orb_advert_t *mavlink_log_pub, bool report_fail, bool isVTOL)
+int rc_calibration_check(orb_advert_t *mavlink_log_pub, bool report_fail, bool is_vtol)
 {
 
 	char nbuf[20];
-	param_t _parameter_handles_min, _parameter_handles_trim, _parameter_handles_max,
-		_parameter_handles_rev, _parameter_handles_dz;
+	param_t parameter_handles_min, parameter_handles_trim, parameter_handles_max,
+		parameter_handles_rev, parameter_handles_dz;
 
 	unsigned map_fail_count = 0;
 
@@ -69,7 +69,7 @@ int rc_calibration_check(orb_advert_t *mavlink_log_pub, bool report_fail, bool i
 	unsigned j = 0;
 
 	/* if VTOL, check transition switch mapping */
-	if (isVTOL) {
+	if (is_vtol) {
 		param_t trans_parm = param_find("RC_MAP_TRANS_SW");
 
 		if (trans_parm == PARAM_INVALID) {
@@ -145,28 +145,28 @@ int rc_calibration_check(orb_advert_t *mavlink_log_pub, bool report_fail, bool i
 
 		/* min values */
 		sprintf(nbuf, "RC%d_MIN", i + 1);
-		_parameter_handles_min = param_find(nbuf);
-		param_get(_parameter_handles_min, &param_min);
+		parameter_handles_min = param_find(nbuf);
+		param_get(parameter_handles_min, &param_min);
 
 		/* trim values */
 		sprintf(nbuf, "RC%d_TRIM", i + 1);
-		_parameter_handles_trim = param_find(nbuf);
-		param_get(_parameter_handles_trim, &param_trim);
+		parameter_handles_trim = param_find(nbuf);
+		param_get(parameter_handles_trim, &param_trim);
 
 		/* max values */
 		sprintf(nbuf, "RC%d_MAX", i + 1);
-		_parameter_handles_max = param_find(nbuf);
-		param_get(_parameter_handles_max, &param_max);
+		parameter_handles_max = param_find(nbuf);
+		param_get(parameter_handles_max, &param_max);
 
 		/* channel reverse */
 		sprintf(nbuf, "RC%d_REV", i + 1);
-		_parameter_handles_rev = param_find(nbuf);
-		param_get(_parameter_handles_rev, &param_rev);
+		parameter_handles_rev = param_find(nbuf);
+		param_get(parameter_handles_rev, &param_rev);
 
 		/* channel deadzone */
 		sprintf(nbuf, "RC%d_DZ", i + 1);
-		_parameter_handles_dz = param_find(nbuf);
-		param_get(_parameter_handles_dz, &param_dz);
+		parameter_handles_dz = param_find(nbuf);
+		param_get(parameter_handles_dz, &param_dz);
 
 		/* assert min..center..max ordering */
 		if (param_min < RC_INPUT_LOWEST_MIN_US) {

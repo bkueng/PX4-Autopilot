@@ -98,7 +98,7 @@ bool __EXPORT less_than_or_equal(float a, float b)
 	}
 }
 
-void __EXPORT float2SigExp(
+void __EXPORT float2_sig_exp(
 	const float &num,
 	float &sig,
 	int &exp)

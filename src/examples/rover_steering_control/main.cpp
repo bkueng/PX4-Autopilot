@@ -253,7 +253,7 @@ int rover_steering_control_thread_main(int argc, char *argv[])
 		actuators.control[i] = 0.0f;
 	}
 
-	struct vehicle_attitude_setpoint_s _att_sp = {};
+	struct vehicle_attitude_setpoint_s att_sp = {};
 
 	/*
 	 * Advertise that this controller will publish actuator
@@ -337,11 +337,11 @@ int rover_steering_control_thread_main(int argc, char *argv[])
 				orb_copy(ORB_ID(vehicle_attitude), att_sub, &att);
 
 				if (att_sp_updated) {
-					orb_copy(ORB_ID(vehicle_attitude_setpoint), att_sp_sub, &_att_sp);
+					orb_copy(ORB_ID(vehicle_attitude_setpoint), att_sp_sub, &att_sp);
 				}
 
 				/* control attitude / heading */
-				control_attitude(&_att_sp, &att, &actuators);
+				control_attitude(&att_sp, &att, &actuators);
 
 				if (manual_sp_updated)
 					/* get the RC (or otherwise user based) input */

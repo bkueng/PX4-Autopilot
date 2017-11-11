@@ -73,13 +73,13 @@ MavlinkParametersManager::~MavlinkParametersManager()
 }
 
 unsigned
-MavlinkParametersManager::get_size()
+MavlinkParametersManager::getSize()
 {
 	return MAVLINK_MSG_ID_PARAM_VALUE_LEN + MAVLINK_NUM_NON_PAYLOAD_BYTES;
 }
 
 void
-MavlinkParametersManager::handle_message(const mavlink_message_t *msg)
+MavlinkParametersManager::handleMessage(const mavlink_message_t *msg)
 {
 	switch (msg->msgid) {
 	case MAVLINK_MSG_ID_PARAM_REQUEST_LIST: {
@@ -277,10 +277,10 @@ MavlinkParametersManager::handle_message(const mavlink_message_t *msg)
 				/* Copy values from msg to uorb using the parameter_rc_channel_index as index */
 				size_t i = map_rc.parameter_rc_channel_index;
 				_rc_param_map.param_index[i] = map_rc.param_index;
-				strncpy(&(_rc_param_map.param_id[i * (rc_parameter_map_s::PARAM_ID_LEN + 1)]), map_rc.param_id,
+				strncpy(&(_rc_param_map.param_id[i * (rc_parameter_map_s::param_id_len + 1)]), map_rc.param_id,
 					MAVLINK_MSG_PARAM_VALUE_FIELD_PARAM_ID_LEN);
 				/* enforce null termination */
-				_rc_param_map.param_id[i * (rc_parameter_map_s::PARAM_ID_LEN + 1) + rc_parameter_map_s::PARAM_ID_LEN] = '\0';
+				_rc_param_map.param_id[i * (rc_parameter_map_s::param_id_len + 1) + rc_parameter_map_s::param_id_len] = '\0';
 				_rc_param_map.scale[i] = map_rc.scale;
 				_rc_param_map.value0[i] = map_rc.param_value0;
 				_rc_param_map.value_min[i] = map_rc.param_value_min;
@@ -332,7 +332,7 @@ MavlinkParametersManager::send(const hrt_abstime t)
 
 
 bool
-MavlinkParametersManager::send_one()
+MavlinkParametersManager::sendOne()
 {
 	bool space_available = _mavlink->get_free_tx_buf() >= get_size();
 
@@ -382,7 +382,7 @@ MavlinkParametersManager::send_one()
 		mavlink_message_t mavlink_packet;
 		mavlink_msg_param_value_encode_chan(mavlink_system.sysid, value.node_id, _mavlink->get_channel(), &mavlink_packet,
 						    &msg);
-		_mavlink_resend_uart(_mavlink->get_channel(), &mavlink_packet);
+		mavlink_resend_uart(_mavlink->get_channel(), &mavlink_packet);
 
 	} else if (_send_all_index >= 0 && _mavlink->boot_complete()) {
 		/* send all parameters if requested, but only after the system has booted */
@@ -446,7 +446,7 @@ MavlinkParametersManager::send_one()
 }
 
 int
-MavlinkParametersManager::send_param(param_t param, int component_id)
+MavlinkParametersManager::sendParam(param_t param, int component_id)
 {
 	if (param == PARAM_INVALID) {
 		return 1;
@@ -500,13 +500,13 @@ MavlinkParametersManager::send_param(param_t param, int component_id)
 		// Re-pack the message with a different component ID
 		mavlink_message_t mavlink_packet;
 		mavlink_msg_param_value_encode_chan(mavlink_system.sysid, component_id, _mavlink->get_channel(), &mavlink_packet, &msg);
-		_mavlink_resend_uart(_mavlink->get_channel(), &mavlink_packet);
+		mavlink_resend_uart(_mavlink->get_channel(), &mavlink_packet);
 	}
 
 	return 0;
 }
 
-void MavlinkParametersManager::request_next_uavcan_parameter()
+void MavlinkParametersManager::requestNextUavcanParameter()
 {
 	// Request a parameter if we are not already waiting on a response and if the list is not empty
 	if (!_uavcan_waiting_for_request_response && _uavcan_open_request_list != nullptr) {
@@ -523,7 +523,7 @@ void MavlinkParametersManager::request_next_uavcan_parameter()
 	}
 }
 
-void MavlinkParametersManager::enque_uavcan_request(uavcan_parameter_request_s *req)
+void MavlinkParametersManager::enqueUavcanRequest(uavcan_parameter_request_s *req)
 {
 	// We store at max 10 requests to keep memory consumption low.
 	// Dropped requests will be repeated by the ground station
@@ -531,11 +531,11 @@ void MavlinkParametersManager::enque_uavcan_request(uavcan_parameter_request_s *
 		return;
 	}
 
-	_uavcan_open_request_list_item *new_reqest = new _uavcan_open_request_list_item;
+	uavcan_open_request_list_item *new_reqest = new uavcan_open_request_list_item;
 	new_reqest->req = *req;
 	new_reqest->next = nullptr;
 
-	_uavcan_open_request_list_item *item = _uavcan_open_request_list;
+	uavcan_open_request_list_item *item = _uavcan_open_request_list;
 	++_uavcan_queued_request_items;
 
 	if (item == nullptr) {
@@ -552,11 +552,11 @@ void MavlinkParametersManager::enque_uavcan_request(uavcan_parameter_request_s *
 	}
 }
 
-void MavlinkParametersManager::dequeue_uavcan_request()
+void MavlinkParametersManager::dequeueUavcanRequest()
 {
 	if (_uavcan_open_request_list != nullptr) {
 		// Drop the first item in the list and free the used memory
-		_uavcan_open_request_list_item *first = _uavcan_open_request_list;
+		uavcan_open_request_list_item *first = _uavcan_open_request_list;
 		_uavcan_open_request_list = first->next;
 		--_uavcan_queued_request_items;
 		delete first;

@@ -83,23 +83,23 @@ NavigatorMode::run(bool active)
 }
 
 void
-NavigatorMode::on_inactive()
+NavigatorMode::onInactive()
 {
 }
 
 void
-NavigatorMode::on_inactivation()
+NavigatorMode::onInactivation()
 {
 }
 
 void
-NavigatorMode::on_activation()
+NavigatorMode::onActivation()
 {
 	/* invalidate position setpoint by default */
 	_navigator->get_position_setpoint_triplet()->current.valid = false;
 }
 
 void
-NavigatorMode::on_active()
+NavigatorMode::onActive()
 {
 }

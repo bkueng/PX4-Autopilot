@@ -64,7 +64,7 @@ public:
 	virtual void reset() = 0;
 
 	/* Returns a upper pitch limit if required, otherwise returns pitchMaxDefault */
-	virtual float getPitchMax(float pitchMaxDefault) = 0;
+	virtual float getPitchMax(float pitch_max_default) = 0;
 
 };
 

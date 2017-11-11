@@ -64,7 +64,7 @@ public:
 	bool launchDetectionEnabled() { return launchdetection_on.get() == 1; }
 
 	/* Returns a maximum pitch in deg. Different launch methods may impose upper pitch limits during launch */
-	float getPitchMax(float pitchMaxDefault);
+	float getPitchMax(float pitch_max_default);
 
 private:
 	/* holds an index to the launchMethod in the array launchMethods
@@ -73,11 +73,11 @@ private:
 	 * method is checked for further advancing in the state machine
 	 * (e.g. when to power up the motors)
 	 */
-	int activeLaunchDetectionMethodIndex{-1};
+	int _activeLaunchDetectionMethodIndex{-1};
 
-	LaunchMethod *launchMethods[1];
+	LaunchMethod *_launchMethods[1];
 
-	control::BlockParamInt launchdetection_on;
+	control::BlockParamInt _launchdetection_on;
 };
 
 } // namespace launchdetection

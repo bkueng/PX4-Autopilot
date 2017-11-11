@@ -46,7 +46,7 @@
 #include <lib/mathlib/mathlib.h>
 #include <drivers/drv_hrt.h>
 
-struct Params {
+struct params {
 	int32_t idle_pwm_mc;			// pwm value for idle in mc mode
 	int32_t vtol_motor_count;		// number of motors
 	int32_t vtol_fw_permanent_stab;	// in fw mode stabilize attitude also in manual mode
@@ -100,55 +100,55 @@ public:
 	/**
 	 * Update vtol state.
 	 */
-	virtual void update_vtol_state() = 0;
+	virtual void updateVtolState() = 0;
 
 	/**
 	 * Update transition state.
 	 */
-	virtual void update_transition_state() = 0;
+	virtual void updateTransitionState() = 0;
 
 	/**
 	 * Update multicopter state.
 	 */
-	virtual void update_mc_state();
+	virtual void updateMcState();
 
 	/**
 	 * Update fixed wing state.
 	 */
-	virtual void update_fw_state();
+	virtual void updateFwState();
 
 	/**
 	 * Update external state.
 	 */
-	virtual void update_external_state() {}
+	virtual void updateExternalState() {}
 
 	/**
 	 * Write control values to actuator output topics.
 	 */
-	virtual void fill_actuator_outputs() = 0;
+	virtual void fillActuatorOutputs() = 0;
 
 	/**
 	 * Special handling opportunity for the time right after transition to FW
 	 * before TECS is running.
 	 */
-	virtual void waiting_on_tecs() {}
+	virtual void waitingOnTecs() {}
 
 	/**
 	 * Checks for fixed-wing failsafe condition and issues abort request if needed.
 	 */
-	void check_quadchute_condition();
+	void checkQuadchuteCondition();
 
 	/**
 	 * Returns true if we're allowed to do a mode transition on the ground.
 	 */
-	bool can_transition_on_ground();
+	bool canTransitionOnGround();
 
-	void set_idle_mc();
-	void set_idle_fw();
+	void setIdleMc();
+	void setIdleFw();
 
-	mode get_mode() {return _vtol_mode;}
+	mode getMode() {return _vtol_mode;}
 
-	virtual void parameters_update() = 0;
+	virtual void parametersUpdate() = 0;
 
 protected:
 	VtolAttitudeControl *_attc;
@@ -175,9 +175,9 @@ protected:
 	struct tecs_status_s				*_tecs_status;
 	struct vehicle_land_detected_s			*_land_detected;
 
-	struct Params 					*_params;
+	struct params 					*_params;
 
-	bool flag_idle_mc = true;		//false = "idle is set for fixed wing mode"; true = "idle is set for multicopter mode"
+	bool _flag_idle_mc = true;		//false = "idle is set for fixed wing mode"; true = "idle is set for multicopter mode"
 
 	bool _pusher_active = false;
 	float _mc_roll_weight = 1.0f;	// weight for multicopter attitude controller roll output

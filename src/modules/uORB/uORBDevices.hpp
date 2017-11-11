@@ -49,7 +49,7 @@
 
 #endif /* __PX4_NUTTX */
 
-namespace uORB
+namespace u_orb
 {
 class DeviceNode;
 class DeviceMaster;
@@ -59,7 +59,7 @@ class Manager;
 /**
  * Per-object device instance.
  */
-class uORB::DeviceNode : public device::CDev
+class u_orb::DeviceNode : public device::CDev
 {
 public:
 	DeviceNode(const struct orb_metadata *meta, const char *name, const char *path,
@@ -116,7 +116,7 @@ public:
 
 	static int        unadvertise(orb_advert_t handle);
 
-	static int16_t topic_advertised(const orb_metadata *meta, int priority);
+	static int16_t topicAdvertised(const orb_metadata *meta, int priority);
 	//static int16_t topic_unadvertised(const orb_metadata *meta, int priority);
 
 	/**
@@ -127,17 +127,17 @@ public:
 	 *   0 = success
 	 *   otherwise failure.
 	 */
-	int16_t process_add_subscription(int32_t rateInHz);
+	int16_t processAddSubscription(int32_t rate_in_hz);
 
 	/**
 	 * processes a request to remove a subscription from remote.
 	 */
-	int16_t process_remove_subscription();
+	int16_t processRemoveSubscription();
 
 	/**
 	 * processed the received data message from remote.
 	 */
-	int16_t process_received_message(int32_t length, uint8_t *data);
+	int16_t processReceivedMessage(int32_t length, uint8_t *data);
 
 	/**
 	  * Add the subscriber to the node's list of subscriber.  If there is
@@ -146,7 +146,7 @@ public:
 	  * @param sd
 	  *   the subscriber to be added.
 	  */
-	void add_internal_subscriber();
+	void addInternalSubscriber();
 
 	/**
 	 * Removes the subscriber from the list.  Also notifies the remote
@@ -154,14 +154,14 @@ public:
 	 * @param sd
 	 *   the Subscriber to be removed.
 	 */
-	void remove_internal_subscriber();
+	void removeInternalSubscriber();
 
 	/**
 	 * Return true if this topic has been published.
 	 *
 	 * This is used in the case of multi_pub/sub to check if it's valid to advertise
 	 * and publish to this node or if another node should be tried. */
-	bool is_published();
+	bool isPublished();
 
 	/**
 	 * Try to change the size of the queue. This can only be done as long as nobody published yet.
@@ -170,45 +170,45 @@ public:
 	 * @param queue_size new size of the queue
 	 * @return PX4_OK if queue size successfully set
 	 */
-	int update_queue_size(unsigned int queue_size);
+	int updateQueueSize(unsigned int queue_size);
 
 	/**
 	 * Print statistics (nr of lost messages)
 	 * @param reset if true, reset statistics afterwards
 	 * @return true if printed something, false otherwise (if no lost messages)
 	 */
-	bool print_statistics(bool reset);
+	bool printStatistics(bool reset);
 
-	unsigned int get_queue_size() const { return _queue_size; }
-	int16_t subscriber_count() const { return _subscriber_count; }
-	uint32_t lost_message_count() const { return _lost_messages; }
-	unsigned int published_message_count() const { return _generation; }
-	const struct orb_metadata *get_meta() const { return _meta; }
+	unsigned int getQueueSize() const { return _queue_size; }
+	int16_t subscriberCount() const { return _subscriber_count; }
+	uint32_t lostMessageCount() const { return _lost_messages; }
+	unsigned int publishedMessageCount() const { return _generation; }
+	const struct orb_metadata *getMeta() const { return _meta; }
 
 protected:
 	virtual pollevent_t poll_state(device::file_t *filp);
 	virtual void poll_notify_one(px4_pollfd_struct_t *fds, pollevent_t events);
 
 private:
-	struct UpdateIntervalData {
+	struct update_interval_data {
 		unsigned  interval; /**< if nonzero minimum interval between updates */
 		struct hrt_call update_call;  /**< deferred wakeup call if update_period is nonzero */
 #ifndef __PX4_NUTTX
 		uint64_t last_update; /**< time at which the last update was provided, used when update_interval is nonzero */
 #endif
 	};
-	struct SubscriberData {
-		~SubscriberData() { if (update_interval) { delete (update_interval); } }
+	struct subscriber_data {
+		~subscriber_data() { if (update_interval) { delete (update_interval); } }
 
 		unsigned  generation; /**< last generation the subscriber has seen */
 		int   flags; /**< lowest 8 bits: priority of publisher, 9. bit: update_reported bit */
-		UpdateIntervalData *update_interval; /**< if null, no update interval */
+		update_interval_data *update_interval; /**< if null, no update interval */
 
 		int priority() const { return flags & 0xff; }
-		void set_priority(uint8_t prio) { flags = (flags & ~0xff) | prio; }
+		void setPriority(uint8_t prio) { flags = (flags & ~0xff) | prio; }
 
-		bool update_reported() const { return flags & (1 << 8); }
-		void set_update_reported(bool update_reported_flag) { flags = (flags & ~(1 << 8)) | (((int)update_reported_flag) << 8); }
+		bool updateReported() const { return flags & (1 << 8); }
+		void setUpdateReported(bool update_reported_flag) { flags = (flags & ~(1 << 8)) | (((int)update_reported_flag) << 8); }
 	};
 
 	const struct orb_metadata *_meta; /**< object metadata information */
@@ -220,7 +220,7 @@ private:
 	uint8_t _queue_size; /**< maximum number of elements in the queue */
 	int16_t _subscriber_count;
 
-	inline static SubscriberData    *filp_to_sd(device::file_t *filp);
+	inline static subscriber_data    *filpToSd(device::file_t *filp);
 
 #ifdef __PX4_NUTTX
 	pid_t     _publisher; /**< if nonzero, current publisher. Only used inside the advertise call.
@@ -237,14 +237,14 @@ private:
 	/**
 	 * Perform a deferred update for a rate-limited subscriber.
 	 */
-	void      update_deferred();
+	void      updateDeferred();
 
 	/**
 	 * Bridge from hrt_call to update_deferred
 	 *
 	 * void *arg    ORBDevNode pointer for which the deferred update is performed.
 	 */
-	static void   update_deferred_trampoline(void *arg);
+	static void   updateDeferredTrampoline(void *arg);
 
 	/**
 	 * Check whether a topic appears updated to a subscriber.
@@ -254,7 +254,7 @@ private:
 	 * @param sd    The subscriber for whom to check.
 	 * @return    True if the topic should appear updated to the subscriber
 	 */
-	bool      appears_updated(SubscriberData *sd);
+	bool      appearsUpdated(subscriber_data *sd);
 
 
 	// disable copy and assignment operators
@@ -268,7 +268,7 @@ private:
  * Used primarily to create new objects via the ORBIOCCREATE
  * ioctl.
  */
-class uORB::DeviceMaster : public device::CDev
+class u_orb::DeviceMaster : public device::CDev
 {
 public:
 	virtual int   ioctl(device::file_t *filp, int cmd, unsigned long arg);
@@ -277,7 +277,7 @@ public:
 	 * Public interface for getDeviceNodeLocked(). Takes care of synchronization.
 	 * @return node if exists, nullptr otherwise
 	 */
-	uORB::DeviceNode *getDeviceNode(const char *node_name);
+	u_orb::DeviceNode *getDeviceNode(const char *node_name);
 
 	/**
 	 * Print statistics for each existing topic.
@@ -299,33 +299,33 @@ private:
 	DeviceMaster(Flavor f);
 	virtual ~DeviceMaster();
 
-	struct DeviceNodeStatisticsData {
+	struct device_node_statistics_data {
 		DeviceNode *node;
 		uint8_t instance;
 		uint32_t last_lost_msg_count;
 		unsigned int last_pub_msg_count;
 		uint32_t lost_msg_delta;
 		unsigned int pub_msg_delta;
-		DeviceNodeStatisticsData *next = nullptr;
+		device_node_statistics_data *next = nullptr;
 	};
-	void addNewDeviceNodes(DeviceNodeStatisticsData **first_node, int &num_topics, size_t &max_topic_name_length,
+	void addNewDeviceNodes(device_node_statistics_data **first_node, int &num_topics, size_t &max_topic_name_length,
 			       char **topic_filter, int num_filters);
 
-	friend class uORB::Manager;
+	friend class u_orb::Manager;
 
 	/**
 	 * Find a node give its name.
 	 * _lock must already be held when calling this.
 	 * @return node if exists, nullptr otherwise
 	 */
-	uORB::DeviceNode *getDeviceNodeLocked(const char *node_name);
+	u_orb::DeviceNode *getDeviceNodeLocked(const char *node_name);
 
 	const Flavor _flavor;
 
 #ifdef __PX4_NUTTX
 	ORBMap _node_map;
 #else
-	std::map<std::string, uORB::DeviceNode *> _node_map;
+	std::map<std::string, u_orb::DeviceNode *> _node_map;
 #endif
 	hrt_abstime       _last_statistics_output;
 };

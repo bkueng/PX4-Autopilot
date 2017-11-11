@@ -60,10 +60,10 @@ __EXPORT int top_main(int argc, char *argv[]);
 
 static void print_usage(void)
 {
-	PRINT_MODULE_DESCRIPTION("Monitor running processes and their CPU, stack usage, priority and state");
+	print_module_description("Monitor running processes and their CPU, stack usage, priority and state");
 
-	PRINT_MODULE_USAGE_NAME_SIMPLE("top", "command");
-	PRINT_MODULE_USAGE_COMMAND_DESCR("once", "print load only once");
+	print_module_usage_name_simple("top", "command");
+	print_module_usage_command_descr("once", "print load only once");
 }
 
 int

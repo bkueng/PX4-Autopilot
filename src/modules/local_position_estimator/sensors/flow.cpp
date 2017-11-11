@@ -7,8 +7,8 @@ extern orb_advert_t mavlink_log_pub;
 
 // required number of samples for sensor
 // to initialize
-static const uint32_t		REQ_FLOW_INIT_COUNT = 10;
-static const uint32_t		FLOW_TIMEOUT = 1000000;	// 1 s
+static const uint32_t		req_flow_init_count = 10;
+static const uint32_t		flow_timeout = 1000000;	// 1 s
 
 // minimum flow altitude
 static const float flow_min_agl = 0.3;
@@ -24,7 +24,7 @@ void BlockLocalPositionEstimator::flowInit()
 	}
 
 	// if finished
-	if (_flowQStats.getCount() > REQ_FLOW_INIT_COUNT) {
+	if (_flowQStats.getCount() > req_flow_init_count) {
 		mavlink_and_console_log_info(&mavlink_log_pub, "[lpe] flow init: "
 					     "quality %d std %d",
 					     int(_flowQStats.getMean()(0)),
@@ -116,13 +116,13 @@ void BlockLocalPositionEstimator::flowCorrect()
 	if (flowMeasure(y) != OK) { return; }
 
 	// flow measurement matrix and noise matrix
-	Matrix<float, n_y_flow, n_x> C;
-	C.setZero();
-	C(Y_flow_vx, X_vx) = 1;
-	C(Y_flow_vy, X_vy) = 1;
+	Matrix<float, n_y_flow, n_x> c;
+	c.setZero();
+	c(Y_flow_vx, X_vx) = 1;
+	c(Y_flow_vy, X_vy) = 1;
 
-	SquareMatrix<float, n_y_flow> R;
-	R.setZero();
+	SquareMatrix<float, n_y_flow> r;
+	r.setZero();
 
 	// polynomial noise model, found using least squares fit
 	// h, h**2, v, v*h, v*h**2
@@ -161,30 +161,30 @@ void BlockLocalPositionEstimator::flowCorrect()
 
 	float rot_sq = _eul(0) * _eul(0) + _eul(1) * _eul(1);
 
-	R(Y_flow_vx, Y_flow_vx) = flow_vxy_stddev * flow_vxy_stddev +
+	r(Y_flow_vx, Y_flow_vx) = flow_vxy_stddev * flow_vxy_stddev +
 				  _flow_r.get() * _flow_r.get() * rot_sq +
 				  _flow_rr.get() * _flow_rr.get() * rotrate_sq;
-	R(Y_flow_vy, Y_flow_vy) = R(Y_flow_vx, Y_flow_vx);
+	r(Y_flow_vy, Y_flow_vy) = r(Y_flow_vx, Y_flow_vx);
 
 	// residual
-	Vector<float, 2> r = y - C * _x;
+	Vector<float, 2> r = y - c * _x;
 
 	// residual covariance
-	Matrix<float, n_y_flow, n_y_flow> S = C * _P * C.transpose() + R;
+	Matrix<float, n_y_flow, n_y_flow> s = c * _P * c.transpose() + r;
 
 	// publish innovations
 	_pub_innov.get().flow_innov[0] = r(0);
 	_pub_innov.get().flow_innov[1] = r(1);
-	_pub_innov.get().flow_innov_var[0] = S(0, 0);
-	_pub_innov.get().flow_innov_var[1] = S(1, 1);
+	_pub_innov.get().flow_innov_var[0] = s(0, 0);
+	_pub_innov.get().flow_innov_var[1] = s(1, 1);
 
 	// residual covariance, (inverse)
-	Matrix<float, n_y_flow, n_y_flow> S_I = inv<float, n_y_flow>(S);
+	Matrix<float, n_y_flow, n_y_flow> s_i = inv<float, n_y_flow>(s);
 
 	// fault detection
-	float beta = (r.transpose() * (S_I * r))(0, 0);
+	float beta = (r.transpose() * (s_i * r))(0, 0);
 
-	if (beta > BETA_TABLE[n_y_flow]) {
+	if (beta > beta_table[n_y_flow]) {
 		if (!(_sensorFault & SENSOR_FLOW)) {
 			mavlink_and_console_log_info(&mavlink_log_pub, "[lpe] flow fault,  beta %5.2f", double(beta));
 			_sensorFault |= SENSOR_FLOW;
@@ -196,17 +196,17 @@ void BlockLocalPositionEstimator::flowCorrect()
 	}
 
 	if (!(_sensorFault & SENSOR_FLOW)) {
-		Matrix<float, n_x, n_y_flow> K =
-			_P * C.transpose() * S_I;
-		Vector<float, n_x> dx = K * r;
+		Matrix<float, n_x, n_y_flow> k =
+			_P * c.transpose() * s_i;
+		Vector<float, n_x> dx = k * r;
 		_x += dx;
-		_P -= K * C * _P;
+		_P -= k * c * _P;
 	}
 }
 
 void BlockLocalPositionEstimator::flowCheckTimeout()
 {
-	if (_timeStamp - _time_last_flow > FLOW_TIMEOUT) {
+	if (_timeStamp - _time_last_flow > flow_timeout) {
 		if (!(_sensorTimeout & SENSOR_FLOW)) {
 			_sensorTimeout |= SENSOR_FLOW;
 			_flowQStats.reset();

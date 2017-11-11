@@ -43,7 +43,7 @@
 namespace vmount
 {
 
-int InputBase::update(unsigned int timeout_ms, ControlData **control_data, bool already_active)
+int InputBase::update(unsigned int timeout_ms, control_data **control_data, bool already_active)
 {
 	if (!_initialized) {
 		int ret = initialize();
@@ -53,7 +53,7 @@ int InputBase::update(unsigned int timeout_ms, ControlData **control_data, bool 
 		}
 
 		//on startup, set the mount to a neutral position
-		_control_data.type = ControlData::Type::Neutral;
+		_control_data.type = control_data::Type::Neutral;
 		_control_data.gimbal_shutter_retract = true;
 		*control_data = &_control_data;
 		_initialized = true;
@@ -63,10 +63,10 @@ int InputBase::update(unsigned int timeout_ms, ControlData **control_data, bool 
 	return update_impl(timeout_ms, control_data, already_active);
 }
 
-void InputBase::control_data_set_lon_lat(double lon, double lat, float altitude, float roll_angle,
+void InputBase::controlDataSetLonLat(double lon, double lat, float altitude, float roll_angle,
 		float pitch_fixed_angle)
 {
-	_control_data.type = ControlData::Type::LonLat;
+	_control_data.type = control_data::Type::LonLat;
 	_control_data.type_data.lonlat.lon = lon;
 	_control_data.type_data.lonlat.lat = lat;
 	_control_data.type_data.lonlat.altitude = altitude;

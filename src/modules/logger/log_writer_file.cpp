@@ -46,13 +46,13 @@ namespace px4
 {
 namespace logger
 {
-constexpr size_t LogWriterFile::_min_write_chunk;
+constexpr size_t LogWriterFile::min_write_chunk;
 
 
 LogWriterFile::LogWriterFile(size_t buffer_size) :
 	//We always write larger chunks (orb messages) to the buffer, so the buffer
 	//needs to be larger than the minimum write chunk (300 is somewhat arbitrary)
-	_buffer_size(math::max(buffer_size, _min_write_chunk + 300))
+	_buffer_size(math::max(buffer_size, min_write_chunk + 300))
 {
 	pthread_mutex_init(&_mtx, nullptr);
 	pthread_cond_init(&_cv, nullptr);
@@ -82,7 +82,7 @@ LogWriterFile::~LogWriterFile()
 	}
 }
 
-void LogWriterFile::start_log(const char *filename)
+void LogWriterFile::startLog(const char *filename)
 {
 	// register the current file with the hardfault handler: if the system crashes,
 	// the hardfault handler will append the crash log to that file on the next reboot.
@@ -125,7 +125,7 @@ void LogWriterFile::start_log(const char *filename)
 	notify();
 }
 
-int LogWriterFile::hardfault_store_filename(const char *log_file)
+int LogWriterFile::hardfaultStoreFilename(const char *log_file)
 {
 #ifdef __PX4_NUTTX
 	int fd = open(HARDFAULT_ULOG_PATH, O_TRUNC | O_WRONLY | O_CREAT);
@@ -157,13 +157,13 @@ int LogWriterFile::hardfault_store_filename(const char *log_file)
 	return 0;
 }
 
-void LogWriterFile::stop_log()
+void LogWriterFile::stopLog()
 {
 	_should_run = false;
 	notify();
 }
 
-int LogWriterFile::thread_start()
+int LogWriterFile::threadStart()
 {
 	pthread_attr_t thr_attr;
 	pthread_attr_init(&thr_attr);
@@ -175,13 +175,13 @@ int LogWriterFile::thread_start()
 
 	pthread_attr_setstacksize(&thr_attr, PX4_STACK_ADJUSTED(1072));
 
-	int ret = pthread_create(&_thread, &thr_attr, &LogWriterFile::run_helper, this);
+	int ret = pthread_create(&_thread, &thr_attr, &LogWriterFile::runHelper, this);
 	pthread_attr_destroy(&thr_attr);
 
 	return ret;
 }
 
-void LogWriterFile::thread_stop()
+void LogWriterFile::threadStop()
 {
 	// this will terminate the main loop of the writer thread
 	_exit_thread = true;
@@ -198,7 +198,7 @@ void LogWriterFile::thread_stop()
 
 }
 
-void *LogWriterFile::run_helper(void *context)
+void *LogWriterFile::runHelper(void *context)
 {
 	px4_prctl(PR_SET_NAME, "log_writer_file", px4_getpid());
 
@@ -244,7 +244,7 @@ void LogWriterFile::run()
 				available = get_read_ptr(&read_ptr, &is_part);
 
 				/* if sufficient data available or partial read or terminating, exit this wait loop */
-				if ((available >= _min_write_chunk) || is_part || !_should_run) {
+				if ((available >= min_write_chunk) || is_part || !_should_run) {
 					/* GOTO end of block */
 					break;
 				}
@@ -310,7 +310,7 @@ void LogWriterFile::run()
 	}
 }
 
-int LogWriterFile::write_message(void *ptr, size_t size, uint64_t dropout_start)
+int LogWriterFile::writeMessage(void *ptr, size_t size, uint64_t dropout_start)
 {
 	if (_need_reliable_transfer) {
 		int ret;
@@ -358,7 +358,7 @@ int LogWriterFile::write(void *ptr, size_t size, uint64_t dropout_start)
 	return 0;
 }
 
-void LogWriterFile::write_no_check(void *ptr, size_t size)
+void LogWriterFile::writeNoCheck(void *ptr, size_t size)
 {
 	size_t n = _buffer_size - _head;	// bytes to end of the buffer
 
@@ -380,7 +380,7 @@ void LogWriterFile::write_no_check(void *ptr, size_t size)
 	_count += size;
 }
 
-size_t LogWriterFile::get_read_ptr(void **ptr, bool *is_part)
+size_t LogWriterFile::getReadPtr(void **ptr, bool *is_part)
 {
 	// bytes available to read
 	int read_ptr = _head - _count;

@@ -35,7 +35,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-int uORB::Utils::node_mkpath
+int u_orb::Utils::nodeMkpath
 (
 	char *buf,
 	Flavor f,
@@ -64,15 +64,15 @@ int uORB::Utils::node_mkpath
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-int uORB::Utils::node_mkpath(char *buf, Flavor f,
-			     const char *orbMsgName)
+int u_orb::Utils::nodeMkpath(char *buf, Flavor f,
+			     const char *orb_msg_name)
 {
 	unsigned len;
 
 	unsigned index = 0;
 
 	len = snprintf(buf, orb_maxpath, "/%s/%s%d", (f == PUBSUB) ? "obj" : "param",
-		       orbMsgName, index);
+		       orb_msg_name, index);
 
 	if (len >= orb_maxpath) {
 		return -ENAMETOOLONG;

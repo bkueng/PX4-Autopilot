@@ -91,87 +91,87 @@ public:
 		MISSION_YAWMODE_MAX = 5
 	};
 
-	bool set_current_offboard_mission_index(unsigned index);
+	bool setCurrentOffboardMissionIndex(unsigned index);
 
-	int find_offboard_land_start();
+	int findOffboardLandStart();
 
 private:
 	/**
 	 * Update onboard mission topic
 	 */
-	void update_onboard_mission();
+	void updateOnboardMission();
 
 	/**
 	 * Update offboard mission topic
 	 */
-	void update_offboard_mission();
+	void updateOffboardMission();
 
 	/**
 	 * Move on to next mission item or switch to loiter
 	 */
-	void advance_mission();
+	void advanceMission();
 
 	/**
 	 * Set new mission items
 	 */
-	void set_mission_items();
+	void setMissionItems();
 
 	/**
 	 * Returns true if we need to do a takeoff at the current state
 	 */
-	bool do_need_vertical_takeoff();
+	bool doNeedVerticalTakeoff();
 
 	/**
 	 * Returns true if we need to move to waypoint location before starting descent
 	 */
-	bool do_need_move_to_land();
+	bool doNeedMoveToLand();
 
 	/**
 	 * Returns true if we need to move to waypoint location after vtol takeoff
 	 */
-	bool do_need_move_to_takeoff();
+	bool doNeedMoveToTakeoff();
 
 	/**
 	 * Copies position from setpoint if valid, otherwise copies current position
 	 */
-	void copy_positon_if_valid(struct mission_item_s *mission_item, struct position_setpoint_s *setpoint);
+	void copyPositonIfValid(struct mission_item_s *mission_item, struct position_setpoint_s *setpoint);
 
 	/**
 	 * Create mission item to align towards next waypoint
 	 */
-	void set_align_mission_item(struct mission_item_s *mission_item, struct mission_item_s *mission_item_next);
+	void setAlignMissionItem(struct mission_item_s *mission_item, struct mission_item_s *mission_item_next);
 
 	/**
 	 * Calculate takeoff height for mission item considering ground clearance
 	 */
-	float calculate_takeoff_altitude(struct mission_item_s *mission_item);
+	float calculateTakeoffAltitude(struct mission_item_s *mission_item);
 
 	/**
 	 * Updates the heading of the vehicle. Rotary wings only.
 	 */
-	void heading_sp_update();
+	void headingSpUpdate();
 
 	/**
 	 * Updates the altitude sp to follow a foh
 	 */
-	void altitude_sp_foh_update();
+	void altitudeSpFohUpdate();
 
 	/**
 	 * Resets the altitude sp foh logic
 	 */
-	void altitude_sp_foh_reset();
+	void altitudeSpFohReset();
 
 	/**
 	 * Update the cruising speed setpoint.
 	 */
-	void cruising_speed_sp_update();
+	void cruisingSpeedSpUpdate();
 
 	/**
 	 * Abort landing
 	 */
-	void do_abort_landing();
+	void doAbortLanding();
 
-	float get_absolute_altitude_for_item(struct mission_item_s &mission_item);
+	float getAbsoluteAltitudeForItem(struct mission_item_s &mission_item);
 
 	/**
 	 * Read the current and the next mission item. The next mission item read is the
@@ -179,7 +179,7 @@ private:
 	 *
 	 * @return true if current mission item available
 	 */
-	bool prepare_mission_items(bool onboard, struct mission_item_s *mission_item,
+	bool prepareMissionItems(bool onboard, struct mission_item_s *mission_item,
 				   struct mission_item_s *next_position_mission_item, bool *has_next_position_item);
 
 	/**
@@ -188,53 +188,53 @@ private:
 	 *
 	 * @return true if successful
 	 */
-	bool read_mission_item(bool onboard, int offset, struct mission_item_s *mission_item);
+	bool readMissionItem(bool onboard, int offset, struct mission_item_s *mission_item);
 
 	/**
 	 * Save current offboard mission state to dataman
 	 */
-	void save_offboard_mission_state();
+	void saveOffboardMissionState();
 
 	/**
 	 * Inform about a changed mission item after a DO_JUMP
 	 */
-	void report_do_jump_mission_changed(int index, int do_jumps_remaining);
+	void reportDoJumpMissionChanged(int index, int do_jumps_remaining);
 
 	/**
 	 * Set a mission item as reached
 	 */
-	void set_mission_item_reached();
+	void setMissionItemReached();
 
 	/**
 	 * Set the current offboard mission item
 	 */
-	void set_current_offboard_mission_item();
+	void setCurrentOffboardMissionItem();
 
 	/**
 	 * Set that the mission is finished if one exists or that none exists
 	 */
-	void set_mission_finished();
+	void setMissionFinished();
 
 	/**
 	 * Check whether a mission is ready to go
 	 */
-	void check_mission_valid(bool force);
+	void checkMissionValid(bool force);
 
 
 	/**
 	 * Reset offboard mission
 	 */
-	void reset_offboard_mission(struct mission_s &mission);
+	void resetOffboardMission(struct mission_s &mission);
 
 	/**
 	 * Returns true if we need to reset the mission
 	 */
-	bool need_to_reset_mission(bool active);
+	bool needToResetMission(bool active);
 
 	/**
 	 * Project current location with heading to far away location and fill setpoint.
 	 */
-	void generate_waypoint_from_heading(struct position_setpoint_s *setpoint, float yaw);
+	void generateWaypointFromHeading(struct position_setpoint_s *setpoint, float yaw);
 
 	control::BlockParamInt _param_onboard_enabled;
 	control::BlockParamFloat _param_takeoff_alt;

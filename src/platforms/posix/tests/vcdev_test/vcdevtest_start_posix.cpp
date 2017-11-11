@@ -58,7 +58,7 @@ int vcdev_test_main(int argc, char *argv[])
 
 	if (!strcmp(argv[1], "start")) {
 
-		if (VCDevExample::appState.isRunning()) {
+		if (VCDevExample::app_state.isRunning()) {
 			printf("already running\n");
 			/* this is not an error */
 			return 0;
@@ -75,12 +75,12 @@ int vcdev_test_main(int argc, char *argv[])
 	}
 
 	if (!strcmp(argv[1], "stop")) {
-		VCDevExample::appState.requestExit();
+		VCDevExample::app_state.requestExit();
 		return 0;
 	}
 
 	if (!strcmp(argv[1], "status")) {
-		if (VCDevExample::appState.isRunning()) {
+		if (VCDevExample::app_state.isRunning()) {
 			printf("is running\n");
 
 		} else {

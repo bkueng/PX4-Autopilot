@@ -202,7 +202,7 @@ ETSAirspeed::cycle()
 			/* schedule a fresh cycle call when we are ready to measure again */
 			work_queue(HPWORK,
 				   &_work,
-				   (worker_t)&Airspeed::cycle_trampoline,
+				   (worker_t)&Airspeed::cycleTrampoline,
 				   this,
 				   _measure_ticks - USEC2TICK(CONVERSION_INTERVAL));
 
@@ -225,7 +225,7 @@ ETSAirspeed::cycle()
 	/* schedule a fresh cycle call when the measurement is done */
 	work_queue(HPWORK,
 		   &_work,
-		   (worker_t)&Airspeed::cycle_trampoline,
+		   (worker_t)&Airspeed::cycleTrampoline,
 		   this,
 		   USEC2TICK(CONVERSION_INTERVAL));
 }
@@ -418,7 +418,7 @@ ets_airspeed_usage()
 {
 	PX4_INFO("usage: ets_airspeed command [options]");
 	PX4_INFO("options:");
-	PX4_INFO("\t-b --bus i2cbus (%d)", PX4_I2C_BUS_DEFAULT);
+	PX4_INFO("\t-b --bus i2cbus (%d)", p_x4_i2_c_bus_default);
 	PX4_INFO("command:");
 	PX4_INFO("\tstart|stop|reset|test|info");
 }
@@ -426,7 +426,7 @@ ets_airspeed_usage()
 int
 ets_airspeed_main(int argc, char *argv[])
 {
-	int i2c_bus = PX4_I2C_BUS_DEFAULT;
+	int i2c_bus = p_x4_i2_c_bus_default;
 
 	int i;
 

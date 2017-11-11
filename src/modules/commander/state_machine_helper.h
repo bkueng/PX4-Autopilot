@@ -121,7 +121,7 @@ transition_result_t arming_state_transition(struct vehicle_status_s *status,
 					    const struct safety_s *safety,
 					    arming_state_t new_arming_state,
 					    struct actuator_armed_s *armed,
-					    bool fRunPreArmChecks,
+					    bool f_run_pre_arm_checks,
 					    orb_advert_t *mavlink_log_pub,        ///< uORB handle for mavlink log
 					    status_flags_s *status_flags,
 					    float avionics_power_rail_voltage,

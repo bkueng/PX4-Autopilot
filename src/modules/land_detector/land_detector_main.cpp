@@ -57,12 +57,12 @@ namespace land_detector
 
 extern "C" __EXPORT int land_detector_main(int argc, char *argv[]);
 
-static char _currentMode[12];
+static char current_mode[12];
 
-int LandDetector::task_spawn(int argc, char *argv[])
+int LandDetector::taskSpawn(int argc, char *argv[])
 {
 	if (argc < 2) {
-		print_usage();
+		printUsage();
 		return -1;
 	}
 
@@ -81,7 +81,7 @@ int LandDetector::task_spawn(int argc, char *argv[])
 		obj = new RoverLandDetector();
 
 	} else {
-		print_usage("unknown mode");
+		printUsage("unknown mode");
 		return -1;
 	}
 
@@ -98,17 +98,17 @@ int LandDetector::task_spawn(int argc, char *argv[])
 	}
 
 	// Remember current active mode
-	strncpy(_currentMode, argv[1], sizeof(_currentMode) - 1);
-	_currentMode[sizeof(_currentMode) - 1] = '\0';
+	strncpy(current_mode, argv[1], sizeof(current_mode) - 1);
+	current_mode[sizeof(current_mode) - 1] = '\0';
 
-	wait_until_running(); // this will wait until _object is set from the cycle method
-	_task_id = task_id_is_work_queue;
+	waitUntilRunning(); // this will wait until _object is set from the cycle method
+	task_id = task_id_is_work_queue;
 	return 0;
 }
 
 int LandDetector::print_status()
 {
-	PX4_INFO("running (%s)", _currentMode);
+	PX4_INFO("running (%s)", current_mode);
 	LandDetector::LandDetectionState state = get_state();
 
 	switch (state) {
@@ -132,13 +132,13 @@ int LandDetector::print_status()
 	return 0;
 }
 
-int LandDetector::print_usage(const char *reason)
+int LandDetector::printUsage(const char *reason)
 {
 	if (reason != nullptr) {
 		PX4_ERR("%s\n", reason);
 	}
 
-	PRINT_MODULE_DESCRIPTION(
+	print_module_description(
 		R"DESCR_STR(
 ### Description
 Module to detect the freefall and landed state of the vehicle, and publishing the `vehicle_land_detected` topic.
@@ -164,9 +164,9 @@ position controller sets the thrust setpoint to zero.
 The module runs periodically on the HP work queue.
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("land_detector", "system");
+	print_module_usage_name("land_detector", "system");
 	PRINT_MODULE_USAGE_COMMAND_DESCR("start", "Start the background task");
-	PRINT_MODULE_USAGE_ARG("fixedwing|multicopter|vtol|ugv", "Select vehicle type", false);
+	print_module_usage_arg("fixedwing|multicopter|vtol|ugv", "Select vehicle type", false);
 	PRINT_MODULE_USAGE_DEFAULT_COMMANDS();
 	return 0;
 }

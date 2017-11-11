@@ -42,7 +42,7 @@
 #include <containers/List.hpp>
 #include <systemlib/err.h>
 
-namespace uORB
+namespace u_orb
 {
 
 /**

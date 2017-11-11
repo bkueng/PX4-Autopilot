@@ -54,7 +54,7 @@ public:
 	MavlinkRateLimiter();
 	MavlinkRateLimiter(unsigned int interval);
 	~MavlinkRateLimiter();
-	void set_interval(unsigned int interval);
+	void setInterval(unsigned int interval);
 	bool check(hrt_abstime t);
 };
 

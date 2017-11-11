@@ -135,28 +135,28 @@ int uuv_example_app_main(int argc, char *argv[])
 				// attitude_estimator_q application using the sensor data
 				math::Quaternion q_att(raw_ctrl_state.q[0], raw_ctrl_state.q[1], raw_ctrl_state.q[2],
 						       raw_ctrl_state.q[3]);     // control_state is frequently updated
-				math::Matrix<3, 3> R =
+				math::Matrix<3, 3> r =
 					q_att.to_dcm();     // create rotation matrix for the quaternion when post multiplying with a column vector
 
 				// orientation vectors
-				math::Vector<3> x_B(R(0, 0), R(1, 0), R(2, 0));     // orientation body x-axis (in world coordinates)
-				math::Vector<3> y_B(R(0, 1), R(1, 1), R(2, 1));     // orientation body y-axis (in world coordinates)
-				math::Vector<3> z_B(R(0, 2), R(1, 2), R(2, 2));     // orientation body z-axis (in world coordinates)
+				math::Vector<3> x_b(r(0, 0), r(1, 0), r(2, 0));     // orientation body x-axis (in world coordinates)
+				math::Vector<3> y_b(r(0, 1), r(1, 1), r(2, 1));     // orientation body y-axis (in world coordinates)
+				math::Vector<3> z_b(r(0, 2), r(1, 2), r(2, 2));     // orientation body z-axis (in world coordinates)
 
 				PX4_INFO("x_B:\t%8.4f\t%8.4f\t%8.4f",
-					 (double)x_B(0),
-					 (double)x_B(1),
-					 (double)x_B(2));
+					 (double)x_b(0),
+					 (double)x_b(1),
+					 (double)x_b(2));
 
 				PX4_INFO("y_B:\t%8.4f\t%8.4f\t%8.4f",
-					 (double)y_B(0),
-					 (double)y_B(1),
-					 (double)y_B(2));
+					 (double)y_b(0),
+					 (double)y_b(1),
+					 (double)y_b(2));
 
 				PX4_INFO("z_B:\t%8.4f\t%8.4f\t%8.4f \n",
-					 (double)z_B(0),
-					 (double)z_B(1),
-					 (double)z_B(2));
+					 (double)z_b(0),
+					 (double)z_b(1),
+					 (double)z_b(2));
 			}
 		}
 

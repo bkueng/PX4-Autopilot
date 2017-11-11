@@ -7,8 +7,8 @@ extern orb_advert_t mavlink_log_pub;
 // required number of samples for sensor
 // to initialize
 //
-static const uint32_t		REQ_LIDAR_INIT_COUNT = 10;
-static const uint32_t		LIDAR_TIMEOUT = 1000000;	// 1.0 s
+static const uint32_t		req_lidar_init_count = 10;
+static const uint32_t		lidar_timeout = 1000000;	// 1.0 s
 
 void BlockLocalPositionEstimator::lidarInit()
 {
@@ -20,7 +20,7 @@ void BlockLocalPositionEstimator::lidarInit()
 	}
 
 	// if finished
-	if (_lidarStats.getCount() > REQ_LIDAR_INIT_COUNT) {
+	if (_lidarStats.getCount() > req_lidar_init_count) {
 		mavlink_and_console_log_info(&mavlink_log_pub, "[lpe] lidar init: "
 					     "mean %d cm stddev %d cm",
 					     int(100 * _lidarStats.getMean()(0)),
@@ -66,41 +66,41 @@ void BlockLocalPositionEstimator::lidarCorrect()
 	if (lidarMeasure(y) != OK) { return; }
 
 	// measurement matrix
-	Matrix<float, n_y_lidar, n_x> C;
-	C.setZero();
+	Matrix<float, n_y_lidar, n_x> c;
+	c.setZero();
 	// y = -(z - tz)
 	// TODO could add trig to make this an EKF correction
-	C(Y_lidar_z, X_z) = -1;	// measured altitude, negative down dir.
-	C(Y_lidar_z, X_tz) = 1;	// measured altitude, negative down dir.
+	c(Y_lidar_z, X_z) = -1;	// measured altitude, negative down dir.
+	c(Y_lidar_z, X_tz) = 1;	// measured altitude, negative down dir.
 
 	// use parameter covariance unless sensor provides reasonable value
-	SquareMatrix<float, n_y_lidar> R;
-	R.setZero();
+	SquareMatrix<float, n_y_lidar> r;
+	r.setZero();
 	float cov = _sub_lidar->get().covariance;
 
 	if (cov < 1.0e-3f) {
-		R(0, 0) = _lidar_z_stddev.get() * _lidar_z_stddev.get();
+		r(0, 0) = _lidar_z_stddev.get() * _lidar_z_stddev.get();
 
 	} else {
-		R(0, 0) = cov;
+		r(0, 0) = cov;
 	}
 
 	// residual
-	Vector<float, n_y_lidar> r = y - C * _x;
+	Vector<float, n_y_lidar> r = y - c * _x;
 	// residual covariance
-	Matrix<float, n_y_lidar, n_y_lidar> S = C * _P * C.transpose() + R;
+	Matrix<float, n_y_lidar, n_y_lidar> s = c * _P * c.transpose() + r;
 
 	// publish innovations
 	_pub_innov.get().hagl_innov = r(0);
-	_pub_innov.get().hagl_innov_var = S(0, 0);
+	_pub_innov.get().hagl_innov_var = s(0, 0);
 
 	// residual covariance, (inverse)
-	Matrix<float, n_y_lidar, n_y_lidar> S_I = inv<float, n_y_lidar>(S);
+	Matrix<float, n_y_lidar, n_y_lidar> s_i = inv<float, n_y_lidar>(s);
 
 	// fault detection
-	float beta = (r.transpose() * (S_I * r))(0, 0);
+	float beta = (r.transpose() * (s_i * r))(0, 0);
 
-	if (beta > BETA_TABLE[n_y_lidar]) {
+	if (beta > beta_table[n_y_lidar]) {
 		if (!(_sensorFault & SENSOR_LIDAR)) {
 			mavlink_and_console_log_info(&mavlink_log_pub, "[lpe] lidar fault,  beta %5.2f", double(beta));
 			_sensorFault |= SENSOR_LIDAR;
@@ -115,15 +115,15 @@ void BlockLocalPositionEstimator::lidarCorrect()
 	}
 
 	// kalman filter correction always
-	Matrix<float, n_x, n_y_lidar> K = _P * C.transpose() * S_I;
-	Vector<float, n_x> dx = K * r;
+	Matrix<float, n_x, n_y_lidar> k = _P * c.transpose() * s_i;
+	Vector<float, n_x> dx = k * r;
 	_x += dx;
-	_P -= K * C * _P;
+	_P -= k * c * _P;
 }
 
 void BlockLocalPositionEstimator::lidarCheckTimeout()
 {
-	if (_timeStamp - _time_last_lidar > LIDAR_TIMEOUT) {
+	if (_timeStamp - _time_last_lidar > lidar_timeout) {
 		if (!(_sensorTimeout & SENSOR_LIDAR)) {
 			_sensorTimeout |= SENSOR_LIDAR;
 			_lidarStats.reset();

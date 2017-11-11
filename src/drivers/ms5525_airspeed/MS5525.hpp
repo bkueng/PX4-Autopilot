@@ -47,20 +47,20 @@
 #include <uORB/uORB.h>
 
 /* The MS5525DSO address is 111011Cx, where C is the complementary value of the pin CSB */
-static constexpr uint8_t I2C_ADDRESS_1_MS5525DSO = 0x76;
+static constexpr uint8_t i2_c_address_1_m_s5525_dso = 0x76;
 
-static constexpr const char PATH_MS5525[] = "/dev/ms5525";
+static constexpr const char path_m_s5525[] = "/dev/ms5525";
 
 /* Measurement rate is 100Hz */
-static constexpr unsigned MEAS_RATE = 100;
-static constexpr float MEAS_DRIVER_FILTER_FREQ = 1.2f;
-static constexpr uint64_t CONVERSION_INTERVAL = (1000000 / MEAS_RATE); /* microseconds */
+static constexpr unsigned meas_rate = 100;
+static constexpr float meas_driver_filter_freq = 1.2f;
+static constexpr uint64_t conversion_interval = (1000000 / meas_rate); /* microseconds */
 
 class MS5525 : public Airspeed
 {
 public:
-	MS5525(uint8_t bus, uint8_t address = I2C_ADDRESS_1_MS5525DSO, const char *path = PATH_MS5525) :
-		Airspeed(bus, address, CONVERSION_INTERVAL, path)
+	MS5525(uint8_t bus, uint8_t address = i2_c_address_1_m_s5525_dso, const char *path = path_m_s5525) :
+		Airspeed(bus, address, conversion_interval, path)
 	{
 	}
 
@@ -78,12 +78,12 @@ private:
 	int collect() override;
 
 	// temperature is read once every 10 cycles
-	math::LowPassFilter2p _filter{MEAS_RATE * 0.9, MEAS_DRIVER_FILTER_FREQ};
+	math::LowPassFilter2p _filter{meas_rate * 0.9, meas_driver_filter_freq};
 
-	static constexpr uint8_t CMD_RESET = 0x1E; // ADC reset command
-	static constexpr uint8_t CMD_ADC_READ = 0x00; // ADC read command
+	static constexpr uint8_t cmd_reset = 0x1E; // ADC reset command
+	static constexpr uint8_t cmd_adc_read = 0x00; // ADC read command
 
-	static constexpr uint8_t CMD_PROM_START = 0xA0; // Prom read command (first)
+	static constexpr uint8_t cmd_prom_start = 0xA0; // Prom read command (first)
 
 	// D1 - pressure convert commands
 	// Convert D1 (OSR=256)  0x40
@@ -91,7 +91,7 @@ private:
 	// Convert D1 (OSR=1024) 0x44
 	// Convert D1 (OSR=2048) 0x46
 	// Convert D1 (OSR=4096) 0x48
-	static constexpr uint8_t CMD_CONVERT_PRES = 0x44;
+	static constexpr uint8_t cmd_convert_pres = 0x44;
 
 	// D2 - temperature convert commands
 	// Convert D2 (OSR=256)  0x50
@@ -99,39 +99,39 @@ private:
 	// Convert D2 (OSR=1024) 0x54
 	// Convert D2 (OSR=2048) 0x56
 	// Convert D2 (OSR=4096) 0x58
-	static constexpr uint8_t CMD_CONVERT_TEMP = 0x54;
+	static constexpr uint8_t cmd_convert_temp = 0x54;
 
-	uint8_t _current_cmd{CMD_CONVERT_PRES};
+	uint8_t _current_cmd{cmd_convert_pres};
 
 	unsigned _pressure_count{0};
 
 	// Qx Coefficients Matrix by Pressure Range
 	//  5525DSO-pp001DS (Pmin = -1, Pmax = 1)
-	static constexpr uint8_t Q1 = 15;
-	static constexpr uint8_t Q2 = 17;
-	static constexpr uint8_t Q3 = 7;
-	static constexpr uint8_t Q4 = 5;
-	static constexpr uint8_t Q5 = 7;
-	static constexpr uint8_t Q6 = 21;
+	static constexpr uint8_t q1 = 15;
+	static constexpr uint8_t q2 = 17;
+	static constexpr uint8_t q3 = 7;
+	static constexpr uint8_t q4 = 5;
+	static constexpr uint8_t q5 = 7;
+	static constexpr uint8_t q6 = 21;
 
 	// calibration coefficients from prom
-	uint16_t C1{0};
-	uint16_t C2{0};
-	uint16_t C3{0};
-	uint16_t C4{0};
-	uint16_t C5{0};
-	uint16_t C6{0};
+	uint16_t _C1{0};
+	uint16_t _C2{0};
+	uint16_t _C3{0};
+	uint16_t _C4{0};
+	uint16_t _C5{0};
+	uint16_t _C6{0};
 
-	int64_t Tref{0};
+	int64_t _Tref{0};
 
 	// last readings for D1 (uncompensated pressure) and D2 (uncompensated temperature)
-	uint32_t D1{0};
-	uint32_t D2{0};
+	uint32_t _D1{0};
+	uint32_t _D2{0};
 
-	bool init_ms5525();
+	bool initMs5525();
 	bool _inited{false};
 
-	uint8_t prom_crc4(uint16_t n_prom[]) const;
+	uint8_t promCrc4(uint16_t n_prom[]) const;
 
 };
 

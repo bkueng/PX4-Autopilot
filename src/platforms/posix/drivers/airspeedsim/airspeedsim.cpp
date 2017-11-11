@@ -354,7 +354,7 @@ AirspeedSim::start()
 	_reports->flush();
 
 	/* schedule a cycle to start things */
-	work_queue(HPWORK, &_work, (worker_t)&AirspeedSim::cycle_trampoline, this, 1);
+	work_queue(HPWORK, &_work, (worker_t)&AirspeedSim::cycleTrampoline, this, 1);
 }
 
 void
@@ -364,7 +364,7 @@ AirspeedSim::stop()
 }
 
 void
-AirspeedSim::update_status()
+AirspeedSim::updateStatus()
 {
 	if (_sensor_ok != _last_published_sensor_ok) {
 		/* notify about state change */
@@ -372,7 +372,7 @@ AirspeedSim::update_status()
 		info.present = true;
 		info.enabled = true;
 		info.ok = _sensor_ok;
-		info.subsystem_type = subsystem_info_s::SUBSYSTEM_TYPE_DIFFPRESSURE;
+		info.subsystem_type = subsystem_info_s::subsystem_type_diffpressure;
 
 		if (_subsys_pub != nullptr) {
 			orb_publish(ORB_ID(subsystem_info), _subsys_pub, &info);
@@ -386,7 +386,7 @@ AirspeedSim::update_status()
 }
 
 void
-AirspeedSim::cycle_trampoline(void *arg)
+AirspeedSim::cycleTrampoline(void *arg)
 {
 	AirspeedSim *dev = (AirspeedSim *)arg;
 
@@ -398,7 +398,7 @@ AirspeedSim::cycle_trampoline(void *arg)
 }
 
 void
-AirspeedSim::print_info()
+AirspeedSim::printInfo()
 {
 	perf_print_counter(_sample_perf);
 	perf_print_counter(_comms_errors);
@@ -407,7 +407,7 @@ AirspeedSim::print_info()
 }
 
 void
-AirspeedSim::new_report(const differential_pressure_s &report)
+AirspeedSim::newReport(const differential_pressure_s &report)
 {
 	_reports->force(&report);
 }

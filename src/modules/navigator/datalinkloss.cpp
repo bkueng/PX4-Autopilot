@@ -107,7 +107,7 @@ DataLinkLoss::on_active()
 }
 
 void
-DataLinkLoss::set_dll_item()
+DataLinkLoss::setDllItem()
 {
 	struct position_setpoint_triplet_s *pos_sp_triplet = _navigator->get_position_setpoint_triplet();
 
@@ -175,7 +175,7 @@ DataLinkLoss::set_dll_item()
 }
 
 void
-DataLinkLoss::advance_dll()
+DataLinkLoss::advanceDll()
 {
 	switch (_dll_state) {
 	case DLL_STATE_NONE:

@@ -69,7 +69,7 @@ namespace load_mon
 extern "C" __EXPORT int load_mon_main(int argc, char *argv[]);
 
 // Run it at 1 Hz.
-const unsigned LOAD_MON_INTERVAL_US = 1000000;
+const unsigned load_mon_interval_us = 1000000;
 
 class LoadMon : public ModuleBase<LoadMon>
 {
@@ -77,32 +77,32 @@ public:
 	LoadMon();
 	~LoadMon();
 
-	static int task_spawn(int argc, char *argv[]);
+	static int taskSpawn(int argc, char *argv[]);
 
 	/** @see ModuleBase */
-	static int custom_command(int argc, char *argv[])
+	static int customCommand(int argc, char *argv[])
 	{
-		return print_usage("unknown command");
+		return printUsage("unknown command");
 	}
 
 	/** @see ModuleBase */
-	static int print_usage(const char *reason = nullptr);
+	static int printUsage(const char *reason = nullptr);
 
 	/** @see ModuleBase::print_status() */
 	int print_status() override;
 
 	/** Trampoline for the work queue. */
-	static void cycle_trampoline(void *arg);
+	static void cycleTrampoline(void *arg);
 
 private:
 	/** Do a compute and schedule the next cycle. */
-	void _cycle();
+	void cycle();
 
 	/** Do a calculation of the CPU load and publish it. */
-	void _compute();
+	void compute();
 
 	/** Calculate the memory usage */
-	float _ram_used();
+	float ramUsed();
 
 #ifdef __PX4_NUTTX
 	/* Calculate stack usage */
@@ -155,7 +155,7 @@ LoadMon::~LoadMon()
 	perf_free(_stack_perf);
 }
 
-int LoadMon::task_spawn(int argc, char *argv[])
+int LoadMon::taskSpawn(int argc, char *argv[])
 {
 	LoadMon *obj = new LoadMon();
 
@@ -165,40 +165,40 @@ int LoadMon::task_spawn(int argc, char *argv[])
 	}
 
 	/* Schedule a cycle to start things. */
-	int ret = work_queue(LPWORK, &obj->_work, (worker_t)&LoadMon::cycle_trampoline, obj, 0);
+	int ret = work_queue(LPWORK, &obj->_work, (worker_t)&LoadMon::cycleTrampoline, obj, 0);
 
 	if (ret < 0) {
 		delete obj;
 		return ret;
 	}
 
-	_object = obj;
-	_task_id = task_id_is_work_queue;
+	object = obj;
+	task_id = task_id_is_work_queue;
 	return 0;
 }
 
 void
-LoadMon::cycle_trampoline(void *arg)
+LoadMon::cycleTrampoline(void *arg)
 {
 	LoadMon *dev = reinterpret_cast<LoadMon *>(arg);
 
 	dev->_cycle();
 }
 
-void LoadMon::_cycle()
+void LoadMon::cycle()
 {
 	_compute();
 
 	if (!should_exit()) {
-		work_queue(LPWORK, &_work, (worker_t)&LoadMon::cycle_trampoline, this,
-			   USEC2TICK(LOAD_MON_INTERVAL_US));
+		work_queue(LPWORK, &_work, (worker_t)&LoadMon::cycleTrampoline, this,
+			   USEC2TICK(load_mon_interval_us));
 
 	} else {
-		exit_and_cleanup();
+		exitAndCleanup();
 	}
 }
 
-void LoadMon::_compute()
+void LoadMon::compute()
 {
 	if (_last_idle_time == 0) {
 		/* Just get the time in the first iteration */
@@ -211,7 +211,7 @@ void LoadMon::_compute()
 	_last_idle_time = system_load.tasks[0].total_runtime;
 
 	_cpuload.timestamp = hrt_absolute_time();
-	_cpuload.load = 1.0f - (float)interval_idletime / (float)LOAD_MON_INTERVAL_US;
+	_cpuload.load = 1.0f - (float)interval_idletime / (float)load_mon_interval_us;
 	_cpuload.ram_usage = _ram_used();
 
 #ifdef __PX4_NUTTX
@@ -230,7 +230,7 @@ void LoadMon::_compute()
 	}
 }
 
-float LoadMon::_ram_used()
+float LoadMon::ramUsed()
 {
 #ifdef __PX4_NUTTX
 	struct mallinfo mem;
@@ -326,13 +326,13 @@ int LoadMon::print_status()
 	return 0;
 }
 
-int LoadMon::print_usage(const char *reason)
+int LoadMon::printUsage(const char *reason)
 {
 	if (reason) {
 		PX4_ERR("%s\n", reason);
 	}
 
-	PRINT_MODULE_DESCRIPTION(
+	print_module_description(
 		R"DESCR_STR(
 ### Description
 Background process running periodically with 1 Hz on the LP work queue to calculate the CPU load and RAM
@@ -342,7 +342,7 @@ On NuttX it also checks the stack usage of each process and if it falls below 30
 which will also appear in the log file.
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("load_mon", "system");
+	print_module_usage_name("load_mon", "system");
 	PRINT_MODULE_USAGE_COMMAND_DESCR("start", "Start the background task");
 	PRINT_MODULE_USAGE_DEFAULT_COMMANDS();
 	return 0;

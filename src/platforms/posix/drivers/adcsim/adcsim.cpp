@@ -95,9 +95,9 @@ private:
 	 * @return			The sampled value, or 0xffff if
 	 *				sampling failed.
 	 */
-	uint16_t		_sample(unsigned channel);
+	uint16_t		sample(unsigned channel);
 
-	SyncObj 		m_lock;
+	SyncObj 		_m_lock;
 };
 
 ADCSIM::ADCSIM(uint32_t channels) :
@@ -170,7 +170,7 @@ ADCSIM::_measure()
 }
 
 uint16_t
-ADCSIM::_sample(unsigned channel)
+ADCSIM::sample(unsigned channel)
 {
 	perf_begin(_sample_perf);
 

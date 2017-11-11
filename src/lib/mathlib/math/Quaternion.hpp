@@ -113,15 +113,15 @@ public:
 	 */
 	const Quaternion derivative(const Vector<3> &w)
 	{
-		float dataQ[] = {
+		float data_q[] = {
 			data[0], -data[1], -data[2], -data[3],
 			data[1],  data[0], -data[3],  data[2],
 			data[2],  data[3],  data[0], -data[1],
 			data[3], -data[2],  data[1],  data[0]
 		};
-		Matrix<4, 4> Q(dataQ);
+		Matrix<4, 4> q(data_q);
 		Vector<4> v(0.0f, w.data[0], w.data[1], w.data[2]);
-		return Q * v * 0.5f;
+		return q * v * 0.5f;
 	}
 
 	/**
@@ -169,7 +169,7 @@ public:
 	/**
 	 * conjugation with inversed quaternion
 	 */
-	Vector<3> conjugate_inversed(const Vector<3> &v) const
+	Vector<3> conjugateInversed(const Vector<3> &v) const
 	{
 		float q0q0 = data[0] * data[0];
 		float q1q1 = data[1] * data[1];
@@ -202,28 +202,28 @@ public:
 	/**
 	 * set quaternion to rotation defined by euler angles
 	 */
-	void from_euler(float roll, float pitch, float yaw)
+	void fromEuler(float roll, float pitch, float yaw)
 	{
-		double cosPhi_2 = cos(double(roll) / 2.0);
-		double sinPhi_2 = sin(double(roll) / 2.0);
-		double cosTheta_2 = cos(double(pitch) / 2.0);
-		double sinTheta_2 = sin(double(pitch) / 2.0);
-		double cosPsi_2 = cos(double(yaw) / 2.0);
-		double sinPsi_2 = sin(double(yaw) / 2.0);
+		double cos_phi_2 = cos(double(roll) / 2.0);
+		double sin_phi_2 = sin(double(roll) / 2.0);
+		double cos_theta_2 = cos(double(pitch) / 2.0);
+		double sin_theta_2 = sin(double(pitch) / 2.0);
+		double cos_psi_2 = cos(double(yaw) / 2.0);
+		double sin_psi_2 = sin(double(yaw) / 2.0);
 
 		/* operations executed in double to avoid loss of precision through
 		 * consecutive multiplications. Result stored as float.
 		 */
-		data[0] = static_cast<float>(cosPhi_2 * cosTheta_2 * cosPsi_2 + sinPhi_2 * sinTheta_2 * sinPsi_2);
-		data[1] = static_cast<float>(sinPhi_2 * cosTheta_2 * cosPsi_2 - cosPhi_2 * sinTheta_2 * sinPsi_2);
-		data[2] = static_cast<float>(cosPhi_2 * sinTheta_2 * cosPsi_2 + sinPhi_2 * cosTheta_2 * sinPsi_2);
-		data[3] = static_cast<float>(cosPhi_2 * cosTheta_2 * sinPsi_2 - sinPhi_2 * sinTheta_2 * cosPsi_2);
+		data[0] = static_cast<float>(cos_phi_2 * cos_theta_2 * cos_psi_2 + sin_phi_2 * sin_theta_2 * sin_psi_2);
+		data[1] = static_cast<float>(sin_phi_2 * cos_theta_2 * cos_psi_2 - cos_phi_2 * sin_theta_2 * sin_psi_2);
+		data[2] = static_cast<float>(cos_phi_2 * sin_theta_2 * cos_psi_2 + sin_phi_2 * cos_theta_2 * sin_psi_2);
+		data[3] = static_cast<float>(cos_phi_2 * cos_theta_2 * sin_psi_2 - sin_phi_2 * sin_theta_2 * cos_psi_2);
 	}
 
 	/**
 	 * simplified version of the above method to create quaternion representing rotation only by yaw
 	 */
-	void from_yaw(float yaw)
+	void fromYaw(float yaw)
 	{
 		data[0] = cosf(yaw / 2.0f);
 		data[1] = 0.0f;
@@ -234,7 +234,7 @@ public:
 	/**
 	 * create Euler angles vector from the quaternion
 	 */
-	Vector<3> to_euler() const
+	Vector<3> toEuler() const
 	{
 		return Vector<3>(
 			       atan2f(2.0f * (data[0] * data[1] + data[2] * data[3]), 1.0f - 2.0f * (data[1] * data[1] + data[2] * data[2])),
@@ -247,7 +247,7 @@ public:
 	 * set quaternion to rotation by DCM
 	 * Reference: Shoemake, Quaternions, http://www.cs.ucr.edu/~vbz/resources/quatut.pdf
 	 */
-	void from_dcm(const Matrix<3, 3> &dcm)
+	void fromDcm(const Matrix<3, 3> &dcm)
 	{
 		float tr = dcm.data[0][0] + dcm.data[1][1] + dcm.data[2][2];
 
@@ -285,23 +285,23 @@ public:
 	/**
 	 * create rotation matrix for the quaternion
 	 */
-	Matrix<3, 3> to_dcm() const
+	Matrix<3, 3> toDcm() const
 	{
-		Matrix<3, 3> R;
-		float aSq = data[0] * data[0];
-		float bSq = data[1] * data[1];
-		float cSq = data[2] * data[2];
-		float dSq = data[3] * data[3];
-		R.data[0][0] = aSq + bSq - cSq - dSq;
-		R.data[0][1] = 2.0f * (data[1] * data[2] - data[0] * data[3]);
-		R.data[0][2] = 2.0f * (data[0] * data[2] + data[1] * data[3]);
-		R.data[1][0] = 2.0f * (data[1] * data[2] + data[0] * data[3]);
-		R.data[1][1] = aSq - bSq + cSq - dSq;
-		R.data[1][2] = 2.0f * (data[2] * data[3] - data[0] * data[1]);
-		R.data[2][0] = 2.0f * (data[1] * data[3] - data[0] * data[2]);
-		R.data[2][1] = 2.0f * (data[0] * data[1] + data[2] * data[3]);
-		R.data[2][2] = aSq - bSq - cSq + dSq;
-		return R;
+		Matrix<3, 3> r;
+		float a_sq = data[0] * data[0];
+		float b_sq = data[1] * data[1];
+		float c_sq = data[2] * data[2];
+		float d_sq = data[3] * data[3];
+		r.data[0][0] = a_sq + b_sq - c_sq - d_sq;
+		r.data[0][1] = 2.0f * (data[1] * data[2] - data[0] * data[3]);
+		r.data[0][2] = 2.0f * (data[0] * data[2] + data[1] * data[3]);
+		r.data[1][0] = 2.0f * (data[1] * data[2] + data[0] * data[3]);
+		r.data[1][1] = a_sq - b_sq + c_sq - d_sq;
+		r.data[1][2] = 2.0f * (data[2] * data[3] - data[0] * data[1]);
+		r.data[2][0] = 2.0f * (data[1] * data[3] - data[0] * data[2]);
+		r.data[2][1] = 2.0f * (data[0] * data[1] + data[2] * data[3]);
+		r.data[2][2] = a_sq - b_sq - c_sq + d_sq;
+		return r;
 	}
 };
 

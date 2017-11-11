@@ -36,14 +36,14 @@
 #include "work_lock.h"
 
 
-extern px4_sem_t _work_lock[];
+extern px4_sem_t work_lock[];
 
 void work_lock(int id)
 {
-	px4_sem_wait(&_work_lock[id]);
+	px4_sem_wait(&work_lock[id]);
 }
 
 void work_unlock(int id)
 {
-	px4_sem_post(&_work_lock[id]);
+	px4_sem_post(&work_lock[id]);
 }

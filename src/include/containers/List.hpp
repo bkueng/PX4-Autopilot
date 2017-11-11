@@ -72,10 +72,10 @@ public:
 	List(List &&) = delete;
 	List &operator=(List &&) = delete;
 
-	void add(T newNode)
+	void add(T new_node)
 	{
-		newNode->setSibling(getHead());
-		_head = newNode;
+		new_node->setSibling(getHead());
+		_head = new_node;
 	}
 
 	const T getHead() { return _head; }

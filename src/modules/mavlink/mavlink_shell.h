@@ -85,7 +85,7 @@ private:
 	int _shell_fds[2] = { -1, -1}; /** stdin & out used by the shell */
 	px4_task_t _task;
 
-	static int shell_start_thread(int argc, char *argv[]);
+	static int shellStartThread(int argc, char *argv[]);
 
 	/* do not allow copying this class */
 	MavlinkShell(const MavlinkShell &) = delete;

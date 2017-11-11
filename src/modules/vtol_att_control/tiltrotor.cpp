@@ -142,7 +142,7 @@ Tiltrotor::parameters_update()
 	_params_tiltrotor.diff_thrust_scale = math::constrain(v, -1.0f, 1.0f);
 }
 
-int Tiltrotor::get_motor_off_channels(int channels)
+int Tiltrotor::getMotorOffChannels(int channels)
 {
 	int channel_bitmap = 0;
 
@@ -395,7 +395,7 @@ void Tiltrotor::update_transition_state()
 		}
 
 		// set zero throttle for backtransition otherwise unwanted moments will be created
-		_actuators_mc_in->control[actuator_controls_s::INDEX_THROTTLE] = 0.0f;
+		_actuators_mc_in->control[actuator_controls_s::index_throttle] = 0.0f;
 
 		_mc_roll_weight = 0.0f;
 
@@ -420,35 +420,35 @@ void Tiltrotor::waiting_on_tecs()
 void Tiltrotor::fill_actuator_outputs()
 {
 	_actuators_out_0->timestamp = _actuators_mc_in->timestamp;
-	_actuators_out_0->control[actuator_controls_s::INDEX_ROLL] = _actuators_mc_in->control[actuator_controls_s::INDEX_ROLL]
+	_actuators_out_0->control[actuator_controls_s::index_roll] = _actuators_mc_in->control[actuator_controls_s::index_roll]
 			* _mc_roll_weight;
-	_actuators_out_0->control[actuator_controls_s::INDEX_PITCH] =
-		_actuators_mc_in->control[actuator_controls_s::INDEX_PITCH] * _mc_pitch_weight;
-	_actuators_out_0->control[actuator_controls_s::INDEX_YAW] = _actuators_mc_in->control[actuator_controls_s::INDEX_YAW] *
+	_actuators_out_0->control[actuator_controls_s::index_pitch] =
+		_actuators_mc_in->control[actuator_controls_s::index_pitch] * _mc_pitch_weight;
+	_actuators_out_0->control[actuator_controls_s::index_yaw] = _actuators_mc_in->control[actuator_controls_s::index_yaw] *
 			_mc_yaw_weight;
 
 	if (_vtol_schedule.flight_mode == FW_MODE) {
-		_actuators_out_0->control[actuator_controls_s::INDEX_THROTTLE] =
-			_actuators_fw_in->control[actuator_controls_s::INDEX_THROTTLE];
+		_actuators_out_0->control[actuator_controls_s::index_throttle] =
+			_actuators_fw_in->control[actuator_controls_s::index_throttle];
 
 		/* allow differential thrust if enabled */
 		if (_params_tiltrotor.diff_thrust == 1) {
-			_actuators_out_0->control[actuator_controls_s::INDEX_ROLL] =
-				_actuators_fw_in->control[actuator_controls_s::INDEX_YAW] * _params_tiltrotor.diff_thrust_scale;
+			_actuators_out_0->control[actuator_controls_s::index_roll] =
+				_actuators_fw_in->control[actuator_controls_s::index_yaw] * _params_tiltrotor.diff_thrust_scale;
 		}
 
 	} else {
-		_actuators_out_0->control[actuator_controls_s::INDEX_THROTTLE] =
-			_actuators_mc_in->control[actuator_controls_s::INDEX_THROTTLE];
+		_actuators_out_0->control[actuator_controls_s::index_throttle] =
+			_actuators_mc_in->control[actuator_controls_s::index_throttle];
 	}
 
 	_actuators_out_1->timestamp = _actuators_fw_in->timestamp;
-	_actuators_out_1->control[actuator_controls_s::INDEX_ROLL] =
-		-_actuators_fw_in->control[actuator_controls_s::INDEX_ROLL];
-	_actuators_out_1->control[actuator_controls_s::INDEX_PITCH] =
-		(_actuators_fw_in->control[actuator_controls_s::INDEX_PITCH] + _params->fw_pitch_trim);
-	_actuators_out_1->control[actuator_controls_s::INDEX_YAW] =
-		_actuators_fw_in->control[actuator_controls_s::INDEX_YAW];	// yaw
+	_actuators_out_1->control[actuator_controls_s::index_roll] =
+		-_actuators_fw_in->control[actuator_controls_s::index_roll];
+	_actuators_out_1->control[actuator_controls_s::index_pitch] =
+		(_actuators_fw_in->control[actuator_controls_s::index_pitch] + _params->fw_pitch_trim);
+	_actuators_out_1->control[actuator_controls_s::index_yaw] =
+		_actuators_fw_in->control[actuator_controls_s::index_yaw];	// yaw
 	_actuators_out_1->control[4] = _tilt_control;
 }
 
@@ -457,7 +457,7 @@ void Tiltrotor::fill_actuator_outputs()
 * Set state of rear motors.
 */
 
-void Tiltrotor::set_rear_motor_state(rear_motor_state state, int value)
+void Tiltrotor::setRearMotorState(rear_motor_state state, int value)
 {
 	int pwm_value = PWM_DEFAULT_MAX;
 
@@ -517,7 +517,7 @@ void Tiltrotor::set_rear_motor_state(rear_motor_state state, int value)
 	px4_close(fd);
 }
 
-bool Tiltrotor::is_motor_off_channel(const int channel)
+bool Tiltrotor::isMotorOffChannel(const int channel)
 {
 	return (_params_tiltrotor.fw_motors_off >> channel) & 1;
 }

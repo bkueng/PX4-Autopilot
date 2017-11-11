@@ -89,9 +89,9 @@ public:
 	 */
 	int		start();
 
-	static void	task_main_trampoline(int argc, char *argv[]);
+	static void	taskMainTrampoline(int argc, char *argv[]);
 
-	void		task_main();
+	void		taskMain();
 
 private:
 	const float _dt_min = 0.00001f;
@@ -150,16 +150,16 @@ private:
 	bool		_data_good = false;
 	bool		_ext_hdg_good = false;
 
-	void update_parameters(bool force);
+	void updateParameters(bool force);
 
-	int update_subscriptions();
+	int updateSubscriptions();
 
 	bool init();
 
 	bool update(float dt);
 
 	// Update magnetic declination (in rads) immediately changing yaw rotation
-	void update_mag_declination(float new_declination);
+	void updateMagDeclination(float new_declination);
 };
 
 
@@ -229,7 +229,7 @@ int AttitudeEstimatorQ::start()
 					   SCHED_DEFAULT,
 					   SCHED_PRIORITY_ESTIMATOR,
 					   2000,
-					   (px4_main_t)&AttitudeEstimatorQ::task_main_trampoline,
+					   (px4_main_t)&AttitudeEstimatorQ::taskMainTrampoline,
 					   nullptr);
 
 	if (_control_task < 0) {
@@ -240,18 +240,18 @@ int AttitudeEstimatorQ::start()
 	return OK;
 }
 
-void AttitudeEstimatorQ::task_main_trampoline(int argc, char *argv[])
+void AttitudeEstimatorQ::taskMainTrampoline(int argc, char *argv[])
 {
 	attitude_estimator_q::instance->task_main();
 }
 
-void AttitudeEstimatorQ::task_main()
+void AttitudeEstimatorQ::taskMain()
 {
 
 #ifdef __PX4_POSIX
-	perf_counter_t _perf_accel(perf_alloc_once(PC_ELAPSED, "sim_accel_delay"));
-	perf_counter_t _perf_mpu(perf_alloc_once(PC_ELAPSED, "sim_mpu_delay"));
-	perf_counter_t _perf_mag(perf_alloc_once(PC_ELAPSED, "sim_mag_delay"));
+	perf_counter_t perf_accel(perf_alloc_once(PC_ELAPSED, "sim_accel_delay"));
+	perf_counter_t perf_mpu(perf_alloc_once(PC_ELAPSED, "sim_mpu_delay"));
+	perf_counter_t perf_mag(perf_alloc_once(PC_ELAPSED, "sim_mag_delay"));
 #endif
 
 	_sensors_sub = orb_subscribe(ORB_ID(sensor_combined));
@@ -297,7 +297,7 @@ void AttitudeEstimatorQ::task_main()
 				_gyro(2) = sensors.gyro_rad[2];
 			}
 
-			if (sensors.accelerometer_timestamp_relative != sensor_combined_s::RELATIVE_TIMESTAMP_INVALID) {
+			if (sensors.accelerometer_timestamp_relative != sensor_combined_s::relative_timestamp_invalid) {
 				_accel(0) = sensors.accelerometer_m_s2[0];
 				_accel(1) = sensors.accelerometer_m_s2[1];
 				_accel(2) = sensors.accelerometer_m_s2[2];
@@ -308,7 +308,7 @@ void AttitudeEstimatorQ::task_main()
 				}
 			}
 
-			if (sensors.magnetometer_timestamp_relative != sensor_combined_s::RELATIVE_TIMESTAMP_INVALID) {
+			if (sensors.magnetometer_timestamp_relative != sensor_combined_s::relative_timestamp_invalid) {
 				_mag(0) = sensors.magnetometer_ga[0];
 				_mag(1) = sensors.magnetometer_ga[1];
 				_mag(2) = sensors.magnetometer_ga[2];
@@ -332,13 +332,13 @@ void AttitudeEstimatorQ::task_main()
 			if (orb_copy(ORB_ID(vehicle_vision_attitude), _vision_sub, &vision) == PX4_OK) {
 				math::Quaternion q(vision.q);
 
-				math::Matrix<3, 3> Rvis = q.to_dcm();
+				math::Matrix<3, 3> rvis = q.to_dcm();
 				math::Vector<3> v(1.0f, 0.0f, 0.4f);
 
 				// Rvis is Rwr (robot respect to world) while v is respect to world.
 				// Hence Rvis must be transposed having (Rwr)' * Vw
 				// Rrw * Vw = vn. This way we have consistency
-				_vision_hdg = Rvis.transposed() * v;
+				_vision_hdg = rvis.transposed() * v;
 
 				// vision external heading usage (ATT_EXT_HDG_M 1)
 				if (_ext_hdg_mode == 1) {
@@ -356,14 +356,14 @@ void AttitudeEstimatorQ::task_main()
 
 			if (orb_copy(ORB_ID(att_pos_mocap), _mocap_sub, &mocap) == PX4_OK) {
 				math::Quaternion q(mocap.q);
-				math::Matrix<3, 3> Rmoc = q.to_dcm();
+				math::Matrix<3, 3> rmoc = q.to_dcm();
 
 				math::Vector<3> v(1.0f, 0.0f, 0.4f);
 
 				// Rmoc is Rwr (robot respect to world) while v is respect to world.
 				// Hence Rmoc must be transposed having (Rwr)' * Vw
 				// Rrw * Vw = vn. This way we have consistency
-				_mocap_hdg = Rmoc.transposed() * v;
+				_mocap_hdg = rmoc.transposed() * v;
 
 				// Motion Capture external heading usage (ATT_EXT_HDG_M 2)
 				if (_ext_hdg_mode == 2) {
@@ -432,9 +432,9 @@ void AttitudeEstimatorQ::task_main()
 	}
 
 #ifdef __PX4_POSIX
-	perf_end(_perf_accel);
-	perf_end(_perf_mpu);
-	perf_end(_perf_mag);
+	perf_end(perf_accel);
+	perf_end(perf_mpu);
+	perf_end(perf_mag);
 #endif
 
 	orb_unsubscribe(_params_sub);
@@ -444,7 +444,7 @@ void AttitudeEstimatorQ::task_main()
 	orb_unsubscribe(_mocap_sub);
 }
 
-void AttitudeEstimatorQ::update_parameters(bool force)
+void AttitudeEstimatorQ::updateParameters(bool force)
 {
 	bool updated = force;
 
@@ -493,13 +493,13 @@ bool AttitudeEstimatorQ::init()
 	Vector<3> j = k % i;
 
 	// Fill rotation matrix
-	Matrix<3, 3> R;
-	R.set_row(0, i);
-	R.set_row(1, j);
-	R.set_row(2, k);
+	Matrix<3, 3> r;
+	r.set_row(0, i);
+	r.set_row(1, j);
+	r.set_row(2, k);
 
 	// Convert to quaternion
-	_q.from_dcm(R);
+	_q.from_dcm(r);
 
 	// Compensate for magnetic declination
 	Quaternion decl_rotation;
@@ -535,14 +535,14 @@ bool AttitudeEstimatorQ::update(float dt)
 
 	// Angular rate of correction
 	Vector<3> corr;
-	float spinRate = _gyro.length();
+	float spin_rate = _gyro.length();
 
 	if (_ext_hdg_mode > 0 && _ext_hdg_good) {
 		if (_ext_hdg_mode == 1) {
 			// Vision heading correction
 			// Project heading to global frame and extract XY component
 			Vector<3> vision_hdg_earth = _q.conjugate(_vision_hdg);
-			float vision_hdg_err = _wrap_pi(atan2f(vision_hdg_earth(1), vision_hdg_earth(0)));
+			float vision_hdg_err = wrap_pi(atan2f(vision_hdg_earth(1), vision_hdg_earth(0)));
 			// Project correction to body frame
 			corr += _q.conjugate_inversed(Vector<3>(0.0f, 0.0f, -vision_hdg_err)) * _w_ext_hdg;
 		}
@@ -551,7 +551,7 @@ bool AttitudeEstimatorQ::update(float dt)
 			// Mocap heading correction
 			// Project heading to global frame and extract XY component
 			Vector<3> mocap_hdg_earth = _q.conjugate(_mocap_hdg);
-			float mocap_hdg_err = _wrap_pi(atan2f(mocap_hdg_earth(1), mocap_hdg_earth(0)));
+			float mocap_hdg_err = wrap_pi(atan2f(mocap_hdg_earth(1), mocap_hdg_earth(0)));
 			// Project correction to body frame
 			corr += _q.conjugate_inversed(Vector<3>(0.0f, 0.0f, -mocap_hdg_err)) * _w_ext_hdg;
 		}
@@ -561,16 +561,16 @@ bool AttitudeEstimatorQ::update(float dt)
 		// Magnetometer correction
 		// Project mag field vector to global frame and extract XY component
 		Vector<3> mag_earth = _q.conjugate(_mag);
-		float mag_err = _wrap_pi(atan2f(mag_earth(1), mag_earth(0)) - _mag_decl);
-		float gainMult = 1.0f;
+		float mag_err = wrap_pi(atan2f(mag_earth(1), mag_earth(0)) - _mag_decl);
+		float gain_mult = 1.0f;
 		const float fifty_dps = 0.873f;
 
-		if (spinRate > fifty_dps) {
-			gainMult = math::min(spinRate / fifty_dps, 10.0f);
+		if (spin_rate > fifty_dps) {
+			gain_mult = math::min(spin_rate / fifty_dps, 10.0f);
 		}
 
 		// Project magnetometer correction to body frame
-		corr += _q.conjugate_inversed(Vector<3>(0.0f, 0.0f, -mag_err)) * _w_mag * gainMult;
+		corr += _q.conjugate_inversed(Vector<3>(0.0f, 0.0f, -mag_err)) * _w_mag * gain_mult;
 	}
 
 	_q.normalize();
@@ -589,7 +589,7 @@ bool AttitudeEstimatorQ::update(float dt)
 	corr += (k % (_accel - _pos_acc).normalized()) * _w_accel;
 
 	// Gyro bias estimation
-	if (spinRate < 0.175f) {
+	if (spin_rate < 0.175f) {
 		_gyro_bias += corr * (_w_gyro_bias * dt);
 
 		for (int i = 0; i < 3; i++) {
@@ -621,7 +621,7 @@ bool AttitudeEstimatorQ::update(float dt)
 	return true;
 }
 
-void AttitudeEstimatorQ::update_mag_declination(float new_declination)
+void AttitudeEstimatorQ::updateMagDeclination(float new_declination)
 {
 	// Apply initial declination or trivial rotations without changing estimation
 	if (!_inited || fabsf(new_declination - _mag_decl) < 0.0001f) {

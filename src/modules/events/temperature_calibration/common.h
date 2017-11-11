@@ -78,7 +78,7 @@ public:
 	virtual int finish() = 0;
 
 	/** reset all driver-level calibration parameters */
-	virtual void reset_calibration() = 0;
+	virtual void resetCalibration() = 0;
 
 protected:
 
@@ -89,7 +89,7 @@ protected:
 	 * @param value
 	 * @return 0 on success
 	 */
-	inline int set_parameter(const char *format_str, unsigned index, const void *value);
+	inline int setParameter(const char *format_str, unsigned index, const void *value);
 
 	float _min_temperature_rise; ///< minimum difference in temperature before the process finishes
 	float _min_start_temperature; ///< minimum temperature before the process starts
@@ -98,7 +98,7 @@ protected:
 
 
 
-int TemperatureCalibrationBase::set_parameter(const char *format_str, unsigned index, const void *value)
+int TemperatureCalibrationBase::setParameter(const char *format_str, unsigned index, const void *value)
 {
 	char param_str[30];
 	(void)sprintf(param_str, format_str, index);
@@ -165,9 +165,9 @@ public:
 
 protected:
 
-	struct PerSensorData {
+	struct per_sensor_data {
 		float sensor_sample_filt[Dim + 1]; ///< last value is the temperature
-		polyfitter < PolyfitOrder + 1 > P[Dim];
+		Polyfitter < PolyfitOrder + 1 > P[Dim];
 		unsigned hot_soak_sat = 0; /**< counter that increments every time the sensor temperature reduces
 									from the last reading */
 		uint32_t device_id = 0; ///< ID for the sensor being calibrated
@@ -181,13 +181,13 @@ protected:
 							calibration temperature range (deg C) */
 	};
 
-	PerSensorData _data[SENSOR_COUNT_MAX];
+	per_sensor_data _data[SENSOR_COUNT_MAX];
 
 	/**
 	 * update a single sensor instance
 	 * @return 0 when done, 1 not finished yet, <0 for an error
 	 */
-	virtual int update_sensor_instance(PerSensorData &data, int sensor_sub) = 0;
+	virtual int updateSensorInstance(per_sensor_data &data, int sensor_sub) = 0;
 
 	unsigned _num_sensor_instances{0};
 	int _sensor_subs[SENSOR_COUNT_MAX];

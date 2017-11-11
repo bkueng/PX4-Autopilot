@@ -126,17 +126,17 @@ LED::devIOCTL(unsigned long cmd, unsigned long arg)
 
 namespace
 {
-LED	*gLED;
+LED	*g_led;
 }
 
 void
 drv_led_start(void)
 {
-	if (gLED == nullptr) {
-		gLED = new LED;
+	if (g_led == nullptr) {
+		g_led = new LED;
 
-		if (gLED != nullptr) {
-			gLED->init();
+		if (g_led != nullptr) {
+			g_led->init();
 		}
 	}
 }

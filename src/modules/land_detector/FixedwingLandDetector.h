@@ -70,7 +70,7 @@ protected:
 private:
 
 	/** Time in us that landing conditions have to hold before triggering a land. */
-	static constexpr uint64_t LAND_DETECTOR_TRIGGER_TIME_US = 1500000;
+	static constexpr uint64_t land_detector_trigger_time_us = 1500000;
 
 	struct {
 		param_t maxVelocity;
