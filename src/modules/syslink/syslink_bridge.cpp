@@ -111,6 +111,7 @@ ssize_t
 SyslinkBridge::write(struct file *filp, const char *buffer, size_t buflen)
 {
 	crtp_message_t msg;
+	msg.header = 0;
 
 	// Queue and send next time we get a RAW radio packet
 	int remaining = buflen;
