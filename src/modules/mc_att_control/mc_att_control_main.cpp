@@ -971,6 +971,19 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	/* calculate angular rates setpoint */
 	eq = eq.emult(attitude_gain);
 	_rates_sp = math::Vector<3>(eq.data());
+	if (isnan(_rates_sp(0))) {
+		PX4_WARN("nan setpoint (q_mix=%.3f, %.3f, %.3f, %.3f, qd_red=%.3f, %.3f, %.3f, %.3f)",
+				(double)q_mix(0), (double)q_mix(1), (double)q_mix(2), (double)q_mix(3),
+				(double)qd_red(0), (double)qd_red(1), (double)qd_red(2), (double)qd_red(3)
+				);
+		PX4_WARN(" (q=%.3f, %.3f, %.3f, %.3f, qd=%.3f, %.3f, %.3f, %.3f)",
+				(double)q(0), (double)q(1), (double)q(2), (double)q(3),
+				(double)qd(0), (double)qd(1), (double)qd(2), (double)qd(3)
+				);
+		PX4_WARN(" (_v_att_sp.q_d=%.3f, %.3f, %.3f, %.3f)",
+				(double)_v_att_sp.q_d[0], (double)_v_att_sp.q_d[1], (double)_v_att_sp.q_d[2], (double)_v_att_sp.q_d[3]
+				);
+	}
 
 	/* Feed forward the yaw setpoint rate. We need to transform the yaw from world into body frame.
 	 * The following is a simplification of:
@@ -1425,7 +1438,7 @@ MulticopterAttitudeControl::start()
 	_control_task = px4_task_spawn_cmd("mc_att_control",
 					   SCHED_DEFAULT,
 					   SCHED_PRIORITY_ATTITUDE_CONTROL,
-					   1700,
+					   2000,
 					   (px4_main_t)&MulticopterAttitudeControl::task_main_trampoline,
 					   nullptr);
 
