@@ -161,20 +161,25 @@ Syslink::set_address(uint64_t addr)
 int
 Syslink::send_queued_raw_message()
 {
-	if (_writebuffer.empty()) {
-		return 0;
+	int ret = 0;
+	const int max_num_send = 5;
+	int loop_counter = 0;
+
+	while (!_writebuffer.empty() && loop_counter++ < max_num_send) {
+
+		_lasttxtime = hrt_absolute_time();
+
+		syslink_message_t msg;
+		msg.type = SYSLINK_RADIO_RAW;
+
+		_count_out++;
+
+		_writebuffer.get(&msg.length, sizeof(crtp_message_t));
+
+		ret = send_message(&msg);
 	}
 
-	_lasttxtime = hrt_absolute_time();
-
-	syslink_message_t msg;
-	msg.type = SYSLINK_RADIO_RAW;
-
-	_count_out++;
-
-	_writebuffer.get(&msg.length, sizeof(crtp_message_t));
-
-	return send_message(&msg);
+	return ret;
 }
 
 
