@@ -959,6 +959,8 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	/* mix full and reduced desired attitude */
 	Quatf q_mix = qd_red.inversed() * qd;
 	q_mix *= math::signNoZero(q_mix(0));
+	q_mix(0) = math::constrain(q_mix(0), -1.f, 1.f); /* avoid domain errors for asinf & acosf */
+	q_mix(3) = math::constrain(q_mix(3), -1.f, 1.f);
 	qd = qd_red * Quatf(cosf(yaw_w * acosf(q_mix(0))), 0, 0, sinf(yaw_w * asinf(q_mix(3))));
 
 	/* quaternion attitude control law, qe is rotation from q to qd */
@@ -983,6 +985,10 @@ MulticopterAttitudeControl::control_attitude(float dt)
 		PX4_WARN(" (_v_att_sp.q_d=%.3f, %.3f, %.3f, %.3f)",
 				(double)_v_att_sp.q_d[0], (double)_v_att_sp.q_d[1], (double)_v_att_sp.q_d[2], (double)_v_att_sp.q_d[3]
 				);
+		PX4_WARN(" %.3f, %.3f, %.3f, %.3f",
+				(double)cosf(yaw_w * acosf(q_mix(0))),
+				(double)acosf(q_mix(0)), (double)sinf(yaw_w * asinf(q_mix(3))),
+				(double)asinf(q_mix(3)));
 	}
 
 	/* Feed forward the yaw setpoint rate. We need to transform the yaw from world into body frame.
