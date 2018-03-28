@@ -663,7 +663,6 @@ function(px4_add_common_flags)
 
 	set(warnings
 		-Wall
-		-Werror
 		-Wextra
 		-Wno-sign-compare
 		-Wshadow

@@ -33,12 +33,12 @@
 #
 ############################################################################
 
-PX4_ARCHWARNINGS = -Wall \
+PX4_ARCHWARNINGS =  \
                    -Wextra \
-                   -Werror \
                    -Wdouble-promotion \
                    -Wframe-larger-than=1024 \
                    -Wlogical-op \
+                   -Wno-uninitialized \
                    -Wpacked \
                    -Wpointer-arith \
                    -Wshadow \

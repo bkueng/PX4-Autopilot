@@ -77,6 +77,11 @@ void __aeabi_memmove(void *dest, const void *src, size_t n)
 	memmove(dest, src, n);
 }
 
+void __aeabi_memmove4(void *dest, const void *src, size_t n)
+{
+	memmove(dest, src, n);
+}
+
 void __aeabi_memset(void *s, size_t n, int c)
 {
 	memset(s, c, n);

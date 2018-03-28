@@ -1401,7 +1401,7 @@ PX4FMU::cycle()
 	constexpr hrt_abstime rc_scan_max = 300 * 1000;
 
 	bool sbus_failsafe, sbus_frame_drop;
-	unsigned frame_drops;
+	unsigned frame_drops=0;
 	bool dsm_11_bit;
 
 
