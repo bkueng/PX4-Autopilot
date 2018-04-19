@@ -621,6 +621,7 @@ MulticopterAttitudeControl::run()
 	hrt_abstime last_run = task_start;
 	float dt_accumulator = 0.f;
 	int loop_counter = 0;
+	_actuators_id = ORB_ID(actuator_controls_0);
 
 	while (!should_exit()) {
 
@@ -633,6 +634,30 @@ MulticopterAttitudeControl::run()
 		if (pret == 0) {
 			continue;
 		}
+
+		orb_copy(ORB_ID(sensor_gyro), _sensor_gyro_sub[_selected_gyro], &_sensor_gyro);
+		static float val=0.f;
+		val += 0.1f;
+		if (val > 1.f) val = 0.f;
+		/* publish actuator controls */
+		_actuators.control[0] = 0.f;
+		_actuators.control[1] = 0.f;
+		_actuators.control[2] = 0.f;
+		_actuators.control[3] = val;
+		_actuators.control[7] = _v_att_sp.landing_gear;
+		_actuators.timestamp = hrt_absolute_time();
+		_actuators.timestamp_sample = _sensor_gyro.timestamp;
+
+		if (_actuators_0_pub != nullptr) {
+
+			orb_publish(_actuators_id, _actuators_0_pub, &_actuators);
+			perf_end(_controller_latency_perf);
+
+		} else if (_actuators_id) {
+			_actuators_0_pub = orb_advertise(_actuators_id, &_actuators);
+		}
+
+		continue;
 
 		/* this is undesirable but not much we can do - might want to flag unhappy status */
 		if (pret < 0) {
