@@ -1019,6 +1019,11 @@ void Ekf2::run()
 
 			matrix::Quatf q;
 			_ekf.copy_quaternion(q.data());
+//			matrix::Eulerf q_euler = q;
+//			static float yaw_random = 0.f;
+//			yaw_random += 1.f / 180.f * M_PI_F;
+//			q_euler(2) = yaw_random;
+//			q = q_euler;
 
 			// In-run bias estimates
 			float gyro_bias[3];

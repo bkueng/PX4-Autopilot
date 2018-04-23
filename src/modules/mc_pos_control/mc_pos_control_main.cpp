@@ -2831,6 +2831,19 @@ MulticopterPositionControl::generate_attitude_setpoint()
 		_att_sp.pitch_body = euler_sp(1);
 		_att_sp.yaw_body += euler_sp(2);
 
+
+		/*
+		 * If MC_YAW_P is set to 0, absolute yaw control is disabled and only the
+		 * feedforward term is used (for setups that do not have reliable yaw
+		 * estimation, such as racers).
+		 */
+		if (_mc_att_yaw_p.get() < FLT_EPSILON) {
+			_man_yaw_offset = 0.f;
+			_att_sp.yaw_body = _yaw;
+			// TODO: in flight task as well
+			// - add MC_YAW_P =0 param doc
+		}
+
 		/* only if we're a VTOL modify roll/pitch */
 		if (_vehicle_status.is_vtol) {
 			// construct attitude setpoint rotation matrix. modify the setpoints for roll
