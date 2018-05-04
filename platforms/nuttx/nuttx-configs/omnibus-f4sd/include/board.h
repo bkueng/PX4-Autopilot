@@ -262,13 +262,22 @@
  *
  * PC10 (TX) and PC11 (RX) are broken out on J4
  *
- * Alternatively, this port could be maped to SPI3
+ * However, this port is shared with SPI3 which contains the BMP280 and MAX7456
  *
  * The Silkscreen pin labeled SCL is TX
  *                           MISO is RX
  */
-#define GPIO_USART3_RX	GPIO_USART3_RX_2
-#define GPIO_USART3_TX	GPIO_USART3_TX_2
+//#define GPIO_USART3_RX	GPIO_USART3_RX_2
+//#define GPIO_USART3_TX	GPIO_USART3_TX_2
+
+/* UART4:
+ *
+ * PA0 (TX) -- Labeled RSSI on the silkscreen is only broken out on a test pad
+ *             on the pro version. It's on a 2.54mm header on other versions
+ * PA1 (RX) -- Motor 5 out
+ */
+#define GPIO_UART4_RX	GPIO_UART4_RX_1
+#define GPIO_UART4_TX	GPIO_UART4_TX_1
 
 /* UART6:
  *

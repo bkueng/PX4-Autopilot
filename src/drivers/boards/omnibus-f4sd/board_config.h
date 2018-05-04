@@ -107,8 +107,8 @@
 #define GPIO_GPIO1_INPUT             _MK_GPIO_INPUT(GPIO_TIM3_CH4IN)
 #define GPIO_GPIO2_INPUT             _MK_GPIO_INPUT(GPIO_TIM2_CH4IN)
 #define GPIO_GPIO3_INPUT             _MK_GPIO_INPUT(GPIO_TIM2_CH3IN)
-#define GPIO_GPIO4_INPUT             _MK_GPIO_INPUT(GPIO_TIM5_CH2IN)
-#define GPIO_GPIO5_INPUT             _MK_GPIO_INPUT(GPIO_TIM1_CH1IN)
+//#define GPIO_GPIO4_INPUT             _MK_GPIO_INPUT(GPIO_TIM5_CH2IN)
+//#define GPIO_GPIO5_INPUT             _MK_GPIO_INPUT(GPIO_TIM1_CH1IN)
 
 #define _MK_GPIO_OUTPUT(def) (((def) & (GPIO_PORT_MASK | GPIO_PIN_MASK)) | (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR))
 
@@ -116,8 +116,8 @@
 #define GPIO_GPIO1_OUTPUT            _MK_GPIO_OUTPUT(GPIO_TIM3_CH4OUT)
 #define GPIO_GPIO2_OUTPUT            _MK_GPIO_OUTPUT(GPIO_TIM2_CH4OUT)
 #define GPIO_GPIO3_OUTPUT            _MK_GPIO_OUTPUT(GPIO_TIM2_CH3OUT)
-#define GPIO_GPIO4_OUTPUT            _MK_GPIO_OUTPUT(GPIO_TIM5_CH2OUT)
-#define GPIO_GPIO5_OUTPUT            _MK_GPIO_OUTPUT(GPIO_TIM1_CH1OUT)
+//#define GPIO_GPIO4_OUTPUT            _MK_GPIO_OUTPUT(GPIO_TIM5_CH2OUT)
+//#define GPIO_GPIO5_OUTPUT            _MK_GPIO_OUTPUT(GPIO_TIM1_CH1OUT)
 
 /*----------------------------------------------------------*/
 /*         OMNIBUSF4SD SPI chip selects and DRDY            */
@@ -221,27 +221,23 @@
  *  M2 : PB1 : TIM3_CH4
  *  M3 : PA3 : TIM2_CH3
  *  M4 : PA2 : TIM2_CH4
- *  M5 : PA1 : TIM5_CH2
- *  M6 : PA8 : TIM1_CH1
+ *  M5 : PA1 : TIM5_CH2 // UART4_RX
+ *  M6 : PA8 : TIM1_CH1 // USART2_TX
  */
 
 #define GPIO_TIM3_CH3OUT        GPIO_TIM3_CH3OUT_1 //PB0 S1_OUT D1_ST7
 #define GPIO_TIM3_CH4OUT        GPIO_TIM3_CH4OUT_1 //PB1 S2_OUT D1_ST2
 #define GPIO_TIM2_CH4OUT        GPIO_TIM2_CH4OUT_1 //PA3 S3_OUT D1_ST6
 #define GPIO_TIM2_CH3OUT        GPIO_TIM2_CH3OUT_1 //PA2 S4_OUT D1_ST1
-#define GPIO_TIM5_CH2OUT        GPIO_TIM5_CH2OUT_1 //PA1 S5_OUT
-#define GPIO_TIM1_CH1OUT        GPIO_TIM1_CH1OUT_1 //PA8 S6_OUT
 
-#define DIRECT_PWM_OUTPUT_CHANNELS      6
+#define DIRECT_PWM_OUTPUT_CHANNELS      4
 
 #define GPIO_TIM3_CH3IN         GPIO_TIM3_CH3IN_1
 #define GPIO_TIM3_CH4IN         GPIO_TIM3_CH4IN_1
 #define GPIO_TIM2_CH4IN         GPIO_TIM2_CH4IN_1
 #define GPIO_TIM2_CH3IN         GPIO_TIM2_CH3IN_1
-#define GPIO_TIM5_CH2IN         GPIO_TIM5_CH2IN_1
-#define GPIO_TIM1_CH1IN         GPIO_TIM1_CH1IN_1
 
-#define DIRECT_INPUT_TIMER_CHANNELS  6
+#define DIRECT_INPUT_TIMER_CHANNELS  4
 
 // Has pwm outputs
 #define BOARD_HAS_PWM    DIRECT_PWM_OUTPUT_CHANNELS
@@ -276,9 +272,7 @@
 		{GPIO_GPIO0_INPUT,       GPIO_GPIO0_OUTPUT,       0}, \
 		{GPIO_GPIO1_INPUT,       GPIO_GPIO1_OUTPUT,       0}, \
 		{GPIO_GPIO2_INPUT,       GPIO_GPIO2_OUTPUT,       0}, \
-		{GPIO_GPIO3_INPUT,       GPIO_GPIO3_OUTPUT,       0}, \
-		{GPIO_GPIO4_INPUT,       GPIO_GPIO4_OUTPUT,       0}, \
-		{GPIO_GPIO5_INPUT,       GPIO_GPIO5_OUTPUT,       0}, }
+		{GPIO_GPIO3_INPUT,       GPIO_GPIO3_OUTPUT,       0}, }
 
 /*
  * PX4FMUv4 GPIO numbers.
@@ -289,8 +283,6 @@
 #define GPIO_SERVO_2                 (1<<1)  /**< servo 2 output */
 #define GPIO_SERVO_3                 (1<<2)  /**< servo 3 output */
 #define GPIO_SERVO_4                 (1<<3)  /**< servo 4 output */
-#define GPIO_SERVO_5                 (1<<4)  /**< servo 5 output */
-#define GPIO_SERVO_6                 (1<<5)  /**< servo 6 output */
 
 /* This board provides a DMA pool and APIs */
 #define BOARD_DMA_ALLOC_POOL_SIZE    5120

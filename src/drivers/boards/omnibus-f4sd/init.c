@@ -152,8 +152,8 @@ __EXPORT void board_on_reset(int status)
 	stm32_configgpio(GPIO_GPIO1_OUTPUT);
 	stm32_configgpio(GPIO_GPIO2_OUTPUT);
 	stm32_configgpio(GPIO_GPIO3_OUTPUT);
-	stm32_configgpio(GPIO_GPIO4_OUTPUT);
-	stm32_configgpio(GPIO_GPIO5_OUTPUT);
+	//stm32_configgpio(GPIO_GPIO4_OUTPUT);
+	//stm32_configgpio(GPIO_GPIO5_OUTPUT);
 
 	/* On resets invoked from system (not boot) insure we establish a low
 	 * output state (discharge the pins) on PWM pins before they become inputs.
