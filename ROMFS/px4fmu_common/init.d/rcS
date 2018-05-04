@@ -583,7 +583,7 @@ then
 			fi
 		fi
 
-		if ver hwcmp CRAZYFLIE
+		if ver hwcmp CRAZYFLIE OMNIBUS_F4SD
 		then
 			# Avoid using either of the two available serials
 			set MAVLINK_F none
