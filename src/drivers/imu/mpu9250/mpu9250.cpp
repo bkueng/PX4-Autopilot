@@ -1283,6 +1283,7 @@ bool MPU9250::check_duplicate(uint8_t *accel_data)
 
 	return _got_duplicate;
 }
+extern bool _high_gyro_rate;
 
 void
 MPU9250::measure()
@@ -1500,7 +1501,11 @@ MPU9250::measure()
 		orb_publish(ORB_ID(sensor_accel), _accel_topic, &arb);
 	}
 
-	if (gyro_notify && !(_pub_blocked)) {
+	if ((gyro_notify || _high_gyro_rate) && !_pub_blocked) {
+		if (!gyro_notify) {
+			grb.integral_dt = 0;
+		}
+
 		/* publish it */
 		orb_publish(ORB_ID(sensor_gyro), _gyro->_gyro_topic, &grb);
 	}

@@ -676,8 +676,10 @@ Sensors::run()
 		adc_poll();
 
 		diff_pres_poll(airdata);
+		static uint64_t last_time = 0;
 
-		if (raw.timestamp > 0) {
+		if (raw.timestamp > 0 && last_time != raw.timestamp) {
+			last_time = raw.timestamp;
 
 			_voted_sensors_update.set_relative_timestamps(raw);
 

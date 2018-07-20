@@ -1816,6 +1816,8 @@ MPU6000::check_registers(void)
 	_checked_next = (_checked_next + 1) % MPU6000_NUM_CHECKED_REGISTERS;
 }
 
+extern bool _high_gyro_rate;
+
 int
 MPU6000::measure()
 {
@@ -2066,7 +2068,11 @@ MPU6000::measure()
 		orb_publish(ORB_ID(sensor_accel), _accel_topic, &arb);
 	}
 
-	if (gyro_notify && !(_pub_blocked)) {
+	if ((gyro_notify || _high_gyro_rate) && !_pub_blocked) {
+		if (!gyro_notify) {
+			grb.integral_dt = 0;
+		}
+
 		/* publish it */
 		orb_publish(ORB_ID(sensor_gyro), _gyro->_gyro_topic, &grb);
 	}

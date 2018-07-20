@@ -654,7 +654,7 @@ void VotedSensorsUpdate::gyro_poll(struct sensor_combined_s &raw)
 
 			int ret = orb_copy(ORB_ID(sensor_gyro), _gyro.subscription[uorb_index], &gyro_report);
 
-			if (ret != PX4_OK || gyro_report.timestamp == 0) {
+			if (ret != PX4_OK || gyro_report.timestamp == 0 || gyro_report.integral_dt == 0) {
 				continue; //ignore invalid data
 			}
 
