@@ -686,7 +686,7 @@ GPS::run()
 				break;
 			}
 
-			_baudrate = 0; // auto-detect
+			_baudrate = 115200; // auto-detect
 
 			if (_helper && _helper->configure(_baudrate, GPSHelper::OutputMode::GPS) == 0) {
 
