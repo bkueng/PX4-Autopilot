@@ -621,7 +621,16 @@ GPS::run()
 	}
 
 	int32_t configured_baudrate = 0; // auto-detect
-	handle = param_find("SER_GPS1_BAUD");
+
+	if (_instance == Instance::Main) {
+		handle = param_find("SER_GPS1_BAUD");
+
+	} else if (_instance == Instance::Secondary) {
+		handle = param_find("SER_GPS2_BAUD");
+
+	} else {
+		handle = PARAM_INVALID;
+	}
 
 	if (handle != PARAM_INVALID) {
 		param_get(handle, &configured_baudrate);
