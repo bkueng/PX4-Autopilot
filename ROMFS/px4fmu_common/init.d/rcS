@@ -194,20 +194,16 @@ else
 	# Load parameters.
 	#
 	param select $PARAM_FILE
-	if param load
+	if ! param load
 	then
-	else
-		if param reset
-		then
-		fi
+		param reset
 	fi
 
 	#
 	# Start system state indicator.
 	#
-	if rgbled start
+	if ! rgbled start
 	then
-	else
 		if blinkm start
 		then
 			blinkm systemstate
@@ -289,9 +285,8 @@ else
 	#
 	# Set parameters and env variables for selected AUTOSTART.
 	#
-	if param compare SYS_AUTOSTART 0
+	if ! param compare SYS_AUTOSTART 0
 	then
-	else
 		sh /etc/init.d/rc.autostart
 	fi
 
@@ -507,12 +502,9 @@ else
 	#
 	# Start vmount to control mounts such as gimbals, disabled by default.
 	#
-	if param compare MNT_MODE_IN -1
+	if ! param compare MNT_MODE_IN -1
 	then
-	else
-		if vmount start
-		then
-		fi
+		vmount start
 	fi
 
 	#
