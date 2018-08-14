@@ -416,7 +416,8 @@ else
 		then
 			gps start -d /dev/ttyS2
 		else
-			gps start -d /dev/ttyS3
+			gps start
+			#gps start -d /dev/ttyS3
 		fi
 		sh /etc/init.d/rc.sensors
 		commander start
