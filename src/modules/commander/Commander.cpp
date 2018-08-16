@@ -2388,6 +2388,8 @@ Commander::run()
 
 
 		/* Check for failure detector status */
+		static bool parachute_tune_played = false;
+		static hrt_abstime want_disarm_time = 0;
 		if (armed.armed) {
 
 			if (_failure_detector.update()) {
@@ -2408,12 +2410,25 @@ Commander::run()
 						_failure_detector_termination_printed = true;
 					}
 
+					if (!parachute_tune_played) {
+						set_tune_override(TONE_PARACHUTE_RELEASE_TUNE);
+						parachute_tune_played = true;
+						want_disarm_time = hrt_absolute_time() + 2_s;
+					}
 				}
 			}
+		} else {
+			parachute_tune_played = false;
 		}
 
 		/* Get current timestamp */
 		const hrt_abstime now = hrt_absolute_time();
+
+		if (want_disarm_time > 0 && want_disarm_time < now) {
+			PX4_WARN("disarming");
+			arm_disarm(false, &mavlink_log_pub, "parachute");
+			want_disarm_time = 0;
+		}
 
 		// automatically set or update home position
 		if (!_home.manual_home) {
@@ -2573,7 +2588,7 @@ Commander::run()
 			set_tune(TONE_BATTERY_WARNING_SLOW_TUNE);
 
 		} else if (status.failsafe) {
-			tune_failsafe(true);
+			tune_failsafe(false);
 
 		} else {
 			set_tune(TONE_STOP_TUNE);
