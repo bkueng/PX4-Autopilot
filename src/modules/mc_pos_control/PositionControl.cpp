@@ -326,6 +326,31 @@ void PositionControl::_velocityController(const float &dt)
 			}
 		}
 	}
+
+	static Vector3f prev_thr_sp = _thr_sp;
+
+	if (_thr_sp.length() > FLT_EPSILON) {
+		Vector3f thr_sp_normalized = _thr_sp.normalized();
+
+		float limit = sqrtf(_vel.length()) * 0.005f;
+		float min_limit = 0.001f;
+
+		if (limit < min_limit) {
+			limit = min_limit;
+		}
+
+		Vector3f diff_thrust = thr_sp_normalized - prev_thr_sp;
+
+		//printf("diff: %.3f\n", (double)diff_thrust.length());
+		if (diff_thrust.length() > limit) {
+			thr_sp_normalized = prev_thr_sp + diff_thrust.normalized() * limit;
+		}
+
+		// TODO: null-check
+		_thr_sp = thr_sp_normalized.normalized() * _thr_sp.length();
+
+		prev_thr_sp = thr_sp_normalized;
+	}
 }
 
 void PositionControl::updateConstraints(const vehicle_constraints_s &constraints)
