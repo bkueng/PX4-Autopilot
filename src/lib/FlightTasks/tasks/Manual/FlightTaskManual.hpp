@@ -62,12 +62,12 @@ protected:
 
 	float stickDeadzone() const { return _stick_dz.get(); }
 
+	uORB::Subscription<manual_control_setpoint_s> *_sub_manual_control_setpoint{nullptr};
 private:
 
 	bool _evaluateSticks(); /**< checks and sets stick inputs */
 	void _applyGearSwitch(uint8_t gswitch); /**< Sets gears according to switch */
 
-	uORB::Subscription<manual_control_setpoint_s> *_sub_manual_control_setpoint{nullptr};
 
 	DEFINE_PARAMETERS_CUSTOM_PARENT(FlightTask,
 					(ParamFloat<px4::params::MPC_HOLD_DZ>) _stick_dz, /**< 0-deadzone around the center for the sticks */

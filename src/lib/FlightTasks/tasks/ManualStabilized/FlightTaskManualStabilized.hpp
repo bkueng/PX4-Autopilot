@@ -68,6 +68,7 @@ private:
 	float _throttleCurve(); /**< piecewise linear mapping from stick to throttle */
 
 	float _throttle{}; /** mapped from stick z */
+	float _yaw_offset_prev{}; /**< yaw offset from last timestep that was added to _yaw_setpoint */
 
 	WeatherVane *_ext_yaw_handler =
 		nullptr;	/**< external weathervane library, used to implement a yaw control law that turns the vehicle nose into the wind */

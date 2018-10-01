@@ -46,6 +46,7 @@ bool FlightTaskManualStabilized::activate()
 	bool ret = FlightTaskManual::activate();
 	_thrust_setpoint = matrix::Vector3f(0.0f, 0.0f, -_throttle_hover.get());
 	_yaw_setpoint = _yaw;
+	_yaw_offset_prev = 0.f;
 	_yawspeed_setpoint = 0.0f;
 	_constraints.tilt = math::radians(_tilt_max_man.get());
 	return ret;
@@ -68,39 +69,38 @@ void FlightTaskManualStabilized::_scaleSticks()
 
 void FlightTaskManualStabilized::_updateHeadingSetpoints()
 {
-	/* Yaw-lock depends on stick input. If not locked,
-	 * yaw_sp is set to NAN.
-	 * TODO: add yawspeed to get threshold.*/
+	/* Yaw-lock depends on stick input. If not locked, _yaw_locked is set to current yaw.
+	 *
+	 * We always set a valid _yaw_setpoint because it's used and possibly changed later on
+	 * (if we were to set it to NAN, the position controller would set it to _yaw anyway).
+	 */
 	if (fabsf(_yawspeed_setpoint) > FLT_EPSILON) {
-		// no fixed heading when rotating around yaw by stick
-		_yaw_setpoint = NAN;
+		/* no fixed heading when rotating around yaw by stick */
+		_yaw_setpoint = _yaw - _yaw_offset_prev;
 
 	} else {
-		// hold the current heading when no more rotation commanded
-		if (!PX4_ISFINITE(_yaw_setpoint)) {
-			_yaw_setpoint = _yaw;
+		/* hold the current heading when no more rotation commanded */
+		_yaw_setpoint -= _yaw_offset_prev;
 
-		} else {
-			// check reset counter and update yaw setpoint if necessary
-			if (_sub_attitude->get().quat_reset_counter != _heading_reset_counter) {
-				_yaw_setpoint += matrix::Eulerf(matrix::Quatf(_sub_attitude->get().delta_q_reset)).psi();
-				_heading_reset_counter = _sub_attitude->get().quat_reset_counter;
-			}
+		/* check reset counter and update yaw setpoint if necessary */
+		if (_sub_attitude->get().quat_reset_counter != _heading_reset_counter) {
+			_yaw_setpoint += matrix::Eulerf(matrix::Quatf(_sub_attitude->get().delta_q_reset)).psi();
+			_heading_reset_counter = _sub_attitude->get().quat_reset_counter;
 		}
 	}
 
-	// check if an external yaw handler is active and if yes, let it compute the yaw setpoints
+	/* check if an external yaw handler is active and if yes, let it compute the yaw setpoints */
 	if (_ext_yaw_handler != nullptr && _ext_yaw_handler->is_active()) {
-		_yaw_setpoint = NAN;
+		_yaw_setpoint = _yaw - _yaw_offset_prev;
 		_yawspeed_setpoint += _ext_yaw_handler->get_weathervane_yawrate();
 	}
+
+	_yaw_offset_prev = 0.f;
 }
 
 void FlightTaskManualStabilized::_updateThrustSetpoints()
 {
-	/* Rotate setpoint into local frame. */
 	Vector2f sp(&_sticks(0));
-	_rotateIntoHeadingFrame(sp);
 
 	/* Ensure that maximum tilt is in [0.001, Pi] */
 	float tilt_max = math::constrain(_constraints.tilt, 0.001f, M_PI_F);
@@ -112,8 +112,8 @@ void FlightTaskManualStabilized::_updateThrustSetpoints()
 	 * direction of the horizontal desired thrust setpoint. The magnitude of the
 	 * xy stick inputs represents the desired tilt. Both tilt and magnitude can
 	 * be captured through Axis-Angle.
-	 */
-	/* The Axis-Angle is the perpendicular vector to xy-stick input */
+	 *
+	 * The Axis-Angle is the perpendicular vector to xy-stick input */
 	Vector2f v = Vector2f(y, -x);
 	float v_norm = v.norm(); // the norm of v defines the tilt angle
 
@@ -121,12 +121,40 @@ void FlightTaskManualStabilized::_updateThrustSetpoints()
 		v *= tilt_max / v_norm;
 	}
 
-	/* The final thrust setpoint is found by rotating the scaled unit vector pointing
+	/* The thrust setpoint is found by rotating the scaled unit vector pointing
 	 * upward by the Axis-Angle.
 	 * Make sure that the attitude can be controlled even at 0 throttle.
 	 */
 	Quatf q_sp = AxisAnglef(v(0), v(1), 0.0f);
 	_thrust_setpoint = q_sp.conjugate(Vector3f(0.0f, 0.0f, -1.0f)) * math::max(_throttle, 0.0001f);
+
+	/* The thrust setpoint is expected to be in the heading of the yaw setpoint, so rotate it */
+	matrix::Quaternionf q = matrix::AxisAnglef(matrix::Vector3f(0.f, 0.f, 1.f), _yaw_setpoint);
+	_thrust_setpoint = q.conjugate(_thrust_setpoint);
+
+
+	static bool prev_yaw_offset = false;
+	bool use_yaw_offset = _sub_manual_control_setpoint->get().aux1 > 0.5f;
+
+	if (use_yaw_offset != prev_yaw_offset) {
+		prev_yaw_offset = use_yaw_offset;
+		PX4_WARN("using yaw offset: %i", (int)use_yaw_offset);
+	}
+
+
+	/* The Axis-Angle setpoint contains a yaw-component: we add it to the yaw setpoint as it leads to a
+	 * more intuitive flight behavior (best seen at higher tilt angles around 60+ deg).
+	 * This yaw component is 0 for roll or pitch stick input == 0. It is maximal for |roll| == |pitch|.
+	 * For roll input == pitch input it is given by atan(1/cos(tilt_angle)) - pi/4,
+	 * so about 26 degrees for a tilt angle of 70 degrees.
+	 */
+	const float yaw_offset = matrix::Eulerf(q_sp)(2);
+
+	if (use_yaw_offset) {
+		_yaw_setpoint += yaw_offset;
+		_yaw_offset_prev = yaw_offset;
+	}
+
 }
 
 void FlightTaskManualStabilized::_rotateIntoHeadingFrame(Vector2f &v)
