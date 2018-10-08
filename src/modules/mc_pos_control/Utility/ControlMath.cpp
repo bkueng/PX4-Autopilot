@@ -53,7 +53,26 @@ vehicle_attitude_setpoint_s thrustToAttitude(const Vector3f &thr_sp, const float
 	Vector3f body_x, body_y, body_z;
 
 	if (thr_sp.length() > 0.00001f) {
-		body_z = -thr_sp.normalized();
+		const Vector3f thr_sp_normalized = thr_sp.normalized();
+		body_z = -thr_sp_normalized;
+
+		// Extract the yaw offset that is contained in the thrust setpoint.
+		// First we need to rotate the thrust vector back into the local frame.
+		Quaternionf q = AxisAnglef(Vector3f(0.f, 0.f, -yaw_sp));
+		Vector3f thr_sp_rot = q.conjugate(thr_sp_normalized);
+		// Get the Quaternion from the normalized thrust vector.
+		// The following is a simplified version of:
+		//Quaternionf q_thr(Vector3f(0.f, 0.f, -1.f), thr_sp_rot);
+		//float yaw_offset = Eulerf(q_thr)(2);
+		float yaw_offset = 0.f;
+
+		if (1.f - thr_sp_rot(2) > 0.00001f) {
+			Quaternionf q_thr(1.f - thr_sp_rot(2), thr_sp_rot(1), -thr_sp_rot(0), 0.f);
+			yaw_offset = Eulerf(q_thr.normalized())(2);
+		}
+
+		att_sp.yaw_body += yaw_offset;
+
 
 	} else {
 		// no thrust, set Z axis to safe value

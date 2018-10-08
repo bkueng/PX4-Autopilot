@@ -47,7 +47,7 @@ namespace ControlMath
 {
 /**
  * Converts thrust vector and yaw set-point to a desired attitude.
- * @param thr_sp a 3D vector
+ * @param thr_sp a 3D vector (expressed in the yaw_sp heading)
  * @param yaw_sp the desired yaw
  * @return vehicle_attitude_setpoints_s structure
  */

@@ -68,29 +68,22 @@ void FlightTaskManualStabilized::_scaleSticks()
 
 void FlightTaskManualStabilized::_updateHeadingSetpoints()
 {
-	/* Yaw-lock depends on stick input. If not locked,
-	 * yaw_sp is set to NAN.
-	 * TODO: add yawspeed to get threshold.*/
+	// Yaw-lock depends on stick input
 	if (fabsf(_yawspeed_setpoint) > FLT_EPSILON) {
 		// no fixed heading when rotating around yaw by stick
-		_yaw_setpoint = NAN;
+		_yaw_setpoint += _yawspeed_setpoint * _deltatime;
 
 	} else {
-		// hold the current heading when no more rotation commanded
-		if (!PX4_ISFINITE(_yaw_setpoint)) {
-			_yaw_setpoint = _yaw;
-
-		} else {
-			// check reset counter and update yaw setpoint if necessary
-			if (_sub_attitude->get().quat_reset_counter != _heading_reset_counter) {
-				_yaw_setpoint += matrix::Eulerf(matrix::Quatf(_sub_attitude->get().delta_q_reset)).psi();
-				_heading_reset_counter = _sub_attitude->get().quat_reset_counter;
-			}
+		// check reset counter and update yaw setpoint if necessary
+		if (_sub_attitude->get().quat_reset_counter != _heading_reset_counter) {
+			_yaw_setpoint += matrix::Eulerf(matrix::Quatf(_sub_attitude->get().delta_q_reset)).psi();
+			_heading_reset_counter = _sub_attitude->get().quat_reset_counter;
 		}
 	}
 
 	// check if an external yaw handler is active and if yes, let it compute the yaw setpoints
 	if (_ext_yaw_handler != nullptr && _ext_yaw_handler->is_active()) {
+		// TODO
 		_yaw_setpoint = NAN;
 		_yawspeed_setpoint += _ext_yaw_handler->get_weathervane_yawrate();
 	}
@@ -131,8 +124,7 @@ void FlightTaskManualStabilized::_updateThrustSetpoints()
 
 void FlightTaskManualStabilized::_rotateIntoHeadingFrame(Vector2f &v)
 {
-	float yaw_rotate = PX4_ISFINITE(_yaw_setpoint) ? _yaw_setpoint : _yaw;
-	Vector3f v_r = Vector3f(Dcmf(Eulerf(0.0f, 0.0f, yaw_rotate)) * Vector3f(v(0), v(1), 0.0f));
+	Vector3f v_r = Vector3f(Dcmf(Eulerf(0.0f, 0.0f, _yaw_setpoint)) * Vector3f(v(0), v(1), 0.0f));
 	v(0) = v_r(0);
 	v(1) = v_r(1);
 }
