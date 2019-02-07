@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# @name IF750A SITL
+# TODO: description
+#
+# @type Quadrotor Wide
+#
+
+sh /etc/init.d/rc.mc_defaults
+
+if [ $AUTOCNF = yes ]
+then
+	# TODO: tuning gains
+fi
+
+set MIXER quad_w
+
