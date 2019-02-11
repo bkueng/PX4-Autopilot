@@ -650,11 +650,11 @@ GPS::run()
 		heading_offset = matrix::wrap_pi(math::radians(heading_offset));
 	}
 
-	int32_t gps_ubx_dynmodel = 7; // default to 7: airborne with <2g acceleration
-	handle = param_find("GPS_UBX_DYNMODEL");
+	int32_t gps_dynmodel = 7; // default to 7: airborne with <2g acceleration
+	handle = param_find("GPS_DYNMODEL");
 
 	if (handle != PARAM_INVALID) {
-		param_get(handle, &gps_ubx_dynmodel);
+		param_get(handle, &gps_dynmodel);
 	}
 
 	_orb_inject_data_fd = orb_subscribe(ORB_ID(gps_inject_data));
@@ -711,7 +711,7 @@ GPS::run()
 			/* FALLTHROUGH */
 			case GPS_DRIVER_MODE_UBX:
 				_helper = new GPSDriverUBX(_interface, &GPS::callback, this, &_report_gps_pos, _p_report_sat_info,
-							   gps_ubx_dynmodel);
+							   gps_dynmodel);
 				break;
 
 			case GPS_DRIVER_MODE_MTK:
