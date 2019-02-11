@@ -45,6 +45,7 @@ px4_add_module(
 		devices/src/ubx.cpp
 		devices/src/rtcm.cpp
 		devices/src/emlid_reach.cpp
+		devices/src/sbf.cpp
 	MODULE_CONFIG
 		module.yaml
 	DEPENDS

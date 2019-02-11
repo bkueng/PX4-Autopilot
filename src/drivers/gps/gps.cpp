@@ -87,6 +87,7 @@
 #include "devices/src/mtk.h"
 #include "devices/src/ashtech.h"
 #include "devices/src/emlid_reach.h"
+#include "devices/src/sbf.h"
 
 #ifdef __PX4_LINUX
 #include <linux/spi/spidev.h>
@@ -100,7 +101,8 @@ typedef enum {
 	GPS_DRIVER_MODE_UBX,
 	GPS_DRIVER_MODE_MTK,
 	GPS_DRIVER_MODE_ASHTECH,
-	GPS_DRIVER_MODE_EMLIDREACH
+	GPS_DRIVER_MODE_EMLIDREACH,
+	GPS_DRIVER_MODE_SBF
 } gps_driver_mode_t;
 
 /* struct for dynamic allocation of satellite info data */
@@ -726,6 +728,10 @@ GPS::run()
 				_helper = new GPSDriverEmlidReach(&GPS::callback, this, &_report_gps_pos, _p_report_sat_info);
 				break;
 
+			case GPS_DRIVER_MODE_SBF:
+				_helper = new GPSDriverSBF(&GPS::callback, this, &_report_gps_pos, _p_report_sat_info, gps_dynmodel);
+				break;
+
 			default:
 				break;
 			}
@@ -823,6 +829,10 @@ GPS::run()
 					break;
 
 				case GPS_DRIVER_MODE_EMLIDREACH:
+					_mode = GPS_DRIVER_MODE_SBF;
+					break;
+
+				case GPS_DRIVER_MODE_SBF:
 					_mode = GPS_DRIVER_MODE_UBX;
 					px4_usleep(500000); // tried all possible drivers. Wait a bit before next round
 					break;
@@ -893,6 +903,10 @@ GPS::print_status()
 
 		case GPS_DRIVER_MODE_EMLIDREACH:
 			PX4_INFO("protocol: EMLIDREACH");
+			break;
+
+		case GPS_DRIVER_MODE_SBF:
+			PX4_INFO("protocol: SBF");
 			break;
 
 		default:
@@ -1127,6 +1141,9 @@ GPS *GPS::instantiate(int argc, char *argv[], Instance instance)
 
 			} else if (!strcmp(myoptarg, "eml")) {
 				mode = GPS_DRIVER_MODE_EMLIDREACH;
+
+			} else if (!strcmp(myoptarg, "sbf")) {
+				mode = GPS_DRIVER_MODE_SBF;
 
 			} else {
 				PX4_ERR("unknown interface: %s", myoptarg);
