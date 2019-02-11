@@ -63,6 +63,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <unistd.h>
+#include <px4_atomic.h>
 #include <px4_cli.h>
 #include <px4_config.h>
 #include <px4_getopt.h>
@@ -157,6 +158,16 @@ public:
 	 */
 	int print_status() override;
 
+	/**
+	 * Schedule reset of the GPS device
+	 */
+	void schedule_reset(GPSRestartType restart_type);
+
+	/**
+	 * Reset device if reset was scheduled
+	 */
+	void reset_if_scheduled();
+
 private:
 
 	int				_serial_fd{-1};					///< serial interface to GPS
@@ -196,10 +207,12 @@ private:
 	gps_dump_s			*_dump_to_device{nullptr};
 	gps_dump_s			*_dump_from_device{nullptr};
 
-	static volatile bool _is_gps_main_advertised; ///< for the second gps we want to make sure that it gets instance 1
+	static px4::atomic<bool> _is_gps_main_advertised; ///< for the second gps we want to make sure that it gets instance 1
 	/// and thus we wait until the first one publishes at least one message.
 
-	static volatile GPS *_secondary_instance;
+	static px4::atomic<GPS *> _secondary_instance;
+
+	px4::atomic<GPSRestartType> _scheduled_reset{GPSRestartType::None};
 
 	/**
 	 * Publish the gps struct
@@ -258,8 +271,8 @@ private:
 	void initializeCommunicationDump();
 };
 
-volatile bool GPS::_is_gps_main_advertised = false;
-volatile GPS *GPS::_secondary_instance = nullptr;
+px4::atomic<bool> GPS::_is_gps_main_advertised{false};
+px4::atomic<GPS *> GPS::_secondary_instance{nullptr};
 
 /*
  * Driver 'main' command.
@@ -295,7 +308,7 @@ GPS::GPS(const char *path, gps_driver_mode_t mode, GPSHelper::Interface interfac
 
 GPS::~GPS()
 {
-	GPS *secondary_instance = (GPS *) _secondary_instance;
+	GPS *secondary_instance = _secondary_instance.load();
 
 	if (_instance == Instance::Main && secondary_instance) {
 		secondary_instance->request_stop();
@@ -306,7 +319,7 @@ GPS::~GPS()
 		do {
 			px4_usleep(20000); // 20 ms
 			++i;
-		} while (_secondary_instance && i < 100);
+		} while (_secondary_instance.load() && i < 100);
 	}
 
 	if (_sat_info) {
@@ -765,6 +778,8 @@ GPS::run()
 						publishSatelliteInfo();
 					}
 
+					reset_if_scheduled();
+
 					/* measure update rate every 5 seconds */
 					if (hrt_absolute_time() - last_rate_measurement > RATE_MEASUREMENT_PERIOD) {
 						float dt = (float)((hrt_absolute_time() - last_rate_measurement)) / 1000000.0f;
@@ -931,24 +946,57 @@ GPS::print_status()
 		print_message(_report_gps_pos);
 	}
 
-	if (_instance == Instance::Main && _secondary_instance) {
-		GPS *secondary_instance = (GPS *)_secondary_instance;
+	GPS *secondary_instance = _secondary_instance.load();
+
+	if (_instance == Instance::Main && secondary_instance) {
 		secondary_instance->print_status();
 	}
 
 	return 0;
 }
+void
+GPS::schedule_reset(GPSRestartType restart_type)
+{
+	_scheduled_reset.store(restart_type);
+
+	GPS *secondary_instance = _secondary_instance.load();
+
+	if (_instance == Instance::Main && secondary_instance) {
+		secondary_instance->schedule_reset(restart_type);
+	}
+}
+
+void
+GPS::reset_if_scheduled()
+{
+	GPSRestartType restart_type = _scheduled_reset.load();
+
+	if (restart_type != GPSRestartType::None) {
+		_scheduled_reset.store(GPSRestartType::None);
+		int res = _helper->reset(restart_type);
+
+		if (res == -1) {
+			PX4_INFO("Reset is not supported on this device.");
+
+		} else if (res < 0) {
+			PX4_INFO("Reset failed (%i).", res);
+
+		} else {
+			PX4_INFO("Reset succeeded.");
+		}
+	}
+}
 
 void
 GPS::publish()
 {
-	if (_instance == Instance::Main || _is_gps_main_advertised) {
+	if (_instance == Instance::Main || _is_gps_main_advertised.load()) {
 		orb_publish_auto(ORB_ID(vehicle_gps_position), &_report_gps_pos_pub, &_report_gps_pos, &_gps_orb_instance,
 				 ORB_PRIO_DEFAULT);
 		// Heading/yaw data can be updated at a lower rate than the other navigation data.
 		// The uORB message definition requires this data to be set to a NAN if no new valid data is available.
 		_report_gps_pos.heading = NAN;
-		_is_gps_main_advertised = true;
+		_is_gps_main_advertised.store(true);
 	}
 }
 
@@ -966,6 +1014,37 @@ GPS::publishSatelliteInfo()
 
 int GPS::custom_command(int argc, char *argv[])
 {
+	// Check if the driver is running.
+	GPS *instance = get_instance();
+
+	if (!instance) {
+		PX4_INFO("not running");
+		return PX4_ERROR;
+	}
+
+	bool res = false;
+
+	if (argc == 2 && !strcmp(argv[0], "reset")) {
+
+		if (!strcmp(argv[1], "hot")) {
+			res = true;
+			instance->schedule_reset(GPSRestartType::Hot);
+
+		} else if (!strcmp(argv[1], "cold")) {
+			res = true;
+			instance->schedule_reset(GPSRestartType::Cold);
+
+		} else if (!strcmp(argv[1], "warm")) {
+			res = true;
+			instance->schedule_reset(GPSRestartType::Warm);
+		}
+	}
+
+	if (res) {
+		PX4_INFO("Resetting GPS - %s", argv[1]);
+		return 0;
+	}
+
 	return print_usage("unknown command");
 }
 
@@ -994,7 +1073,11 @@ For testing it can be useful to fake a GPS signal (it will signal the system tha
 $ gps stop
 $ gps start -f
 Starting 2 GPS devices (the main GPS on /dev/ttyS3 and the secondary on /dev/ttyS4):
-gps start -d /dev/ttyS3 -e /dev/ttyS4
+$ gps start -d /dev/ttyS3 -e /dev/ttyS4
+
+Initiate warm restart of GPS device:
+$ gps reset warm
+
 )DESCR_STR");
 
 	PRINT_MODULE_USAGE_NAME("gps", "driver");
@@ -1008,7 +1091,11 @@ gps start -d /dev/ttyS3 -e /dev/ttyS4
 	PRINT_MODULE_USAGE_PARAM_FLAG('s', "Enable publication of satellite info", true);
 
 	PRINT_MODULE_USAGE_PARAM_STRING('i', "uart", "spi|uart", "GPS interface", true);
-	PRINT_MODULE_USAGE_PARAM_STRING('p', nullptr, "ubx|mtk|ash|eml", "GPS Protocol (default=auto select)", true);
+	PRINT_MODULE_USAGE_PARAM_STRING('p', nullptr, "ubx|mtk|ash|eml|sbf", "GPS Protocol (default=auto select)", true);
+
+	PRINT_MODULE_USAGE_COMMAND_DESCR("reset", "Reset GPS device");
+	PRINT_MODULE_USAGE_ARG("cold|warm|hot", "Specify reset type", false);
+
 
 	PRINT_MODULE_USAGE_DEFAULT_COMMANDS();
 
@@ -1056,10 +1143,10 @@ int GPS::run_trampoline_secondary(int argc, char *argv[])
 
 	GPS *gps = instantiate(argc, argv, Instance::Secondary);
 	if (gps) {
-		_secondary_instance = gps;
+		_secondary_instance.store(gps);
 		gps->run();
 
-		_secondary_instance = nullptr;
+		_secondary_instance.store(nullptr);
 		delete gps;
 	}
 	return 0;
@@ -1179,7 +1266,7 @@ GPS *GPS::instantiate(int argc, char *argv[], Instance instance)
 				/* wait up to 1s */
 				px4_usleep(2500);
 
-			} while (!_secondary_instance && ++i < 400);
+			} while (!_secondary_instance.load() && ++i < 400);
 
 			if (i == 400) {
 				PX4_ERR("Timed out while waiting for thread to start");
