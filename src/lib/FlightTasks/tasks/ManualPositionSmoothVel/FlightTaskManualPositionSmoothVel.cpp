@@ -100,7 +100,7 @@ void FlightTaskManualPositionSmoothVel::_updateSetpoints()
 		_smoothing[2].setMaxVel(_constraints.speed_down);
 	}
 
-	Vector2f vel_xy_sp = Vector2f(&_velocity_setpoint(0));
+	Vector2f vel_xy_sp = Vector2f(_velocity_setpoint);
 	float jerk[3] = {_jerk_max.get(), _jerk_max.get(), _jerk_max.get()};
 	float jerk_xy = _jerk_max.get();
 
@@ -109,12 +109,21 @@ void FlightTaskManualPositionSmoothVel::_updateSetpoints()
 	}
 
 	if (_jerk_min.get() > FLT_EPSILON) {
-		if (vel_xy_sp.length() < FLT_EPSILON) { // Brake
-			jerk_xy = _jerk_max.get();
+		Vector2f vel_xy = Vector2f(_velocity);
+		float vel_xy_len = vel_xy.length();
+		float vel_xy_factor = math::min(vel_xy_len / _constraints.speed_xy, 1.f);
+		float vel_xy_angle = acosf(vel_xy.dot(vel_xy_sp) / (vel_xy_len * vel_xy_sp.length()));
 
-		} else {
-			jerk_xy = _jerk_min.get();
+		if (!PX4_ISFINITE(vel_xy_angle)) {
+			// Either vel_xy_sp or vel_xy is 0: if vel_xy is 0 then vel_xy_factor will be 0 as well.
+			// Otherwise we are braking and want to apply a higher jerk limit.
+			vel_xy_angle = M_PI_F;
 		}
+
+		// Gradually increase the jerk limit with increasing velocity and angle between velocity and velocity setpoint.
+		// This allows for fast braking and strong direction changes.
+		float jerk_factor = vel_xy_factor * fabsf(vel_xy_angle) / M_PI_F;
+		jerk_xy = _jerk_min.get() + jerk_factor * (_jerk_max.get() - _jerk_min.get());
 	}
 
 	jerk[0] = jerk_xy;
