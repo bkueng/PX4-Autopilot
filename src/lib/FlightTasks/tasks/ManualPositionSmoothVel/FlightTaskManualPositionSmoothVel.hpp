@@ -65,11 +65,10 @@ protected:
 private:
 
 	enum class Axes {XY, XYZ};
-	 /** 
-	  * Reset the required axes. when force_z_zero is set to true, the z derivatives are set to sero and not to the estimated states
-	  */
+	/**
+	 * Reset the required axes. when force_z_zero is set to true, the z derivatives are set to sero and not to the estimated states
+	 */
 	void reset(Axes axes, bool force_z_zero = false);
-			   false); //< reset the required axes. when force_z_zero is set to true, the z derivatives are set to sero and not to the estimated states
 	VelocitySmoothing _smoothing[3]; ///< Smoothing in x, y and z directions
 	matrix::Vector3f _vel_sp_smooth;
 	bool _position_lock_xy_active{false};
