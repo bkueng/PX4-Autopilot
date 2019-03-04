@@ -348,6 +348,10 @@ MavlinkReceiver::handle_message(mavlink_message_t *msg)
 		handle_message_debug_float_array(msg);
 		break;
 
+	case MAVLINK_MSG_ID_REQUEST_EVENT:
+		handle_message_request_event(msg);
+		break;
+
 	default:
 		break;
 	}
@@ -2614,6 +2618,10 @@ void MavlinkReceiver::handle_message_debug_float_array(mavlink_message_t *msg)
 	}
 }
 
+void MavlinkReceiver::handle_message_request_event(mavlink_message_t *msg)
+{
+	_mavlink->get_events_protocol().handle_request_event(*msg);
+}
 /**
  * Receive data from UART/UDP
  */

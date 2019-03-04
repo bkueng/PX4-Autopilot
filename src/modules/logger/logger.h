@@ -363,6 +363,10 @@ private:
 	 */
 	inline void debug_print_buffer(uint32_t &total_bytes, hrt_abstime &timer_start);
 
+	/**
+	 * Check for events and log them
+	 */
+	bool handle_event_updates(uint32_t &total_bytes);
 
 	uint8_t						*_msg_buffer{nullptr};
 	int						_msg_buffer_len{0};
@@ -381,6 +385,9 @@ private:
 	Array<LoggerSubscription, MAX_TOPICS_NUM>	_subscriptions; ///< all subscriptions for full & mission log (in front)
 	MissionSubscription 				_mission_subscriptions[MAX_MISSION_TOPICS_NUM]; ///< additional data for mission subscriptions
 	int						_num_mission_subs{0};
+	LoggerSubscription				_event_subscription; ///< Subscription for the event topic (handled separately)
+	uint16_t 					_event_sequence_offset{0}; ///< event sequence offset to account for skipped (not logged) messages
+	uint16_t 					_event_sequence_offset_mission{0};
 
 	LogWriter					_writer;
 	uint32_t					_log_interval{0};
