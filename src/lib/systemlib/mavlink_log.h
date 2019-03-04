@@ -41,7 +41,9 @@
 
 #pragma once
 
+#include <px4_log.h>
 #include <uORB/uORB.h>
+#include <uORB/topics/event.h>
 
 /**
  * The maximum string length supported.
@@ -139,4 +141,97 @@ struct mavlink_logbuffer {
 	int count;
 	struct mavlink_logmessage *elems;
 };
+
+
+// events interface
+#include <string.h>
+
+// Console event output can be disabled if needed (also removes all strings).
+// Helpful for debugging and to ensure the system is not spammed with events.
+// it's not very fancy, it does not print arguments
+//#define CONSOLE_PRINT_EVENT(log_level, id, name, str) PX4_INFO_RAW("Event %s: %s\n", name, str)
+#define CONSOLE_PRINT_EVENT(log_level, id, name, str)
+
+#define PX4_EVENTS_INITIAL_SEQUENCE (65535 - 10) // initialize with a high number so it wraps soon
+
+
+#ifdef __cplusplus
+
+void px4_publish_event(orb_advert_t *event_pub, event_s &event);
+
+////////// auto-generated part
+#define EVENTS_MAX_ARGUMENTS_SIZE 16 // maximum number of bytes for all arguments
+
+enum class EVENT_LOGLEVEL {
+	Emergency = 0,
+	Alert = 1,
+	Critical = 2,
+	Error = 3,
+	Warning = 4,
+	Notice = 5,
+	Info = 6,
+	Protocol = 7,
+
+	Disabled = 8,
+};
+
+// enums
+namespace enums
+{
+enum class GPS_FIX : uint8_t {
+	no_fix = 0,
+	oned_fix = 1,
+	twod_fix = 2,
+	threed_fix = 3,
+};
+} /* namespace enums */
+
+// type-safe methods for each event
+static inline void px4_publish_event_first_event(orb_advert_t *event_pub)   // Event ID: 0
+{
+	event_s event;
+	event.id = 0;
+	event.log_level_internal = (uint8_t)EVENT_LOGLEVEL::Info;
+	event.log_level_external = (uint8_t)EVENT_LOGLEVEL::Info;
+	px4_publish_event(event_pub, event);
+	CONSOLE_PRINT_EVENT(EVENT_LOGLEVEL::Info, event.id, "FIRST_EVENT", "First test event");
+}
+static inline void px4_publish_event_test(orb_advert_t *event_pub, float float_argument,
+		uint32_t int_argument)   // Event ID: 1
+{
+	event_s event;
+	event.id = 1;
+	event.log_level_internal = (uint8_t)EVENT_LOGLEVEL::Warning;
+	event.log_level_external = (uint8_t)EVENT_LOGLEVEL::Warning;
+	memcpy(event.arguments, &float_argument, sizeof(float));
+	memcpy(event.arguments + sizeof(float), &int_argument, sizeof(uint32_t));
+	px4_publish_event(event_pub, event);
+	CONSOLE_PRINT_EVENT(EVENT_LOGLEVEL::Warning, event.id, "TEST", "Second test event arg2={2}, arg1={1}");
+}
+static inline void px4_publish_event_gps_fix_test(orb_advert_t *event_pub, enums::GPS_FIX gps_fix)   // Event ID: 2
+{
+	event_s event;
+	event.id = 2;
+	event.log_level_internal = (uint8_t)EVENT_LOGLEVEL::Disabled;
+	event.log_level_external = (uint8_t)EVENT_LOGLEVEL::Warning;
+	memcpy(event.arguments, &gps_fix, sizeof(uint8_t));
+	px4_publish_event(event_pub, event);
+	CONSOLE_PRINT_EVENT(EVENT_LOGLEVEL::Disabled, event.id, "GPS_FIX_TEST", "GPS: {1}");
+}
+
+static inline void px4_publish_event_test_logged(orb_advert_t *event_pub, uint8_t argument)   // Event ID: 3
+{
+	event_s event;
+	event.id = 3;
+	event.log_level_internal = (uint8_t)EVENT_LOGLEVEL::Warning;
+	event.log_level_external = (uint8_t)EVENT_LOGLEVEL::Disabled;
+	memcpy(event.arguments, &argument, sizeof(uint8_t));
+	px4_publish_event(event_pub, event);
+	CONSOLE_PRINT_EVENT(EVENT_LOGLEVEL::Warning, event.id, "TEST_LOGGED", "This message is only logged");
+}
+////////// end of auto-generated part
+
+#undef CONSOLE_PRINT_EVENT
+#endif
+
 

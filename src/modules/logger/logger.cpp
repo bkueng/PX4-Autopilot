@@ -50,6 +50,7 @@
 #include <uORB/topics/parameter_update.h>
 #include <uORB/topics/vehicle_status.h>
 #include <uORB/topics/vehicle_command_ack.h>
+#include <uORB/topics/event.h>
 
 #include <drivers/drv_hrt.h>
 #include <px4_getopt.h>
@@ -418,6 +419,7 @@ Logger::Logger(LogWriter::Backend backend, size_t buffer_size, uint32_t log_inte
 	_log_on_start(log_on_start),
 	_log_until_shutdown(log_until_shutdown),
 	_log_name_timestamp(log_name_timestamp),
+	_event_subscription(orb_subscribe(ORB_ID(event)), ORB_ID(event)),
 	_writer(backend, buffer_size, queue_size),
 	_log_interval(log_interval)
 {
@@ -967,6 +969,9 @@ void Logger::run()
 			max_msg_size = subscription.metadata->o_size;
 		}
 	}
+	if (_event_subscription.metadata->o_size > max_msg_size) {
+		max_msg_size = _event_subscription.metadata->o_size;
+	}
 
 	max_msg_size += sizeof(ulog_message_data_header_s);
 
@@ -1151,6 +1156,11 @@ void Logger::run()
 				++sub_idx;
 			}
 
+			// check for new events
+			if (handle_event_updates(total_bytes)) {
+				data_written = true;
+			}
+
 			//check for new logging message(s)
 			bool log_message_updated = false;
 			ret = orb_check(log_message_sub, &log_message_updated);
@@ -1271,6 +1281,9 @@ void Logger::run()
 			}
 		}
 	}
+	if (_event_subscription.fd[0] >= 0) {
+		orb_unsubscribe(_event_subscription.fd[0]);
+	}
 
 	if (polling_topic_sub >= 0) {
 		orb_unsubscribe(polling_topic_sub);
@@ -1310,6 +1323,71 @@ void Logger::debug_print_buffer(uint32_t &total_bytes, hrt_abstime &timer_start)
 		timer_start = hrt_absolute_time();
 	}
 #endif /* DBGPRINT */
+}
+
+bool Logger::handle_event_updates(uint32_t &total_bytes)
+{
+	if (_event_subscription.fd[0] < 0) {
+		return false;
+	}
+	bool data_written = false;
+	bool updated = false;
+	orb_check(_event_subscription.fd[0], &updated);
+
+	while (updated) {
+		event_s *orb_event = (event_s*)(_msg_buffer + sizeof(ulog_message_data_header_s));
+		orb_copy(ORB_ID(event), _event_subscription.fd[0], orb_event);
+
+		// Careful: we can only access single-byte values in orb_event (it's not necessarily aligned)
+		if (orb_event->log_level_internal == (uint8_t)EVENT_LOGLEVEL::Disabled) {
+			++_event_sequence_offset; // skip this event
+
+		} else {
+			// adjust sequence number
+			uint16_t updated_sequence;
+			memcpy(&updated_sequence, &orb_event->sequence, sizeof(updated_sequence));
+			updated_sequence -= _event_sequence_offset;
+			memcpy(&orb_event->sequence, &updated_sequence, sizeof(updated_sequence));
+
+			const orb_metadata *event_meta = ORB_ID(event);
+			size_t msg_size = sizeof(ulog_message_data_header_s) + event_meta->o_size_no_padding;
+			uint16_t write_msg_size = static_cast<uint16_t>(msg_size - ULOG_MSG_HEADER_LEN);
+			//write one byte after another (necessary because of alignment)
+			_msg_buffer[0] = (uint8_t)write_msg_size;
+			_msg_buffer[1] = (uint8_t)(write_msg_size >> 8);
+			_msg_buffer[2] = static_cast<uint8_t>(ULogMessageType::DATA);
+			uint16_t write_msg_id = _event_subscription.msg_ids[0];
+			_msg_buffer[3] = (uint8_t)write_msg_id;
+			_msg_buffer[4] = (uint8_t)(write_msg_id >> 8);
+
+			// full log
+			if (write_message(LogType::Full, _msg_buffer, msg_size)) {
+
+#ifdef DBGPRINT
+				total_bytes += msg_size;
+#endif /* DBGPRINT */
+
+				data_written = true;
+			}
+
+			// mission log: only warnings or higher
+			if (orb_event->log_level_internal <= (uint8_t)EVENT_LOGLEVEL::Warning) {
+				if (_writer.is_started(LogType::Mission)) {
+					memcpy(&updated_sequence, &orb_event->sequence, sizeof(updated_sequence));
+					updated_sequence -= _event_sequence_offset_mission;
+					memcpy(&orb_event->sequence, &updated_sequence, sizeof(updated_sequence));
+					if (write_message(LogType::Mission, _msg_buffer, msg_size)) {
+						data_written = true;
+					}
+				}
+			} else {
+				++_event_sequence_offset_mission; // skip this event
+			}
+		}
+
+		orb_check(_event_subscription.fd[0], &updated);
+	}
+	return data_written;
 }
 
 bool Logger::check_arming_state(int vehicle_status_sub, MissionLogType mission_log_type)
@@ -1847,6 +1925,8 @@ void Logger::write_formats(LogType type)
 		write_format(type, *sub.metadata, written_formats, msg);
 	}
 
+	write_format(type, *_event_subscription.metadata, written_formats, msg);
+
 	_writer.unlock();
 }
 
@@ -1865,6 +1945,9 @@ void Logger::write_all_add_logged_msg(LogType type)
 				write_add_logged_msg(type, sub, instance);
 			}
 		}
+	}
+	if (_event_subscription.fd[0] >= 0) {
+		write_add_logged_msg(type, _event_subscription, 0);
 	}
 
 	_writer.unlock();

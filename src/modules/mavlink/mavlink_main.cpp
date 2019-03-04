@@ -80,6 +80,7 @@
 #include <version/version.h>
 #include <mathlib/mathlib.h>
 
+#include <uORB/topics/event.h>
 #include <uORB/topics/parameter_update.h>
 #include <uORB/topics/vehicle_command_ack.h>
 #include <uORB/topics/vehicle_command.h>
@@ -116,6 +117,7 @@
 //#define MAVLINK_PRINT_PACKETS
 
 static Mavlink *_mavlink_instances = nullptr;
+events::EventBuffer *Mavlink::_event_buffer = nullptr;
 
 /**
  * mavlink app start / stop handling function
@@ -223,6 +225,7 @@ Mavlink::Mavlink() :
 	_mavlink_shell(nullptr),
 	_mavlink_ulog(nullptr),
 	_mavlink_ulog_stop_requested(false),
+	_events(*_event_buffer, *this),
 	_mode(MAVLINK_MODE_NORMAL),
 	_channel(MAVLINK_COMM_0),
 	_logbuffer(5, sizeof(mavlink_log_s)),
@@ -483,6 +486,9 @@ Mavlink::destroy_all_instances()
 		LL_DELETE(_mavlink_instances, inst_to_del);
 		delete inst_to_del;
 	}
+
+	delete _event_buffer;
+	_event_buffer = nullptr;
 
 	printf("\n");
 	PX4_INFO("all instances stopped");
@@ -2239,6 +2245,13 @@ Mavlink::task_main(int argc, char *argv[])
 	/* start the MAVLink receiver last to avoid a race */
 	MavlinkReceiver::receive_start(&_receive_thread, this);
 
+	/* Events subscription: only the first MAVLink instance subscribes */
+	int event_sub = -1;
+	uint16_t event_sequence_offset = 0; // offset to account for skipped events, not sent via MAVLink
+
+	if (_instance_id == 0) {
+		event_sub = orb_subscribe(ORB_ID(event));
+	}
 	while (!_task_should_exit) {
 		/* main loop */
 		px4_usleep(_main_loop_delay);
@@ -2246,7 +2259,7 @@ Mavlink::task_main(int argc, char *argv[])
 		perf_count(_loop_interval_perf);
 		perf_begin(_loop_perf);
 
-		hrt_abstime t = hrt_absolute_time();
+		const hrt_abstime t = hrt_absolute_time();
 
 		update_rate_mult();
 
@@ -2394,6 +2407,35 @@ Mavlink::task_main(int argc, char *argv[])
 				}
 			}
 		}
+
+		/* handle new events */
+		if (event_sub >= 0) {
+			bool updated = false;
+			orb_check(event_sub, &updated);
+
+			while (updated) {
+				event_s orb_event;
+				orb_copy(ORB_ID(event), event_sub, &orb_event);
+
+				if (orb_event.log_level_external == (uint8_t)EVENT_LOGLEVEL::Disabled) {
+					++event_sequence_offset; // skip this event
+
+				} else {
+					events::Event e;
+					e.id = orb_event.id;
+					e.timestamp_ms = orb_event.timestamp / 1000;
+					e.sequence = orb_event.sequence - event_sequence_offset;
+					static_assert(sizeof(e.arguments) == sizeof(orb_event.arguments),
+						      "uorb message event: arguments size mismatch");
+					memcpy(e.arguments, orb_event.arguments, sizeof(orb_event.arguments));
+					_event_buffer->insert_event(e);
+				}
+
+				orb_check(event_sub, &updated);
+			}
+		}
+
+		_events.update(t);
 
 		/* check for requested subscriptions */
 		if (_subscribe_to_stream != nullptr) {
@@ -2567,6 +2609,10 @@ Mavlink::task_main(int argc, char *argv[])
 
 	_subscriptions = nullptr;
 
+	if (event_sub >= 0) {
+		orb_unsubscribe(event_sub);
+	}
+
 	if (_uart_fd >= 0 && !_is_usb_uart) {
 		/* close UART */
 		::close(_uart_fd);
@@ -2699,6 +2745,22 @@ Mavlink::start(int argc, char *argv[])
 {
 	MavlinkULog::initialize();
 	MavlinkCommandSender::initialize();
+
+	if (!_event_buffer) {
+		_event_buffer = new events::EventBuffer();
+		int ret;
+
+		if (_event_buffer && (ret = _event_buffer->init()) != 0) {
+			PX4_ERR("EventBuffer init failed (%i)", ret);
+			delete _event_buffer;
+			_event_buffer = nullptr;
+		}
+
+		if (!_event_buffer) {
+			PX4_ERR("EventBuffer alloc failed");
+			return 1;
+		}
+	}
 
 	// Wait for the instance count to go up one
 	// before returning to the shell
