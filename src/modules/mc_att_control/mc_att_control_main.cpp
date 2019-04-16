@@ -729,6 +729,16 @@ MulticopterAttitudeControl::control_attitude_rates(float dt)
 			float i_gain = rates_err(i) / math::radians(400.f);
 			i_gain = math::max(0.0f, 1.f - i_gain * i_gain);
 
+			bool enabled = _manual_control_sp.aux1 > 0.3f;
+			static bool enabled_prev = false;
+			if (enabled_prev != enabled) {
+				PX4_WARN("i_gain enabled: %i", (int)enabled);
+				enabled_prev = enabled;
+			}
+			if (!enabled) {
+				i_gain = 1.f;
+			}
+
 			// Perform the integration using a first order method and do not propagate the result if out of range or invalid
 			float rate_i = _rates_int(i) + i_gain * rates_i_scaled(i) * rates_err(i) * dt;
 
