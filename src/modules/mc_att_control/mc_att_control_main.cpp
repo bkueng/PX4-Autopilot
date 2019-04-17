@@ -724,8 +724,13 @@ MulticopterAttitudeControl::control_attitude_rates(float dt)
 
 			}
 
+			// I term gain: reduce the gain with increasing rate error to avoid
+			// bounce-back after flips
+			float i_gain = rates_err(i) / math::radians(400.f);
+			i_gain = math::max(0.0f, 1.f - i_gain * i_gain);
+
 			// Perform the integration using a first order method and do not propagate the result if out of range or invalid
-			float rate_i = _rates_int(i) + rates_i_scaled(i) * rates_err(i) * dt;
+			float rate_i = _rates_int(i) + i_gain * rates_i_scaled(i) * rates_err(i) * dt;
 
 			if (PX4_ISFINITE(rate_i) && rate_i > -_rate_int_lim(i) && rate_i < _rate_int_lim(i)) {
 				_rates_int(i) = rate_i;
