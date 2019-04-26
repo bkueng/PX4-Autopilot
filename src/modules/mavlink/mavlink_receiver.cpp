@@ -263,6 +263,10 @@ MavlinkReceiver::handle_message(mavlink_message_t *msg)
 		handle_message_debug_float_array(msg);
 		break;
 
+	case MAVLINK_MSG_ID_STATUSTEXT:
+		handle_message_statustext(msg);
+		break;
+
 	default:
 		break;
 	}
@@ -2533,6 +2537,27 @@ MavlinkReceiver::handle_message_debug_float_array(mavlink_message_t *msg)
 
 	} else {
 		orb_publish(ORB_ID(debug_array), _debug_array_pub, &debug_topic);
+	}
+}
+
+void
+MavlinkReceiver::handle_message_statustext(mavlink_message_t *msg)
+{
+	// TODO: statustextlong?
+	mavlink_statustext_t msg_statustext;
+	mavlink_msg_statustext_decode(msg, &msg_statustext);
+
+	log_message_s log_msg;
+	log_msg.timestamp = hrt_absolute_time();
+	log_msg.severity = msg_statustext.severity;
+	memcpy(log_msg.text, msg_statustext.text, math::min(sizeof(log_msg.text), sizeof(msg_statustext.text)));
+	log_msg.text[sizeof(log_msg.text) - 1] = '\0';
+
+	if (_log_message_incoming_pub == nullptr) {
+		_log_message_incoming_pub = orb_advertise(ORB_ID(log_message_incoming), &log_msg);
+
+	} else {
+		orb_publish(ORB_ID(log_message_incoming), _log_message_incoming_pub, &log_msg);
 	}
 }
 

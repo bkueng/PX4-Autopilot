@@ -630,6 +630,7 @@ void Logger::add_default_topics()
 	add_topic("estimator_status", 200);
 	add_topic("home_position");
 	add_topic("input_rc", 200);
+	add_topic("log_message_incoming");
 	add_topic("manual_control_setpoint", 200);
 	//add_topic("mission");
 	//add_topic("mission_result");

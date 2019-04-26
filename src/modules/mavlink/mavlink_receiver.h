@@ -59,6 +59,7 @@
 #include <uORB/topics/gps_inject_data.h>
 #include <uORB/topics/home_position.h>
 #include <uORB/topics/landing_target_pose.h>
+#include <uORB/topics/log_message.h>
 #include <uORB/topics/manual_control_setpoint.h>
 #include <uORB/topics/obstacle_distance.h>
 #include <uORB/topics/offboard_control_mode.h>
@@ -163,6 +164,7 @@ private:
 	void handle_message_set_attitude_target(mavlink_message_t *msg);
 	void handle_message_set_mode(mavlink_message_t *msg);
 	void handle_message_set_position_target_local_ned(mavlink_message_t *msg);
+	void handle_message_statustext(mavlink_message_t *msg);
 	void handle_message_trajectory_representation_waypoints(mavlink_message_t *msg);
 	void handle_message_vision_position_estimate(mavlink_message_t *msg);
 
@@ -241,6 +243,7 @@ private:
 	orb_advert_t _land_detector_pub{nullptr};
 	orb_advert_t _landing_target_pose_pub{nullptr};
 	orb_advert_t _local_pos_pub{nullptr};
+	orb_advert_t _log_message_incoming_pub{nullptr};
 	orb_advert_t _mag_pub{nullptr};
 	orb_advert_t _manual_pub{nullptr};
 	orb_advert_t _mocap_odometry_pub{nullptr};
