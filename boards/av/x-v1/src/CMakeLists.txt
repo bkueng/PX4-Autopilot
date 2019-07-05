@@ -33,7 +33,6 @@
 
 px4_add_library(drivers_board
 	init.c
-	manifest.c
 	sdio.c
 	spi.cpp
 	timer_config.c
