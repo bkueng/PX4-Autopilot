@@ -79,6 +79,9 @@
 #  include <parameters/flashparams/flashfs.h>
 #endif
 
+
+#include <drivers/drv_pwm_output.h>
+
 /****************************************************************************
  * Pre-Processor Definitions
  ****************************************************************************/
@@ -350,6 +353,45 @@ __EXPORT int board_app_initialize(uintptr_t arg)
 
 #endif
 
+	for (int i = 0; i < 1000; ++i) {
+		usleep(1000);
+	}
+
+	//Start debugging for dshot
+	uint32_t channel_mask = 0xF; //b0001111 -> four motors
+	up_dshot_init(channel_mask, DSHOT600); // DSHOT1200: not supported on my test ESC's
+	up_dshot_arm(true);
+	uint16_t throttle = 100;
+	up_dshot_motor_data_set(0, throttle, true);
+	up_dshot_motor_data_set(1, throttle, true);
+	up_dshot_motor_data_set(2, throttle, true);
+	up_dshot_motor_data_set(3, throttle, true);
+
+	for (uint32_t i = 0; i < 3 * 1000; i++) {
+		up_dshot_trigger();
+		usleep(1000);
+	}
+
+	throttle = 1000;
+	up_dshot_motor_data_set(0, throttle, true);
+	up_dshot_motor_data_set(1, throttle, true);
+	up_dshot_motor_data_set(2, throttle, true);
+	up_dshot_motor_data_set(3, throttle, true);
+
+	for (uint32_t i = 0; i < 3 * 1000; i++) {
+		up_dshot_trigger();
+		usleep(1000);
+	}
+
+	up_dshot_arm(false);
+
+	// This should not do anything since is disarmed.
+	for (uint32_t i = 0; i < 1000; i++) {
+		up_dshot_trigger();
+		usleep(1000);
+	}
+
+	while (1) { usleep(1); }
 
 	return OK;
 }
