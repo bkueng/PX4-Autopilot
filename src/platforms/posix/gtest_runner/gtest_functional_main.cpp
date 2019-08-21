@@ -1,7 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2017 Fan.zhang. All rights reserved. 421395590@qq.com
- *   Copyright (c) 2017 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2012-2019 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,71 +31,15 @@
  *
  ****************************************************************************/
 
-#pragma once
+#include <gtest/gtest.h>
 
-/*! @file rpi_rc_in.h
- * Raspberry Pi driver to publish RC input from shared memory.
- * It requires the ppmdecode program (https://github.com/crossa/raspberry-pi-ppm-rc-in)
- */
+#include <uORB/Subscription.hpp>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <unistd.h>
-
-#include <px4_config.h>
-#include <px4_work_queue/ScheduledWorkItem.hpp>
-#include <px4_defines.h>
-
-#include <drivers/drv_hrt.h>
-
-#include <uORB/uORB.h>
-#include <uORB/topics/input_rc.h>
-
-#define RCINPUT_MEASURE_INTERVAL_US 20000
-
-namespace rpi_rc_in
+int main(int argc, char **argv)
 {
-class RcInput : public px4::ScheduledWorkItem
-{
-public:
-	RcInput() : ScheduledWorkItem(px4::wq_configurations::hp_default) {}
+	testing::InitGoogleTest(&argc, argv);
 
-	~RcInput();
-
-	/** @return 0 on success, -errno on failure */
-	int start();
-
-	/** @return 0 on success, -errno on failure */
-	void stop();
-
-	bool is_running()
-	{
-		return _is_running;
-	}
-
-private:
-	void Run() override;
-	void _measure();
-
-	int rpi_rc_init();
-
-	bool _should_exit = false;
-	bool _is_running = false;
-	orb_advert_t _rcinput_pub = nullptr;
-	int _channels = 8; //D8R-II plus
-	struct input_rc_s _data = {};
-
-	int *_mem = nullptr;
-	key_t _key = 4096; ///< shared memory key (matches the ppmdecode program's key)
-	int _shmid = 0;
-};
-
-static void usage(const char *reason);
-static RcInput *rc_input = nullptr;
+	uORB::Manager::initialize();
+	param_init();
+	return RUN_ALL_TESTS();
 }
-extern "C" __EXPORT int rpi_rc_in_main(int argc, char **argv);
