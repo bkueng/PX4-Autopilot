@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2016 PX4 Development Team. All rights reserved.
+ *   Copyright (C) 2019 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,12 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************/
-#pragma once
 
-/*
- * This file is a shim to bridge to the many SoC architecture supported by PX4
- */
+#include <board_config.h>
 
-// include arch-specific header
-#include <px4_arch_micro_hal.h>
-
+#ifdef GPIO_TONE_ALARM_GPIO
+#include "ToneAlarmInterfaceGPIO.cpp"
+#else
+#include "ToneAlarmInterfacePWM.cpp"
+#endif
