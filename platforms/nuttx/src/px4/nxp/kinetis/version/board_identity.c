@@ -34,50 +34,35 @@
 
 /**
  * @file board_identity.c
- * Implementation of STM32 based Board identity API
+ * Implementation of Kientis based Board identity API
  */
 
 #include <px4_platform_common/config.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
-#define CPU_UUID_BYTE_FORMAT_ORDER          {3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8}
-#define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00ff0000) >> 8) | (((x) & 0x0000ff00) << 8) | ((x) << 24))
+#include <chip/kinetis_memorymap.h>
+#include <chip/kinetis_sim.h>
 
 static const uint16_t soc_arch_id = PX4_SOC_ARCH_ID;
 
-/* A type suitable for holding the reordering array for the byte format of the UUID
- */
-
-typedef const uint8_t uuid_uint8_reorder_t[PX4_CPU_UUID_BYTE_LENGTH];
-
+#define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00ff0000) >> 8) | (((x) & 0x0000ff00) << 8) | ((x) << 24))
 
 void board_get_uuid(uuid_byte_t uuid_bytes)
 {
-	uuid_uint8_reorder_t reorder = CPU_UUID_BYTE_FORMAT_ORDER;
-	union {
-		uuid_byte_t b;
-		uuid_uint32_t w;
-	} id;
+	uint32_t *chip_uuid = (uint32_t *) KINETIS_SIM_UIDH;
+	uint8_t *uuid_words = uuid_bytes;
 
-	/* Copy the serial from the chips non-write memory */
-
-	board_get_uuid32(id.w);
-
-	/* swap endianess */
-
-	for (int i = 0; i < PX4_CPU_UUID_BYTE_LENGTH; i++) {
-		uuid_bytes[i] = id.b[reorder[i]];
+	for (unsigned int i = 0; i < PX4_CPU_UUID_WORD32_LENGTH; i++) {
+		uint32_t current_uuid_bytes = SWAP_UINT32(chip_uuid[i]);
+		memcpy(uuid_words, &current_uuid_bytes, sizeof(uint32_t));
+		uuid_words += sizeof(uint32_t);
 	}
 }
 
-__EXPORT void board_get_uuid32(uuid_uint32_t uuid_words)
+void board_get_uuid32(uuid_uint32_t uuid_words)
 {
-	uint32_t *chip_uuid = (uint32_t *) STM32_SYSMEM_UID;
-
-	for (unsigned i = 0; i < PX4_CPU_UUID_WORD32_LENGTH; i++) {
-		uuid_words[i] = chip_uuid[i];
-	}
+	board_get_uuid(*(uuid_byte_t *) uuid_words);
 }
 
 int board_get_uuid32_formated(char *format_buffer, int size,
@@ -86,11 +71,12 @@ int board_get_uuid32_formated(char *format_buffer, int size,
 {
 	uuid_uint32_t uuid;
 	board_get_uuid32(uuid);
+
 	int offset = 0;
 	int sep_size = seperator ? strlen(seperator) : 0;
 
-	for (unsigned i = 0; i < PX4_CPU_UUID_WORD32_LENGTH; i++) {
-		offset += snprintf(&format_buffer[offset], size - offset, format, uuid[i]);
+	for (unsigned int i = 0; i < PX4_CPU_UUID_WORD32_LENGTH; i++) {
+		offset += snprintf(&format_buffer[offset], size - ((i * 2 * sizeof(uint32_t)) + 1), format, uuid[i]);
 
 		if (sep_size && i < PX4_CPU_UUID_WORD32_LENGTH - 1) {
 			strcat(&format_buffer[offset], seperator);
@@ -103,13 +89,7 @@ int board_get_uuid32_formated(char *format_buffer, int size,
 
 int board_get_mfguid(mfguid_t mfgid)
 {
-	uint32_t *chip_uuid = (uint32_t *) STM32_SYSMEM_UID;
-	uint32_t  *rv = (uint32_t *) &mfgid[0];
-
-	for (unsigned i = 0; i < PX4_CPU_UUID_WORD32_LENGTH; i++) {
-		*rv++ = SWAP_UINT32(chip_uuid[(PX4_CPU_UUID_WORD32_LENGTH - 1) - i]);
-	}
-
+	board_get_uuid(* (uuid_byte_t *) mfgid);
 	return PX4_CPU_MFGUID_BYTE_LENGTH;
 }
 
@@ -120,7 +100,7 @@ int board_get_mfguid_formated(char *format_buffer, int size)
 	board_get_mfguid(mfguid);
 	int offset  = 0;
 
-	for (unsigned i = 0; offset < size && i < PX4_CPU_MFGUID_BYTE_LENGTH; i++) {
+	for (unsigned int i = 0; i < PX4_CPU_MFGUID_BYTE_LENGTH; i++) {
 		offset += snprintf(&format_buffer[offset], size - offset, "%02x", mfguid[i]);
 	}
 
@@ -132,20 +112,7 @@ int board_get_px4_guid(px4_guid_t px4_guid)
 	uint8_t  *pb = (uint8_t *) &px4_guid[0];
 	*pb++ = (soc_arch_id >> 8) & 0xff;
 	*pb++ = (soc_arch_id & 0xff);
-
-	for (unsigned i = 0; i < PX4_GUID_BYTE_LENGTH - (sizeof(soc_arch_id) + PX4_CPU_UUID_BYTE_LENGTH); i++) {
-		*pb++ = 0;
-	}
-
-	uint32_t  *rv = (uint32_t *) pb;
-	uint32_t *chip_uuid = (uint32_t *) STM32_SYSMEM_UID;
-
-	for (unsigned i = 0; i < PX4_CPU_UUID_WORD32_LENGTH; i++) {
-		uint32_t uuid_bytes = SWAP_UINT32(chip_uuid[(PX4_CPU_UUID_WORD32_LENGTH - 1) - i]);
-		memcpy(rv, &uuid_bytes, sizeof(uint32_t));
-		++rv;
-	}
-
+	board_get_uuid(pb);
 	return PX4_GUID_BYTE_LENGTH;
 }
 
