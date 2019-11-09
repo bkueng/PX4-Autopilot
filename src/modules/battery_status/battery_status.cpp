@@ -62,6 +62,7 @@
 #include <uORB/topics/vehicle_control_mode.h>
 #include <uORB/topics/parameter_update.h>
 #include <uORB/topics/battery_status.h>
+#include <uORB/topics/esc_status.h>
 #include <px4_platform_common/px4_work_queue/ScheduledWorkItem.hpp>
 
 #include <DevMgr.hpp>
@@ -136,6 +137,7 @@ private:
 	uORB::Subscription	_actuator_ctrl_0_sub{ORB_ID(actuator_controls_0)};		/**< attitude controls sub */
 	uORB::Subscription	_parameter_update_sub{ORB_ID(parameter_update)};				/**< notification of parameter updates */
 	uORB::Subscription	_vcontrol_mode_sub{ORB_ID(vehicle_control_mode)};		/**< vehicle control mode subscription */
+	uORB::Subscription	_esc_status_sub{ORB_ID(esc_status)};
 
 	orb_advert_t	_battery_pub[BOARD_NUMBER_BRICKS] {};			/**< battery status */
 	Battery		_battery[BOARD_NUMBER_BRICKS];			/**< Helper lib to publish battery_status topic. */
@@ -318,6 +320,22 @@ BatteryStatus::adc_poll()
 			}
 		}
 
+		/* current information from the ESC's */
+		float total_current = 0.f;
+		float total_consumption = 0.f;
+		esc_status_s esc;
+
+		if (_esc_status_sub.copy(&esc)) {
+			for (int i = 0; i < esc.esc_count; ++i) {
+				total_current += esc.esc[i].esc_current;
+				total_consumption += (float)esc.esc[i].esc_consumption;
+			}
+		}
+
+		if (total_current > FLT_EPSILON) {
+			bat_current_a[0] = total_current;
+		}
+
 		if (_parameters.battery_source == 0) {
 			for (int b = 0; b < BOARD_NUMBER_BRICKS; b++) {
 
@@ -340,6 +358,15 @@ BatteryStatus::adc_poll()
 								connected, selected_source == b, b,
 								ctrl.control[actuator_controls_s::INDEX_THROTTLE],
 								_armed, &battery_status);
+				static hrt_abstime prev_print = 0;
+				hrt_abstime now = hrt_absolute_time();
+
+				if (now - prev_print > 5_s) {
+					PX4_WARN("consumed: ESC: %.1f, acumulated: %.1f",
+						 (double)total_consumption, (double)battery_status.discharged_mah);
+					prev_print = now;
+				}
+
 				int instance;
 				orb_publish_auto(ORB_ID(battery_status), &_battery_pub[b], &battery_status, &instance, ORB_PRIO_DEFAULT);
 			}

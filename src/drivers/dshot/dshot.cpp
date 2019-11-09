@@ -591,6 +591,7 @@ void DShotOutput::handleNewTelemetryData(int motor_index, const DShotTelemetry::
 		esc_status.esc[motor_index].esc_rpm = ((int)data.erpm * 100) / (_param_mot_pole_count.get() / 2);
 		esc_status.esc[motor_index].esc_voltage = (float)data.voltage * 0.01f;
 		esc_status.esc[motor_index].esc_current = (float)data.current * 0.01f;
+		esc_status.esc[motor_index].esc_consumption = data.consumption;
 		esc_status.esc[motor_index].esc_temperature = data.temperature;
 		// TODO: accumulate consumption and use for battery estimation
 	}
