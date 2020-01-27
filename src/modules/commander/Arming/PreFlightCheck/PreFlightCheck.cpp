@@ -55,10 +55,171 @@ static constexpr unsigned max_optional_mag_count = 4;
 static constexpr unsigned max_mandatory_baro_count = 1;
 static constexpr unsigned max_optional_baro_count = 1;
 
+#include <limits.h>
+#include <uORB/topics/system_power.h>
+/**
+ * @class Report
+ *
+ */
+class Report
+{
+public:
+	Report() = default;
+	~Report() = default;
+
+	/**
+	 * Set the result of a check.
+	 * This must always be called, i.e. not from within nested conditions.
+	 * @param check_failed true if the check failed
+	 * @param optional true if check is optional (does not lead to preflight failure)
+	 * @return true if failure should be reported
+	 */
+	bool setFailed(bool check_failed, bool optional = false);
+
+	void enableReporting(bool enable) { _enable_reporting = enable; }
+	void reset();
+
+	bool checksFailed() const { return _failed_checks != 0; }
+	bool checkResultsChanged() const { return _failed_checks != _last_failed_checks; }
+private:
+	bool _enable_reporting{false};
+	uint32_t _failed_checks{0}; ///< bitset for failed checks (bit is set if check failed and not optional)
+	uint32_t _last_failed_checks{0};
+	unsigned _check_counter{0};
+};
+
+bool Report::setFailed(bool check_failed, bool optional)
+{
+	if (_check_counter >= sizeof(_failed_checks) * CHAR_BIT) {
+		PX4_ERR("Too many checks"); // increase the size of _check_counter if this happens
+		return false;
+	}
+
+	if (check_failed && !optional) {
+		_failed_checks |= 1 << _check_counter;
+	}
+
+	++_check_counter;
+	return _enable_reporting && check_failed;
+}
+void Report::reset()
+{
+	_check_counter = 0;
+	_last_failed_checks = _failed_checks;
+	_failed_checks = 0;
+	_enable_reporting = false;
+}
+
+/**
+ * @class PreflightCheckBase
+ *
+ */
+class PreflightCheckBase
+{
+public:
+	PreflightCheckBase() = default;
+	virtual ~PreflightCheckBase() = default;
+
+	virtual void update() = 0;
+	virtual void check(orb_advert_t *mavlink_log_pub, Report &reporter) const = 0;
+private:
+};
+
+/**
+ * @class PreflightCheckPower
+ *
+ */
+class PreflightCheckPower : public PreflightCheckBase
+{
+public:
+	PreflightCheckPower() = default;
+	virtual ~PreflightCheckPower() = default;
+
+	void update() override;
+	void check(orb_advert_t *mavlink_log_pub, Report &reporter) const override;
+private:
+	uORB::Subscription _system_power_sub{ORB_ID(system_power)};
+	float _avionics_power_rail_voltage{0.f};
+};
+
+void PreflightCheckPower::update()
+{
+	system_power_s system_power;
+
+	if (_system_power_sub.copy(&system_power)) {
+		_avionics_power_rail_voltage = system_power.voltage5v_v;
+	}
+}
+
+void PreflightCheckPower::check(orb_advert_t *mavlink_log_pub, Report &reporter) const
+{
+	// Check avionics rail voltages
+	const bool voltage_valid = _avionics_power_rail_voltage > 0.001f;
+	const bool avionics_power_rail_voltage_low = voltage_valid && _avionics_power_rail_voltage < 4.5f;
+
+	if (reporter.setFailed(avionics_power_rail_voltage_low)) {
+		mavlink_log_critical(mavlink_log_pub, "Preflight Fail: Avionics Power low: %6.2f Volt",
+				     (double)_avionics_power_rail_voltage);
+	}
+
+	if (reporter.setFailed(!avionics_power_rail_voltage_low && voltage_valid
+			       && _avionics_power_rail_voltage < 4.9f, true)) {
+		mavlink_log_critical(mavlink_log_pub, "CAUTION: Avionics Power low: %6.2f Volt", (double)_avionics_power_rail_voltage);
+	}
+
+	if (reporter.setFailed(voltage_valid && _avionics_power_rail_voltage > 5.4f, true)) {
+		mavlink_log_critical(mavlink_log_pub, "CAUTION: Avionics Power high: %6.2f Volt", (double)_avionics_power_rail_voltage);
+	}
+}
+
 bool PreFlightCheck::preflightCheck(orb_advert_t *mavlink_log_pub, vehicle_status_s &status,
 				    vehicle_status_flags_s &status_flags, const bool checkGNSS, bool reportFailures, const bool prearm,
 				    const hrt_abstime &time_since_boot)
 {
+	///////////////////////////////
+	// these should be class attributes
+	Report _reporter;
+	PreflightCheckPower _power_check;
+	PreflightCheckBase *_preflight_checks[] = {&_power_check};
+
+
+	bool force_reporting = false;
+	const int num_checks = sizeof(_preflight_checks) / sizeof(_preflight_checks[0]);
+
+	// update data
+	for (int i = 0; i < num_checks; ++i) {
+		_preflight_checks[i]->update();
+	}
+
+	_reporter.reset();
+	_reporter.enableReporting(false);
+
+	// run checks
+	for (int i = 0; i < num_checks; ++i) {
+		_preflight_checks[i]->check(mavlink_log_pub, _reporter);
+	}
+
+	// check if anything changed, and rerun the checks, this time with enabled reporting
+	if (force_reporting || _reporter.checkResultsChanged()) {
+		_reporter.reset();
+		_reporter.enableReporting(true);
+
+		for (int i = 0; i < num_checks; ++i) {
+			_preflight_checks[i]->check(mavlink_log_pub, _reporter);
+		}
+
+		if (_reporter.checkResultsChanged()) {
+			PX4_ERR("Implementation Bug"); // result must not change w/o call to update()
+		}
+	}
+
+	// TODO: check if _reporter._check_counter stays the same over multiple executions.
+	// it needs to be, as all checks always need to be run
+
+	return !_reporter.checksFailed();
+
+	///////////////////////////////
+
 	if (time_since_boot < 2_s) {
 		// the airspeed driver filter doesn't deliver the actual value yet
 		reportFailures = false;
