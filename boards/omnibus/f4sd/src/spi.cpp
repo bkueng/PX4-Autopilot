@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (C) 2017 PX4 Development Team. All rights reserved.
+ *   Copyright (C) 2018 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,25 +31,23 @@
  *
  ****************************************************************************/
 
-/**
- * @file px4fmu_i2c.c
- *
- * Board-specific I2C functions.
- */
+#include <px4_arch/spi_hw_description.h>
+#include <drivers/drv_sensor.h>
+#include <nuttx/spi/spi.h>
 
-#include "board_config.h"
+constexpr px4_spi_bus_t px4_spi_buses[SPI_BUS_MAX_BUS_ITEMS] = {
+	initSPIBus(1, {
+		initSPIDevice(DRV_IMU_DEVTYPE_MPU6000, SPI::CS{GPIO::PortA, GPIO::Pin4}),
+		initSPIDevice(DRV_IMU_DEVTYPE_ICM20602, SPI::CS{GPIO::PortA, GPIO::Pin4}),
+	}),
+	initSPIBus(2, {
+		initSPIDevice(SPIDEV_MMCSD(0), SPI::CS{GPIO::PortB, GPIO::Pin12})
+	}),
+	initSPIBus(3, {
+		initSPIDevice(DRV_BARO_DEVTYPE_BMP280, SPI::CS{GPIO::PortB, GPIO::Pin3}),
+		initSPIDevice(DRV_OSD_DEVTYPE_ATXXXX, SPI::CS{GPIO::PortA, GPIO::Pin15}),
+	}),
+};
 
-__EXPORT bool px4_i2c_bus_external(int bus)
-{
-	if (HW_VER_FMUV3 == board_get_hw_version()) {
-		/* All FMUV3 2.1 i2c buses are external */
-		return true;
+static constexpr bool unused = validateSPIConfig(px4_spi_buses);
 
-	} else {
-		if (bus != PX4_I2C_BUS_ONBOARD) {
-			return true;
-		}
-	}
-
-	return false;
-}

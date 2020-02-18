@@ -16,4 +16,3 @@ hmc5883 -X start
 
 bmp280 start
 
-adc start
