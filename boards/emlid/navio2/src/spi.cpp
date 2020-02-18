@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (C) 2012 PX4 Development Team. All rights reserved.
+ *   Copyright (C) 2020 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,32 +33,12 @@
 
 #include <px4_arch/spi_hw_description.h>
 #include <drivers/drv_sensor.h>
-#include <nuttx/spi/spi.h>
 
 constexpr px4_spi_bus_t px4_spi_buses[SPI_BUS_MAX_BUS_ITEMS] = {
-	initSPIBus(1, {
-		initSPIDevice(DRV_IMU_DEVTYPE_ICM20689, SPI::CS{GPIO::PortF, GPIO::Pin2}, SPI::DRDY{GPIO::PortB, GPIO::Pin4}),
-		initSPIDevice(DRV_IMU_DEVTYPE_ICM20602, SPI::CS{GPIO::PortF, GPIO::Pin3}, SPI::DRDY{GPIO::PortC, GPIO::Pin5}),
-		initSPIDevice(DRV_GYR_DEVTYPE_BMI055, SPI::CS{GPIO::PortF, GPIO::Pin4}, SPI::DRDY{GPIO::PortB, GPIO::Pin14}),
-		initSPIDevice(DRV_ACC_DEVTYPE_BMI055, SPI::CS{GPIO::PortG, GPIO::Pin10}, SPI::DRDY{GPIO::PortB, GPIO::Pin15}),
-	}, {GPIO::PortE, GPIO::Pin3}),
-	initSPIBus(2, {
-		initSPIDevice(SPIDEV_FLASH(0), SPI::CS{GPIO::PortF, GPIO::Pin5})
-	}),
-	initSPIBus(4, {
-		initSPIDevice(DRV_BARO_DEVTYPE_MS5611, SPI::CS{GPIO::PortF, GPIO::Pin10}),
-	}),
-	initSPIBusExternal(5, {
-		SPI::CS{GPIO::PortI, GPIO::Pin4},
-		SPI::CS{GPIO::PortI, GPIO::Pin10},
-		SPI::CS{GPIO::PortI, GPIO::Pin11}
-	}),
-	initSPIBusExternal(6, {
-		SPI::CS{GPIO::PortI, GPIO::Pin6},
-		SPI::CS{GPIO::PortI, GPIO::Pin7},
-		SPI::CS{GPIO::PortI, GPIO::Pin8}
+	initSPIBus(0, {
+		// spidev0.0 - ublox m8n
+		initSPIDevice(DRV_GYR_DEVTYPE_MPU9250, 1),
+		initSPIDevice(DRV_MAG_DEVTYPE_ST_LSM9DS1_M, 2),
+		initSPIDevice(DRV_IMU_DEVTYPE_ST_LSM9DS1_AG, 3),
 	}),
 };
-
-static constexpr bool unused = validateSPIConfig(px4_spi_buses);
-

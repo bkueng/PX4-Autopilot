@@ -515,7 +515,6 @@ int  fmuk66_spi_bus_initialize(void);
  *   Called to reset SPI and the perferal bus
  *
  ****************************************************************************************************/
-void board_spi_reset(int ms);
 void board_peripheral_reset(int ms);
 
 /************************************************************************************
