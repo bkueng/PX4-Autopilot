@@ -33,143 +33,53 @@
 
 #include <px4_platform_common/px4_config.h>
 #include <px4_platform_common/getopt.h>
+#include <px4_platform_common/i2c_spi_buses.h>
+
 
 #include "MS5611.hpp"
 #include "ms5611.h"
 
-enum class MS5611_BUS {
-	ALL = 0,
-	I2C_INTERNAL,
-	I2C_EXTERNAL,
-	SPI_INTERNAL,
-	SPI_EXTERNAL
-};
-
-namespace ms5611
+I2CSPIDriverBase *MS5611::instantiate(const BusCLIArguments &cli, const BusInstanceIterator &iterator,
+				      int runtime_instance)
 {
+	ms5611::prom_u prom_buf;
+	device::Device *interface = nullptr;
 
-// list of supported bus configurations
-struct ms5611_bus_option {
-	MS5611_BUS busid;
-	MS5611_constructor interface_constructor;
-	uint8_t busnum;
-	MS5611 *dev;
-} bus_options[] = {
-#if defined(PX4_I2C_BUS_ONBOARD)
-	{ MS5611_BUS::I2C_INTERNAL, &MS5611_i2c_interface, PX4_I2C_BUS_ONBOARD, nullptr },
-#endif
-#if defined(PX4_I2C_BUS_EXPANSION)
-	{ MS5611_BUS::I2C_EXTERNAL, &MS5611_i2c_interface, PX4_I2C_BUS_EXPANSION, nullptr },
-#endif
-#if defined(PX4_I2C_BUS_EXPANSION1)
-	{ MS5611_BUS::I2C_EXTERNAL, &MS5611_i2c_interface, PX4_I2C_BUS_EXPANSION1, nullptr },
-#endif
-#if defined(PX4_I2C_BUS_EXPANSION2)
-	{ MS5611_BUS::I2C_EXTERNAL, &MS5611_i2c_interface, PX4_I2C_BUS_EXPANSION2, nullptr },
-#endif
-#if defined(PX4_SPI_BUS_BARO) && defined(PX4_SPIDEV_BARO)
-	{ MS5611_BUS::SPI_INTERNAL, &MS5611_spi_interface, PX4_SPI_BUS_BARO, nullptr },
-#endif
-#if defined(PX4_SPI_BUS_EXT) && defined(PX4_SPIDEV_EXT_BARO)
-	{ MS5611_BUS::SPI_EXTERNAL, &MS5611_spi_interface, PX4_SPI_BUS_EXT, nullptr },
-#endif
-};
+	if (iterator.busType() == BOARD_I2C_BUS) {
+		interface = MS5611_i2c_interface(prom_buf, iterator.devid(), iterator.bus());
 
-// find a bus structure for a busid
-static struct ms5611_bus_option *find_bus(MS5611_BUS busid)
-{
-	for (ms5611_bus_option &bus_option : bus_options) {
-		if ((busid == MS5611_BUS::ALL ||
-		     busid == bus_option.busid) && bus_option.dev != nullptr) {
-
-			return &bus_option;
-		}
+	} else if (iterator.busType() == BOARD_SPI_BUS) {
+		interface = MS5611_spi_interface(prom_buf, iterator.devid(), iterator.bus());
 	}
 
-	return nullptr;
-}
+	if (interface == nullptr) {
+		PX4_ERR("failed creating interface for bus %i (devid 0x%x)", iterator.bus(), iterator.devid());
+		return nullptr;
+	}
 
-static bool start_bus(ms5611_bus_option &bus, enum MS56XX_DEVICE_TYPES device_type)
-{
-	prom_u prom_buf;
-	device::Device *interface = bus.interface_constructor(prom_buf, bus.busnum);
-
-	if ((interface == nullptr) || (interface->init() != PX4_OK)) {
-		PX4_WARN("no device on bus %u", (unsigned)bus.busid);
+	if (interface->init() != OK) {
 		delete interface;
-		return false;
+		PX4_DEBUG("no device on bus %i (devid 0x%x)", iterator.bus(), iterator.devid());
+		return nullptr;
 	}
 
-	MS5611 *dev = new MS5611(interface, prom_buf, device_type);
+	MS5611 *dev = new MS5611(interface, prom_buf, (MS56XX_DEVICE_TYPES)cli.custom1, iterator.configuredBusOption(),
+				 iterator.bus());
 
 	if (dev == nullptr) {
-		PX4_ERR("alloc failed");
-		return false;
+		delete interface;
+		return nullptr;
 	}
 
-	if (dev->init() != PX4_OK) {
-		PX4_ERR("driver start failed");
+	if (OK != dev->init()) {
 		delete dev;
-		return false;
+		return nullptr;
 	}
 
-	bus.dev = dev;
-
-	return true;
+	return dev;
 }
 
-static int start(MS5611_BUS busid, enum MS56XX_DEVICE_TYPES device_type)
-{
-	for (ms5611_bus_option &bus_option : bus_options) {
-		if (bus_option.dev != nullptr) {
-			// this device is already started
-			PX4_WARN("already started");
-			continue;
-		}
-
-		if (busid != MS5611_BUS::ALL && bus_option.busid != busid) {
-			// not the one that is asked for
-			continue;
-		}
-
-		if (start_bus(bus_option, device_type)) {
-			return PX4_OK;
-		}
-	}
-
-	return PX4_ERROR;
-}
-
-static int stop(MS5611_BUS busid)
-{
-	ms5611_bus_option *bus = find_bus(busid);
-
-	if (bus != nullptr && bus->dev != nullptr) {
-		delete bus->dev;
-		bus->dev = nullptr;
-
-	} else {
-		PX4_WARN("driver not running");
-		return PX4_ERROR;
-	}
-
-	return PX4_OK;
-}
-
-static int status(MS5611_BUS busid)
-{
-	ms5611_bus_option *bus = find_bus(busid);
-
-	if (bus != nullptr && bus->dev != nullptr) {
-		bus->dev->print_info();
-		return PX4_OK;
-	}
-
-	PX4_WARN("driver not running");
-	return PX4_ERROR;
-}
-
-static int usage()
+void MS5611::print_usage()
 {
 	PX4_INFO("missing command: try 'start', 'stop', 'status'");
 	PX4_INFO("options:");
@@ -177,13 +87,11 @@ static int usage()
 	PX4_INFO("    -I    (i2c internal bus)");
 	PX4_INFO("    -s    (spi internal bus)");
 	PX4_INFO("    -S    (spi external bus)");
+	PX4_INFO("    -c    chip-select index (for ext SPI)");
+	PX4_INFO("    -b    specific bus (default=all)");
 	PX4_INFO("    -T    5611|5607 (default 5611)");
 	PX4_INFO("    -T    0 (autodetect version)");
-
-	return 0;
 }
-
-} // namespace
 
 extern "C" int ms5611_main(int argc, char *argv[])
 {
@@ -191,62 +99,81 @@ extern "C" int ms5611_main(int argc, char *argv[])
 	int ch;
 	const char *myoptarg = nullptr;
 
-	MS5611_BUS busid = MS5611_BUS::ALL;
-	enum MS56XX_DEVICE_TYPES device_type = MS5611_DEVICE;
+	BusCLIArguments cli;
+	uint16_t dev_type_driver = DRV_BARO_DEVTYPE_MS5611;
+	cli.custom1 = MS5611_DEVICE;
+	using ThisDriver = MS5611;
 
-	while ((ch = px4_getopt(argc, argv, "XISsT:", &myoptind, &myoptarg)) != EOF) {
+	while ((ch = px4_getopt(argc, argv, "XISsc:b:T:", &myoptind, &myoptarg)) != EOF) {
 		switch (ch) {
 		case 'X':
-			busid = MS5611_BUS::I2C_EXTERNAL;
+			cli.bus_option = I2CSPIBusOption::I2CExternal;
 			break;
 
 		case 'I':
-			busid = MS5611_BUS::I2C_INTERNAL;
+			cli.bus_option = I2CSPIBusOption::I2CInternal;
 			break;
 
 		case 'S':
-			busid = MS5611_BUS::SPI_EXTERNAL;
+			cli.bus_option = I2CSPIBusOption::SPIExternal;
 			break;
 
 		case 's':
-			busid = MS5611_BUS::SPI_INTERNAL;
+			cli.bus_option = I2CSPIBusOption::SPIInternal;
+			break;
+
+		case 'c':
+			cli.chipselect_index = atoi(myoptarg);
+			break;
+
+		case 'b':
+			cli.requested_bus = atoi(myoptarg);
 			break;
 
 		case 'T': {
 				int val = atoi(myoptarg);
 
 				if (val == 5611) {
-					device_type = MS5611_DEVICE;
+					cli.custom1 = MS5611_DEVICE;
 
 				} else if (val == 5607) {
-					device_type = MS5607_DEVICE;
+					cli.custom1 = MS5607_DEVICE;
+					dev_type_driver = DRV_BARO_DEVTYPE_MS5607;
 
 				} else if (val == 0) {
-					device_type = MS56XX_DEVICE;
+					cli.custom1 = MS56XX_DEVICE;
+					// Note: On internal SPI, this will only look for MS5611 devices
 				}
 			}
 			break;
 
 		default:
-			return ms5611::usage();
+			ThisDriver::print_usage();
+			return 0;
 		}
 	}
 
 	if (myoptind >= argc) {
-		return ms5611::usage();
+		ThisDriver::print_usage();
+		return -1;
 	}
 
 	const char *verb = argv[myoptind];
 
+	BusInstanceIterator iterator(ThisDriver::instances(), ThisDriver::max_num_instances, cli, dev_type_driver);
+
 	if (!strcmp(verb, "start")) {
-		return ms5611::start(busid, device_type);
-
-	} else if (!strcmp(verb, "stop")) {
-		return ms5611::stop(busid);
-
-	} else if (!strcmp(verb, "status")) {
-		return ms5611::status(busid);
+		return ThisDriver::module_start(cli, iterator);
 	}
 
-	return ms5611::usage();
+	if (!strcmp(verb, "stop")) {
+		return ThisDriver::module_stop(iterator);
+	}
+
+	if (!strcmp(verb, "status")) {
+		return ThisDriver::module_status(iterator);
+	}
+
+	ThisDriver::print_usage();
+	return -1;
 }
