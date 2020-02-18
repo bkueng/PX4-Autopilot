@@ -37,6 +37,7 @@
 void
 MPU6000::print_usage()
 {
+	// TODO: module
 	PX4_INFO("missing command: try 'start', 'info', 'stop',\n'reset', 'regdump', 'testerror'"
 #ifndef CONSTRAINED_FLASH
 		 ", 'factorytest'"
@@ -178,19 +179,19 @@ mpu6000_main(int argc, char *argv[])
 
 	switch (cli.custom1) {
 	case MPU_DEVICE_TYPE_MPU6000:
-		dev_type_driver = DRV_GYR_DEVTYPE_MPU6000;
+		dev_type_driver = DRV_IMU_DEVTYPE_MPU6000;
 		break;
 
 	case MPU_DEVICE_TYPE_ICM20602:
-		dev_type_driver = DRV_GYR_DEVTYPE_ICM20602;
+		dev_type_driver = DRV_IMU_DEVTYPE_ICM20602;
 		break;
 
 	case MPU_DEVICE_TYPE_ICM20608:
-		dev_type_driver = DRV_GYR_DEVTYPE_ICM20608;
+		dev_type_driver = DRV_IMU_DEVTYPE_ICM20608;
 		break;
 
 	case MPU_DEVICE_TYPE_ICM20689:
-		dev_type_driver = DRV_GYR_DEVTYPE_ICM20689;
+		dev_type_driver = DRV_IMU_DEVTYPE_ICM20689;
 		break;
 	}
 

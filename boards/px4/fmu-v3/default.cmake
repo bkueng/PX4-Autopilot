@@ -92,7 +92,7 @@ px4_add_board(
 	SYSTEMCMDS
 		bl_update
 		config
-		#dmesg
+		dmesg
 		dumpfile
 		esc_calib
 		hardfault_log

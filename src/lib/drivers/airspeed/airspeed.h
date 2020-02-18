@@ -47,6 +47,7 @@
 /* Default I2C bus */
 static constexpr uint8_t PX4_I2C_BUS_DEFAULT = PX4_I2C_BUS_EXPANSION;
 
+// remove work queue item + start/stop methods
 class __EXPORT Airspeed : public device::I2C, public px4::ScheduledWorkItem
 {
 public:
@@ -69,7 +70,6 @@ protected:
 	* Perform a poll cycle; collect from the previous measurement
 	* and start a new one.
 	*/
-	virtual void	Run() = 0;
 	virtual int	measure() = 0;
 	virtual int	collect() = 0;
 
@@ -101,13 +101,6 @@ protected:
 	* Stop the automatic measurement state machine.
 	*/
 	void	stop();
-
-	/**
-	* add a new report to the reports queue
-	*
-	* @param report		differential_pressure_s report
-	*/
-	void	new_report(const differential_pressure_s &report);
 };
 
 

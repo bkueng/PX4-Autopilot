@@ -79,7 +79,7 @@ public:
 
 protected:
 
-	uint32_t get_measure_interval() const { return _measure_interval; };
+	uint32_t get_measure_interval() const { return LL40LS_CONVERSION_INTERVAL; };
 
 	virtual int collect() = 0;
 
@@ -93,8 +93,4 @@ protected:
 	perf_counter_t _sample_perf{perf_alloc(PC_ELAPSED, "ll40ls: read")};
 	perf_counter_t _sensor_resets{perf_alloc(PC_COUNT, "ll40ls: resets")};
 	perf_counter_t _sensor_zero_resets{perf_alloc(PC_COUNT, "ll40ls: zero resets")};
-
-private:
-
-	uint32_t  _measure_interval{LL40LS_CONVERSION_INTERVAL};
 };

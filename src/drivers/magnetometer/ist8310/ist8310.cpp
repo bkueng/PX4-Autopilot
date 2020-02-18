@@ -934,6 +934,7 @@ IST8310::instantiate(const BusCLIArguments &cli, const BusInstanceIterator &iter
 void
 IST8310::print_usage()
 {
+	// TODO
 	PX4_INFO("try 'start', 'stop', 'status', 'reset'");
 	PX4_INFO("options:");
 	PX4_INFO("    -X    (i2c external bus)");

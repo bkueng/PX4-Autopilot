@@ -351,6 +351,7 @@
 
 
 
+#define BOARD_ENABLE_CONSOLE_BUFFER
 /*
  * ADC channels
  *

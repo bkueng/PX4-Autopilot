@@ -81,6 +81,7 @@ I2CSPIDriverBase *MS5611::instantiate(const BusCLIArguments &cli, const BusInsta
 
 void MS5611::print_usage()
 {
+	// TODO: module...
 	PX4_INFO("missing command: try 'start', 'stop', 'status'");
 	PX4_INFO("options:");
 	PX4_INFO("    -X    (i2c external bus)");

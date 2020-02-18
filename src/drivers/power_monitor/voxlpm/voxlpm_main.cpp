@@ -165,7 +165,7 @@ info()
 void
 usage()
 {
-	PRINT_MODULE_USAGE_NAME_SIMPLE("voxlpm", "command");
+	PRINT_MODULE_USAGE_NAME_SIMPLE("voxlpm", "driver");
 
 	PRINT_MODULE_USAGE_COMMAND_DESCR("start", "start monitoring");
 	PRINT_MODULE_USAGE_COMMAND_DESCR("info", "display info");;
