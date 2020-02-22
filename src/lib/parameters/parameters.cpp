@@ -1178,6 +1178,61 @@ out:
 struct param_import_state {
 	bool mark_saved;
 };
+#include <lib/drivers/device/Device.hpp>
+#include <drivers/drv_sensor.h>
+
+static bool param_modify_on_import(const char *name, bson_type_t type, void *value)
+{
+	// translate SPI calibration ID parameters
+
+	if (type != BSON_INT32) {
+		return false;
+	}
+
+	int32_t *ivalue = (int32_t *)value;
+
+	const char *cal_id_params[] = {
+		"CAL_ACC0_ID",
+		"CAL_GYRO0_ID",
+		"CAL_MAG0_ID",
+		"CAL_ACC1_ID",
+		"CAL_GYRO1_ID",
+		"CAL_MAG1_ID",
+		"CAL_ACC2_ID",
+		"CAL_GYRO2_ID",
+		"CAL_MAG2_ID",
+	};
+	bool found = false;
+
+	for (int i = 0; i < sizeof(cal_id_params) / sizeof(cal_id_params[0]); ++i) {
+		if (strcmp(cal_id_params[i], name) == 0) {
+			found = true;
+			break;
+		}
+	}
+
+	if (!found) {
+		return false;
+	}
+
+	PX4_INFO("param modify: %s, value=0x%x", name, *ivalue);
+
+	device::Device::DeviceId device_id;
+	device_id.devid = (uint32_t) * ivalue;
+
+	// SPI board config translation
+	if (device_id.devid_s.bus_type == device::Device::DeviceBusType_SPI) {
+		device_id.devid_s.address = 0;
+	}
+
+	// deprecated ACC -> IMU translations
+	if (device_id.devid_s.devtype == DRV_ACC_DEVTYPE_ICM20602_DEPRECATED) {
+		device_id.devid_s.devtype = DRV_IMU_DEVTYPE_ICM20602;
+	}
+
+	*ivalue = (int32_t)device_id.devid;
+	return true;
+}
 
 static int
 param_import_callback(bson_decoder_t decoder, void *priv, bson_node_t node)
@@ -1283,6 +1338,9 @@ param_import_callback(bson_decoder_t decoder, void *priv, bson_node_t node)
 		PX4_DEBUG("unrecognised node type");
 		goto out;
 	}
+
+	// TODO: flashparams too
+	param_modify_on_import(node->name, node->type, v);
 
 	if (param_set_internal(param, v, state->mark_saved, true)) {
 		PX4_DEBUG("error setting value for '%s'", node->name);
