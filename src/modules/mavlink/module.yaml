@@ -1,6 +1,7 @@
 __max_num_config_instances: &max_num_config_instances 3
 
 module_name: MAVLink
+# TODO: fix too many arguments...
 serial_config:
     - command: |
         set MAV_ARGS "-b p:${BAUD_PARAM} -m p:MAV_${i}_MODE -r p:MAV_${i}_RATE"
