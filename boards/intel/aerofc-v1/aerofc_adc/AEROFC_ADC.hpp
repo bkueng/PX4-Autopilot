@@ -43,25 +43,29 @@
 #include <px4_platform_common/log.h>
 #include <drivers/device/i2c.h>
 #include <drivers/drv_adc.h>
-#include <px4_platform_common/px4_work_queue/ScheduledWorkItem.hpp>
+#include <px4_platform_common/i2c_spi_buses.h>
 
 #define SLAVE_ADDR 0x50
 #define ADC_ENABLE_REG 0x00
 #define ADC_CHANNEL_REG 0x05
 #define MAX_CHANNEL 5
 
-class AEROFC_ADC : public device::I2C, public px4::ScheduledWorkItem
+class AEROFC_ADC : public device::I2C, public I2CSPIDriver<AEROFC_ADC>
 {
 public:
-	AEROFC_ADC(uint8_t bus);
+	AEROFC_ADC(I2CSPIBusOption bus_option, int bus_number, int bus_frequency);
 	~AEROFC_ADC() override;
+
+	static I2CSPIDriverBase *instantiate(const BusCLIArguments &cli, const BusInstanceIterator &iterator,
+					     int runtime_instance);
+	static void print_usage();
 
 	int init() override;
 	ssize_t read(file *filp, char *buffer, size_t len) override;
 
+	void RunImpl();
 private:
 	int probe() override;;
-	void Run() override;
 
 	px4_adc_msg_t _sample{};
 	pthread_mutex_t _sample_mutex;
