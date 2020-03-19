@@ -241,26 +241,15 @@ __EXPORT int imxrt1062_spi_bus_initialize(void)
 
 static inline void imxrt_spixselect(const px4_spi_bus_t *bus, struct spi_dev_s *dev, uint32_t devid, bool selected)
 {
-	int matched_dev_idx = -1;
-
 	for (int i = 0; i < SPI_BUS_MAX_DEVICES; ++i) {
 		if (bus->devices[i].cs_gpio == 0) {
 			break;
 		}
 
 		if (devid == bus->devices[i].devid) {
-			matched_dev_idx = i;
-
-		} else {
-			// Making sure the other peripherals are not selected
-			imxrt_gpio_write(bus->devices[i].cs_gpio, 1);
+			// SPI select is active low, so write !selected to select the device
+			imxrt_gpio_write(bus->devices[i].cs_gpio, !selected);
 		}
-	}
-
-	// different devices might use the same CS, so make sure to configure the one we want last
-	if (matched_dev_idx != -1) {
-		// SPI select is active low, so write !selected to select the device
-		imxrt_gpio_write(bus->devices[matched_dev_idx].cs_gpio, !selected);
 	}
 }
 
@@ -372,6 +361,7 @@ __EXPORT void board_spi_reset(int ms, int bus_mask)
 			for (int i = 0; i < SPI_BUS_MAX_DEVICES; ++i) {
 				if (px4_spi_buses[bus].devices[i].cs_gpio != 0) {
 					imxrt_config_gpio(px4_spi_buses[bus].devices[i].cs_gpio);
+					imxrt_gpio_write(px4_spi_buses[bus].devices[i].cs_gpio, 1);
 				}
 
 				if (px4_spi_buses[bus].devices[i].drdy_gpio != 0) {
