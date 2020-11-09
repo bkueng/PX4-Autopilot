@@ -53,7 +53,7 @@ px4_add_module(
 		${CMAKE_CURRENT_BINARY_DIR}
 	SRCS
 		listener_main.cpp
-		listener_generated.cpp
+		${CMAKE_CURRENT_BINARY_DIR}/listener_generated.cpp
 	DEPENDS
 		generate_topic_listener
 	)

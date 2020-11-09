@@ -79,6 +79,7 @@
 #include <uORB/topics/vehicle_status.h>
 
 #include "mavlink_command_sender.h"
+#include "mavlink_events.h"
 #include "mavlink_messages.h"
 #include "mavlink_shell.h"
 #include "mavlink_ulog.h"
@@ -499,6 +500,7 @@ public:
 		if (_mavlink_ulog) { _mavlink_ulog_stop_requested = true; }
 	}
 
+	const events::SendProtocol &get_events_protocol() const { return _events; };
 	bool ftp_enabled() const { return _ftp_on; }
 
 	bool hash_check_enabled() const { return _param_mav_hash_chk_en.get(); }
@@ -566,6 +568,8 @@ private:
 
 	MavlinkShell		*_mavlink_shell{nullptr};
 	MavlinkULog		*_mavlink_ulog{nullptr};
+	static events::EventBuffer	*_event_buffer;
+	events::SendProtocol		_events{*_event_buffer, *this};
 
 	volatile bool		_mavlink_ulog_stop_requested{false};
 

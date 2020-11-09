@@ -1,6 +1,6 @@
 ############################################################################
 #
-#   Copyright (c) 2015 PX4 Development Team. All rights reserved.
+# Copyright (c) 2020 PX4 Development Team. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,33 +31,28 @@
 #
 ############################################################################
 
-set(SRCS)
+# cmake include guard
+if(px4_list_make_absolute_included)
+	return()
+endif(px4_list_make_absolute_included)
+set(px4_list_make_absolute_included true)
 
-if (NOT "${PX4_PLATFORM}" MATCHES "qurt" AND NOT "${PX4_BOARD}" MATCHES "io-v2" AND NOT "${PX4_BOARD_LABEL}" MATCHES "bootloader")
-	list(APPEND SRCS
-		px4_log.cpp
-	)
-endif()
+#=============================================================================
+#
+#	px4_list_make_absolute
+#
+#	prepend a prefix to each element in a list, if the element is not an abolute
+#	path
+#
+function(px4_list_make_absolute var prefix)
+	set(list_var "")
+	foreach(f ${ARGN})
+		if(IS_ABSOLUTE ${f})
+			list(APPEND list_var "${f}")
+		else()
+			list(APPEND list_var "${prefix}/${f}")
+		endif()
+	endforeach(f)
+	set(${var} "${list_var}" PARENT_SCOPE)
+endfunction()
 
-add_library(px4_platform
-	board_identity.c
-	events.cpp
-	external_reset_lockout.cpp
-	i2c.cpp
-	i2c_spi_buses.cpp
-	module.cpp
-	px4_getopt.c
-	px4_cli.cpp
-	shutdown.cpp
-	spi.cpp
-	${SRCS}
-)
-add_dependencies(px4_platform prebuild_targets)
-
-if (NOT "${PX4_BOARD}" MATCHES "io-v2")
-	add_subdirectory(uORB)
-	target_link_libraries(px4_platform PRIVATE uORB)
-endif()
-
-add_subdirectory(px4_work_queue)
-add_subdirectory(work_queue)
