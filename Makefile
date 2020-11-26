@@ -315,7 +315,7 @@ coverity_scan: px4_sitl_default
 
 # Documentation
 # --------------------------------------------------------------------
-.PHONY: parameters_metadata airframe_metadata module_documentation px4_metadata doxygen
+.PHONY: parameters_metadata airframe_metadata module_documentation extract_events px4_metadata doxygen
 
 parameters_metadata:
 	@$(MAKE) --no-print-directory px4_sitl_default metadata_parameters ver_gen
@@ -326,7 +326,10 @@ airframe_metadata:
 module_documentation:
 	@$(MAKE) --no-print-directory px4_sitl_default metadata_module_documentation
 
-px4_metadata: parameters_metadata airframe_metadata module_documentation
+extract_events:
+	@$(MAKE) --no-print-directory px4_sitl_default metadata_extract_events ver_gen
+
+px4_metadata: parameters_metadata airframe_metadata module_documentation extract_events
 
 doxygen:
 	@mkdir -p "$(SRC_DIR)"/build/doxygen
