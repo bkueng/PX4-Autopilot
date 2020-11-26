@@ -34,6 +34,8 @@
 px4_add_library(health_and_arming_checks
 	Common.cpp
 	HealthAndArmingChecks.cpp
+	Ekf2Checks.cpp
+	PowerChecks.cpp
 )
 
 px4_add_functional_gtest(SRC HealthAndArmingChecksTest.cpp
