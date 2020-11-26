@@ -38,6 +38,7 @@
  * @author Lorenz Meier <lm@inf.ethz.ch>
  */
 
+#include <px4_platform_common/events.h>
 #include <px4_platform_common/defines.h>
 #include <px4_platform_common/posix.h>
 #include <px4_platform_common/time.h>
@@ -60,6 +61,7 @@
 #include "calibration_messages.h"
 #include "commander_helper.h"
 
+using namespace events;
 using namespace time_literals;
 
 enum detect_orientation_return detect_orientation(orb_advert_t *mavlink_log_pub, bool lenient_still_position)
@@ -234,7 +236,11 @@ calibrate_return calibrate_from_orientation(orb_advert_t *mavlink_log_pub,
 
 		if (orientation_failures > 4) {
 			result = calibrate_return_error;
-			calibration_log_critical(mavlink_log_pub, CAL_QGC_FAILED_MSG, "timeout: no motion");
+			//calibration_log_critical(mavlink_log_pub, CAL_QGC_FAILED_MSG, "timeout: no motion");
+			/* EVENT
+			 * @group calibration
+			 */
+			send(events::ID("cal_no_motion_timeout"), Log::Error, "Timeout: no motion");
 			break;
 		}
 
@@ -263,16 +269,20 @@ calibrate_return calibrate_from_orientation(orb_advert_t *mavlink_log_pub,
 			}
 		}
 
-		calibration_log_info(mavlink_log_pub, "[cal] pending:%s", pendingStr);
-		px4_usleep(20000);
-		calibration_log_info(mavlink_log_pub, "[cal] hold vehicle still on a pending side");
-		px4_usleep(20000);
+//		calibration_log_info(mavlink_log_pub, "[cal] pending:%s", pendingStr);
+//		px4_usleep(20000);
+//		calibration_log_info(mavlink_log_pub, "[cal] hold vehicle still on a pending side");
+//		px4_usleep(20000);
 		enum detect_orientation_return orient = detect_orientation(mavlink_log_pub, lenient_still_position);
 
 		if (orient == ORIENTATION_ERROR) {
 			orientation_failures++;
-			calibration_log_info(mavlink_log_pub, "[cal] detected motion, hold still...");
-			px4_usleep(20000);
+//			calibration_log_info(mavlink_log_pub, "[cal] detected motion, hold still...");
+//			px4_usleep(20000);
+			/* EVENT
+			 * @group calibration
+			 */
+			send(events::ID("cal_motion_detected"), Log::Info, "Detected motion, hold still");
 			continue;
 		}
 
@@ -280,15 +290,23 @@ calibrate_return calibrate_from_orientation(orb_advert_t *mavlink_log_pub,
 		if (side_data_collected[orient]) {
 			orientation_failures++;
 			set_tune(tune_control_s::TUNE_ID_NOTIFY_NEGATIVE);
-			calibration_log_info(mavlink_log_pub, "[cal] %s side already completed", detect_orientation_str(orient));
-			px4_usleep(20000);
+//			calibration_log_info(mavlink_log_pub, "[cal] %s side already completed", detect_orientation_str(orient));
+//			px4_usleep(20000);
+			EventType event = common::create_cal_orientation_done(Log::Info,
+					  (common::enums::calibration_sides_t)(1 << orient),
+					  common::enums::calibration_action_t::next_orientation);
+			send(event);
 			continue;
 		}
 
-		calibration_log_info(mavlink_log_pub, CAL_QGC_ORIENTATION_DETECTED_MSG, detect_orientation_str(orient));
-		px4_usleep(20000);
-		calibration_log_info(mavlink_log_pub, CAL_QGC_ORIENTATION_DETECTED_MSG, detect_orientation_str(orient));
-		px4_usleep(20000);
+		EventType event = common::create_cal_orientation_detected(Log::Info,
+				  (common::enums::calibration_sides_t)(1 << orient),
+				  common::enums::calibration_action_t::hold_still); // TODO: determine next action
+		send(event);
+//		calibration_log_info(mavlink_log_pub, CAL_QGC_ORIENTATION_DETECTED_MSG, detect_orientation_str(orient));
+//		px4_usleep(20000);
+//		calibration_log_info(mavlink_log_pub, CAL_QGC_ORIENTATION_DETECTED_MSG, detect_orientation_str(orient));
+//		px4_usleep(20000);
 		orientation_failures = 0;
 
 		// Call worker routine
@@ -298,10 +316,14 @@ calibrate_return calibrate_from_orientation(orb_advert_t *mavlink_log_pub,
 			break;
 		}
 
-		calibration_log_info(mavlink_log_pub, CAL_QGC_SIDE_DONE_MSG, detect_orientation_str(orient));
-		px4_usleep(20000);
-		calibration_log_info(mavlink_log_pub, CAL_QGC_SIDE_DONE_MSG, detect_orientation_str(orient));
-		px4_usleep(20000);
+		// TODO: send only if not all done yet...
+		event = common::create_cal_orientation_done(Log::Info, (common::enums::calibration_sides_t)(1 << orient),
+				common::enums::calibration_action_t::next_orientation);
+		send(event);
+//		calibration_log_info(mavlink_log_pub, CAL_QGC_SIDE_DONE_MSG, detect_orientation_str(orient));
+//		px4_usleep(20000);
+//		calibration_log_info(mavlink_log_pub, CAL_QGC_SIDE_DONE_MSG, detect_orientation_str(orient));
+//		px4_usleep(20000);
 
 		// Note that this side is complete
 		side_data_collected[orient] = true;
@@ -339,7 +361,7 @@ bool calibrate_cancel_check(orb_advert_t *mavlink_log_pub, const hrt_abstime &ca
 				    (int)cmd.param6 == 0) {
 
 					command_ack.result = vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED;
-					mavlink_log_critical(mavlink_log_pub, CAL_QGC_CANCELLED_MSG);
+//					mavlink_log_critical(mavlink_log_pub, CAL_QGC_CANCELLED_MSG);
 					tune_positive(true);
 					ret = true;
 
