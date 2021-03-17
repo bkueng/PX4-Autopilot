@@ -31,39 +31,44 @@
 #
 ############################################################################
 
-set(component_version_extra_args)
+# types:
+# 0: COMP_METADATA_TYPE_GENERAL
+# 1: COMP_METADATA_TYPE_PARAMETER
+# 2: COMP_METADATA_TYPE_COMMANDS
+# 3: COMP_METADATA_TYPE_EXT_COMPONENTS
+set(comp_metadata_types)
 # We disable parameter support if the metadata is not in the ROMFS. This can be
 # removed once it is stored on a server
 list(FIND config_romfs_extra_dependencies "parameters_xml" index)
-if (${index} EQUAL -1)
-	set(component_version_extra_args "--no-parameters")
+if (NOT ${index} EQUAL -1)
+	# arguments: type, metadata file, uri, optional translation uri
+	list(APPEND comp_metadata_types "--type" "1,${PX4_BINARY_DIR}/params.json.xz,mftp://etc/extras/params.json.xz,")
 endif()
 
-set(component_version_json ${PX4_BINARY_DIR}/component_version.json)
-add_custom_command(OUTPUT ${component_version_json} ${component_version_json}.xz
-	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generate_component_version.py
-		${component_version_json}
+set(component_general_json ${PX4_BINARY_DIR}/component_general.json)
+add_custom_command(OUTPUT ${component_general_json} ${component_general_json}.xz
+	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generate_component_general.py
+		${component_general_json}
 		--compress
-		${component_version_extra_args}
+		${comp_metadata_types}
 	DEPENDS
-		generate_component_version.py
-	COMMENT "Generating component_version.json"
-)
-add_custom_target(component_version_json DEPENDS ${component_version_json})
-
-
-set(component_information_header ${CMAKE_CURRENT_BINARY_DIR}/hashes.h)
-add_custom_command(OUTPUT ${component_information_header}
-	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generate_hashes.py
+		generate_component_general.py
 		${PX4_BINARY_DIR}/params.json.xz
-		${component_version_json}
+		parameters_xml
+	COMMENT "Generating component_general.json"
+)
+add_custom_target(component_general_json DEPENDS ${component_general_json})
+
+
+set(component_information_header ${CMAKE_CURRENT_BINARY_DIR}/checksums.h)
+add_custom_command(OUTPUT ${component_information_header}
+	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generate_crc.py
+		${component_general_json}
 		--output ${component_information_header}
 	DEPENDS
-		generate_hashes.py
-		parameters_xml
-		${PX4_BINARY_DIR}/params.json.xz
-		${component_version_json}
-	COMMENT "Generating component_information/hashes.h"
+		generate_crc.py
+		${component_general_json}
+	COMMENT "Generating component_information/checksums.h"
 )
 add_custom_target(component_information_header DEPENDS ${component_information_header})
 
