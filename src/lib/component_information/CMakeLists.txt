@@ -40,10 +40,19 @@ set(comp_metadata_types)
 # We disable parameter support if the metadata is not in the ROMFS. This can be
 # removed once it is stored on a server
 list(FIND config_romfs_extra_dependencies "parameters_xml" index)
-if (NOT ${index} EQUAL -1)
-	# arguments: type, metadata file, uri, optional translation uri
-	list(APPEND comp_metadata_types "--type" "1,${PX4_BINARY_DIR}/params.json.xz,mftp://etc/extras/params.json.xz,")
+set(comp_metadata_board "${PX4_BOARD_VENDOR}_${PX4_BOARD_MODEL}_${PX4_BOARD_LABEL}")
+set(s3_url "https://px4-travis.s3.amazonaws.com")
+set(comp_metadata_param_uri_board "${s3_url}/Firmware/{version}/${comp_metadata_board}/parameters.json.xz")
+if (${index} EQUAL -1)
+	set(comp_metadata_param_uri ${comp_metadata_param_uri_board})
+	# use generic URL as fallback
+	set(comp_metadata_param_uri_fallback "${s3_url}/Firmware/{version}/_general/parameters.json.xz")
+else()
+	set(comp_metadata_param_uri "mftp://etc/extras/parameters.json.xz")
+	set(comp_metadata_param_uri_fallback ${comp_metadata_param_uri_board})
 endif()
+# arguments: type, metadata file, uri, fallback uri, optional translation uri
+list(APPEND comp_metadata_types "--type" "1,${PX4_BINARY_DIR}/parameters.json.xz,${comp_metadata_param_uri},${comp_metadata_param_uri_fallback},")
 
 set(component_general_json ${PX4_BINARY_DIR}/component_general.json)
 add_custom_command(OUTPUT ${component_general_json} ${component_general_json}.xz
@@ -51,10 +60,12 @@ add_custom_command(OUTPUT ${component_general_json} ${component_general_json}.xz
 		${component_general_json}
 		--compress
 		${comp_metadata_types}
+		--version-file ${PX4_BINARY_DIR}/src/lib/version/build_git_version.h
 	DEPENDS
 		generate_component_general.py
-		${PX4_BINARY_DIR}/params.json.xz
+		${PX4_BINARY_DIR}/parameters.json.xz
 		parameters_xml
+		ver_gen
 	COMMENT "Generating component_general.json"
 )
 add_custom_target(component_general_json DEPENDS ${component_general_json})

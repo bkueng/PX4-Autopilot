@@ -3,16 +3,28 @@
 import argparse
 import json
 import lzma #to create .xz file
+import re
 
 parser = argparse.ArgumentParser(description="""Generate the COMPONENT_GENERAL json file""")
 parser.add_argument('filename', metavar='component_general.json', help='JSON output file')
 parser.add_argument('--compress', action='store_true', help='Add a compressed output file')
 parser.add_argument('--type', metavar='type', action="append", default=[],
-        help='Metadata type (<type>,<metadata file>,<uri>,[translation uri])')
+        help='Metadata type (<type>,<metadata file>,<uri>,<fallback uri>,[translation uri])')
+parser.add_argument('--version-file', metavar='build_git_version.h', help='Git version file')
 
 args = parser.parse_args()
 filename = args.filename
 compress = args.compress
+version_file = args.version_file
+
+version_dir = ''
+if version_file is not None:
+    for line in open(version_file, "r"):
+        version_search = re.search('PX4_GIT_TAG_OR_BRANCH_NAME\s+"(.+)"', line)
+        if version_search:
+            version_dir = version_search.group(1)
+            break
+
 
 def save_compressed(filename):
     #create lzma compressed version
@@ -45,14 +57,15 @@ crc_table = create_table()
 
 metadata_types = []
 for metadata_type_tuple in args.type:
-    type_id, metadata_file, uri, translation_uri = metadata_type_tuple.split(',')
+    type_id, metadata_file, uri, fallback_uri, translation_uri = metadata_type_tuple.split(',')
     file_crc = 0
     for line in open(metadata_file, "rb"):
         file_crc = crc_update(line, crc_table, file_crc)
     json_type = {
             'type': int(type_id),
-            'uri': uri,
-            'fileCrc': file_crc
+            'uri': uri.replace('{version}', version_dir),
+            'fileCrc': file_crc,
+            'uriFallback': fallback_uri.replace('{version}', version_dir),
             }
     if len(translation_uri) > 0:
         json_type['translationUri'] = translation_uri
