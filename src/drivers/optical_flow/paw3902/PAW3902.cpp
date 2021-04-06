@@ -38,12 +38,13 @@ static constexpr int16_t combine(uint8_t msb, uint8_t lsb)
 	return (msb << 8u) | lsb;
 }
 
-PAW3902::PAW3902(I2CSPIBusOption bus_option, int bus, int devid, int bus_frequency, spi_mode_e spi_mode,
-		 spi_drdy_gpio_t drdy_gpio, float yaw_rotation_degrees) :
-	SPI(DRV_FLOW_DEVTYPE_PAW3902, MODULE_NAME, bus, devid, spi_mode, bus_frequency),
-	I2CSPIDriver(MODULE_NAME, px4::device_bus_to_wq(get_device_id()), bus_option, bus),
-	_drdy_gpio(drdy_gpio)
+PAW3902::PAW3902(const I2CSPIDriverConfig &config) :
+	SPI(config),
+	I2CSPIDriver(config),
+	_drdy_gpio(config.drdy_gpio)
 {
+	float yaw_rotation_degrees = (float)config.custom1;
+
 	if (PX4_ISFINITE(yaw_rotation_degrees)) {
 		PX4_INFO("using yaw rotation %.3f degrees (%.3f radians)",
 			 (double)yaw_rotation_degrees, (double)math::radians(yaw_rotation_degrees));
@@ -62,6 +63,8 @@ PAW3902::PAW3902(I2CSPIBusOption bus_option, int bus, int devid, int bus_frequen
 			_rotation.identity();
 		}
 	}
+
+	printf("devid: 0x%x\n", config.spi_devid);
 }
 
 PAW3902::~PAW3902()
@@ -96,6 +99,7 @@ int PAW3902::init()
 
 int PAW3902::probe()
 {
+	return 0;
 	const uint8_t Product_ID = RegisterRead(Register::Product_ID);
 
 	if (Product_ID != PRODUCT_ID) {

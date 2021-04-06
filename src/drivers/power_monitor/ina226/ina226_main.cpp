@@ -4,30 +4,6 @@
 
 #include "ina226.h"
 
-I2CSPIDriverBase *INA226::instantiate(const BusCLIArguments &cli, const BusInstanceIterator &iterator,
-				      int runtime_instance)
-{
-	INA226 *instance = new INA226(iterator.configuredBusOption(), iterator.bus(), cli.bus_frequency, cli.i2c_address,
-				      cli.custom2);
-
-	if (instance == nullptr) {
-		PX4_ERR("alloc failed");
-		return nullptr;
-	}
-
-	if (cli.keep_running) {
-		if (instance->force_init() != PX4_OK) {
-			PX4_INFO("Failed to init INA226 on bus %d, but will try again periodically.", iterator.bus());
-		}
-
-	} else if (instance->init() != PX4_OK) {
-		delete instance;
-		return nullptr;
-	}
-
-	return instance;
-}
-
 void
 INA226::print_usage()
 {
