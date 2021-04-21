@@ -1,0 +1,66 @@
+{
+    "version": 1,
+    "components": [
+        {
+            "component_id": 1,
+            "namespace": "px4",
+            "enums": [
+                {
+                    "name": "sensor_type_t",
+                    "type": "uint8_t",
+                    "description": "Sensor type for failover reporting",
+                    "entries": [
+                        {
+                            "value": 0,
+                            "name": "accel",
+                            "description": "Accelerometer"
+                        },
+                        {
+                            "value": 1,
+                            "name": "gyro",
+                            "description": "Gyroscope"
+                        },
+                        {
+                            "value": 2,
+                            "name": "mag",
+                            "description": "Magnetometer"
+                        }
+                    ]
+                },
+                {
+                    "name": "sensor_failover_reason_t",
+                    "type": "uint16_t",
+                    "description": "Bitfield for sensor failover reason",
+                    "is_bitfield": true,
+                    "entries": [
+                        {
+                            "value": 1,
+                            "name": "no_data",
+                            "description": "No data"
+                        },
+                        {
+                            "value": 2,
+                            "name": "stale_data",
+                            "description": "Stale data"
+                        },
+                        {
+                            "value": 4,
+                            "name": "timeout",
+                            "description": "Timeout"
+                        },
+                        {
+                            "value": 8,
+                            "name": "high_error_count",
+                            "description": "High Error Count"
+                        },
+                        {
+                            "value": 16,
+                            "name": "high_error_density",
+                            "description": "High Error Density"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
