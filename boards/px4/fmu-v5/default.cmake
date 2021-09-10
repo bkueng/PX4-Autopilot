@@ -54,10 +54,12 @@ px4_add_board(
 		uavcan
 	MODULES
 		airspeed_selector
+		angular_velocity_controller
 		attitude_estimator_q
 		battery_status
 		camera_feedback
 		commander
+		control_allocator
 		dataman
 		ekf2
 		esc_battery
