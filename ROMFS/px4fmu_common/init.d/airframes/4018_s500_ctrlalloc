@@ -50,8 +50,5 @@ param set-default CA_MC_R3_PY 0.177
 param set-default CA_MC_R3_CT 6.5
 param set-default CA_MC_R3_KM -0.05
 
-set MIXER direct
-set PWM_OUT 1234
-
-set MIXER_AUX direct_aux
-set PWM_AUX_OUT 1234
+set MIXER skip
+set MIXER_AUX none

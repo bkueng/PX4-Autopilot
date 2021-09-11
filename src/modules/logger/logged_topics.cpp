@@ -50,8 +50,8 @@ void LoggedTopics::add_default_topics()
 	add_topic("actuator_controls_1", 100);
 	add_topic("actuator_controls_2", 100);
 	add_topic("actuator_controls_3", 100);
-	add_topic("actuator_controls_4", 100);
-	add_topic("actuator_controls_5", 100);
+	add_topic("actuator_motors", 100);
+	add_topic("actuator_servos", 100);
 	add_topic("airspeed", 1000);
 	add_topic("airspeed_validated", 200);
 	add_topic("camera_capture");
