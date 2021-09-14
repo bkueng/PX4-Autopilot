@@ -570,6 +570,8 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 			}
 		}
 
+		_cmd_pub.publish(vehicle_command);
+
 	} else {
 		send_ack = false;
 
