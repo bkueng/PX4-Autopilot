@@ -85,8 +85,6 @@ UavcanNode::UavcanNode(CanardInterface *interface, uint32_t node_id) :
 	_pub_manager.updateParams();
 
 	_sub_manager.subscribe();
-
-	_mixing_output.mixingOutput().updateSubscriptions(false, false);
 }
 
 UavcanNode::~UavcanNode()
@@ -188,8 +186,6 @@ void UavcanNode::Run()
 		_sub_manager.updateParams();
 
 		_mixing_output.updateParams();
-
-		_mixing_output.mixingOutput().updateSubscriptions(false, false);
 	}
 
 	perf_begin(_cycle_perf);
@@ -470,6 +466,6 @@ void UavcanMixingInterface::Run()
 {
 	pthread_mutex_lock(&_node_mutex);
 	_mixing_output.update();
-	_mixing_output.updateSubscriptions(false, false);
+	_mixing_output.updateSubscriptions();
 	pthread_mutex_unlock(&_node_mutex);
 }
