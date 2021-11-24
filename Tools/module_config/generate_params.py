@@ -109,6 +109,13 @@ def parse_yaml_parameters_config(yaml_config, ethernet_supported):
                     param_type = 'INT32'
                     for key in param['values']:
                         tags += '\n * @value {:} {:}'.format(key, param['values'][key])
+                elif param['type'] == 'bitmask':
+                    param_type = 'INT32'
+                    for key in param['bit']:
+                        tags += '\n * @bit {:} {:}'.format(key, param['bit'][key])
+                    max_val = max(key for key in param['bit'])
+                    tags += '\n * @min 0'
+                    tags += '\n * @max {:}'.format((1<<(max_val+1)) - 1)
                 elif param['type'] == 'boolean':
                     param_type = 'INT32'
                     tags += '\n * @boolean'
@@ -119,7 +126,7 @@ def parse_yaml_parameters_config(yaml_config, ethernet_supported):
                 else:
                     raise Exception("unknown param type {:}".format(param['type']))
 
-                for tag in ['decimal', 'increment', 'category', 'volatile', 'bit',
+                for tag in ['decimal', 'increment', 'category', 'volatile',
                             'min', 'max', 'unit', 'reboot_required']:
                     if tag in param:
                         tags += '\n * @{:} {:}'.format(tag, param[tag])
