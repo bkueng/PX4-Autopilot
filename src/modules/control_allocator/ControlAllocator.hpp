@@ -72,6 +72,11 @@
 class ControlAllocator : public ModuleBase<ControlAllocator>, public ModuleParams, public px4::WorkItem
 {
 public:
+	static constexpr int NUM_ACTUATORS = ControlAllocation::NUM_ACTUATORS;
+	static constexpr int NUM_AXES = ControlAllocation::NUM_AXES;
+
+	using ActuatorVector = ActuatorEffectiveness::ActuatorVector;
+
 	ControlAllocator();
 
 	virtual ~ControlAllocator();
@@ -92,9 +97,6 @@ public:
 
 	bool init();
 
-	static constexpr uint8_t NUM_ACTUATORS = ControlAllocation::NUM_ACTUATORS;
-	static constexpr uint8_t NUM_AXES = ControlAllocation::NUM_AXES;
-
 private:
 
 	/**
@@ -111,14 +113,9 @@ private:
 
 	void publish_actuator_controls();
 
-	enum class AllocationMethod {
-		NONE = -1,
-		PSEUDO_INVERSE = 0,
-		SEQUENTIAL_DESATURATION = 1,
-	};
-
 	AllocationMethod _allocation_method_id{AllocationMethod::NONE};
-	ControlAllocation *_control_allocation{nullptr}; 	///< class for control allocation calculations
+	ControlAllocation *_control_allocation[ActuatorEffectiveness::MAX_NUM_MATRICES] {}; 	///< class for control allocation calculations
+	int _num_control_allocation{0};
 
 	enum class EffectivenessSource {
 		NONE = -1,
@@ -129,6 +126,9 @@ private:
 
 	EffectivenessSource _effectiveness_source_id{EffectivenessSource::NONE};
 	ActuatorEffectiveness *_actuator_effectiveness{nullptr}; 	///< class providing actuator effectiveness
+
+	int _control_allocation_selection_indexes[NUM_ACTUATORS] {};
+	int _num_actuators[(int)ActuatorType::COUNT] {};
 
 	// Inputs
 	uORB::SubscriptionCallbackWorkItem _vehicle_torque_setpoint_sub{this, ORB_ID(vehicle_torque_setpoint)};  /**< vehicle torque setpoint subscription */
@@ -148,9 +148,6 @@ private:
 	matrix::Vector3f _torque_sp;
 	matrix::Vector3f _thrust_sp;
 
-	// float _battery_scale_factor{1.0f};
-	// float _airspeed_scale_factor{1.0f};
-
 	perf_counter_t	_loop_perf;			/**< loop duration performance counter */
 
 	hrt_abstime _last_run{0};
@@ -159,7 +156,8 @@ private:
 
 	DEFINE_PARAMETERS(
 		(ParamInt<px4::params::CA_AIRFRAME>) _param_ca_airframe,
-		(ParamInt<px4::params::CA_METHOD>) _param_ca_method
+		(ParamInt<px4::params::CA_METHOD>) _param_ca_method,
+		(ParamInt<px4::params::CA_R_REV>) _param_r_rev
 	)
 
 };

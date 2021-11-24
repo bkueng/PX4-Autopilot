@@ -71,14 +71,16 @@
 
 #include <matrix/matrix/math.hpp>
 
+#include "ActuatorEffectiveness/ActuatorEffectiveness.hpp"
+
 class ControlAllocation
 {
 public:
 	ControlAllocation();
 	virtual ~ControlAllocation() = default;
 
-	static constexpr uint8_t NUM_ACTUATORS = 16;
-	static constexpr uint8_t NUM_AXES = 6;
+	static constexpr uint8_t NUM_ACTUATORS = ActuatorEffectiveness::NUM_ACTUATORS;
+	static constexpr uint8_t NUM_AXES = ActuatorEffectiveness::NUM_AXES;
 
 	typedef matrix::Vector<float, NUM_ACTUATORS> ActuatorVector;
 

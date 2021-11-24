@@ -47,11 +47,15 @@ ActuatorEffectivenessMultirotor::ActuatorEffectivenessMultirotor(ModuleParams *p
 }
 
 bool
-ActuatorEffectivenessMultirotor::getEffectivenessMatrix(matrix::Matrix<float, NUM_AXES, NUM_ACTUATORS> &matrix,
-		bool force)
+ActuatorEffectivenessMultirotor::getEffectivenessMatrix(Configuration &configuration, bool force)
 {
 	if (_updated || force) {
 		_updated = false;
+
+		if (configuration.num_actuators[(int)ActuatorType::SERVOS] > 0) {
+			PX4_ERR("Wrong actuator ordering: servos need to be after motors");
+			return false;
+		}
 
 		// Get multirotor geometry
 		MultirotorGeometry geometry = {};
@@ -129,7 +133,10 @@ ActuatorEffectivenessMultirotor::getEffectivenessMatrix(matrix::Matrix<float, NU
 
 		geometry.num_rotors = _param_ca_mc_r_count.get();
 
-		_num_actuators = computeEffectivenessMatrix(geometry, matrix);
+		int num_actuators = computeEffectivenessMatrix(geometry, configuration.effectiveness_matrices[0],
+				    configuration.next_actuator_index[0], configuration.num_actuators[(int)ActuatorType::MOTORS]);
+		configuration.num_actuators[(int)ActuatorType::MOTORS] += num_actuators;
+		configuration.next_actuator_index[0] += num_actuators;
 		return true;
 	}
 
@@ -138,19 +145,23 @@ ActuatorEffectivenessMultirotor::getEffectivenessMatrix(matrix::Matrix<float, NU
 
 int
 ActuatorEffectivenessMultirotor::computeEffectivenessMatrix(const MultirotorGeometry &geometry,
-		matrix::Matrix<float, NUM_AXES, NUM_ACTUATORS> &effectiveness)
+		EffectivenessMatrix &effectiveness, int actuator_start_index, int configuration_index_offset)
 {
 	int num_actuators = 0;
 
-	effectiveness.setZero();
-
 	for (int i = 0; i < math::min(NUM_ROTORS_MAX, geometry.num_rotors); i++) {
+
+		if (i + actuator_start_index >= NUM_ACTUATORS || i + configuration_index_offset >= NUM_ROTORS_MAX) {
+			break;
+		}
+
+		++num_actuators;
 
 		// Get rotor axis
 		matrix::Vector3f axis(
-			geometry.rotors[i].axis_x,
-			geometry.rotors[i].axis_y,
-			geometry.rotors[i].axis_z
+			geometry.rotors[i + configuration_index_offset].axis_x,
+			geometry.rotors[i + configuration_index_offset].axis_y,
+			geometry.rotors[i + configuration_index_offset].axis_z
 		);
 
 		// Normalize axis
@@ -166,14 +177,14 @@ ActuatorEffectivenessMultirotor::computeEffectivenessMatrix(const MultirotorGeom
 
 		// Get rotor position
 		matrix::Vector3f position(
-			geometry.rotors[i].position_x,
-			geometry.rotors[i].position_y,
-			geometry.rotors[i].position_z
+			geometry.rotors[i + configuration_index_offset].position_x,
+			geometry.rotors[i + configuration_index_offset].position_y,
+			geometry.rotors[i + configuration_index_offset].position_z
 		);
 
 		// Get coefficients
-		float ct = geometry.rotors[i].thrust_coef;
-		float km = geometry.rotors[i].moment_ratio;
+		float ct = geometry.rotors[i + configuration_index_offset].thrust_coef;
+		float km = geometry.rotors[i + configuration_index_offset].moment_ratio;
 
 		if (fabsf(ct) < FLT_EPSILON) {
 			continue;
@@ -187,12 +198,10 @@ ActuatorEffectivenessMultirotor::computeEffectivenessMatrix(const MultirotorGeom
 
 		// Fill corresponding items in effectiveness matrix
 		for (size_t j = 0; j < 3; j++) {
-			effectiveness(j, i) = moment(j);
-			effectiveness(j + 3, i) = thrust(j);
+			effectiveness(j, i + actuator_start_index) = moment(j);
+			effectiveness(j + 3, i + actuator_start_index) = thrust(j);
 		}
 	}
-
-	num_actuators = geometry.num_rotors;
 
 	return num_actuators;
 }

@@ -46,10 +46,9 @@ ActuatorEffectivenessTiltrotorVTOL::ActuatorEffectivenessTiltrotorVTOL()
 	setFlightPhase(FlightPhase::HOVER_FLIGHT);
 }
 bool
-ActuatorEffectivenessTiltrotorVTOL::getEffectivenessMatrix(matrix::Matrix<float, NUM_AXES, NUM_ACTUATORS> &matrix,
-		bool force)
+ActuatorEffectivenessTiltrotorVTOL::getEffectivenessMatrix(Configuration &configuration, bool force)
 {
-	if (!(_updated || force)) {
+	if (!_updated && !force) {
 		return false;
 	}
 
@@ -74,26 +73,32 @@ ActuatorEffectivenessTiltrotorVTOL::getEffectivenessMatrix(matrix::Matrix<float,
 		}
 	}
 
+	ActuatorVector &trim = configuration.trim;
+
 	// Trim: half throttle, tilted motors
-	_trim(0) = 0.5f;
-	_trim(1) = 0.5f;
-	_trim(2) = 0.5f;
-	_trim(3) = 0.5f;
-	_trim(4) = tilt;
-	_trim(5) = tilt;
-	_trim(6) = tilt;
-	_trim(7) = tilt;
+	trim(0) = 0.5f;
+	trim(1) = 0.5f;
+	trim(2) = 0.5f;
+	trim(3) = 0.5f;
+	trim(4) = tilt;
+	trim(5) = tilt;
+	trim(6) = tilt;
+	trim(7) = tilt;
 
 	// Effectiveness
 	const float tiltrotor_vtol[NUM_AXES][NUM_ACTUATORS] = {
-		{-0.5f * cosf(_trim(4)),  0.5f * cosf(_trim(5)),  0.5f * cosf(_trim(6)), -0.5f * cosf(_trim(7)), 0.5f * _trim(0) *sinf(_trim(4)), -0.5f * _trim(1) *sinf(_trim(5)), -0.5f * _trim(2) *sinf(_trim(6)), 0.5f * _trim(3) *sinf(_trim(7)), -0.5f, 0.5f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
-		{ 0.5f * cosf(_trim(4)), -0.5f * cosf(_trim(5)),  0.5f * cosf(_trim(6)), -0.5f * cosf(_trim(7)), -0.5f * _trim(0) *sinf(_trim(4)),  0.5f * _trim(1) *sinf(_trim(5)), -0.5f * _trim(2) *sinf(_trim(6)), 0.5f * _trim(3) *sinf(_trim(7)), 0.f, 0.f, 0.5f, 0.f, 0.f, 0.f, 0.f, 0.f},
-		{-0.5f * sinf(_trim(4)),  0.5f * sinf(_trim(5)),  0.5f * sinf(_trim(6)), -0.5f * sinf(_trim(7)), -0.5f * _trim(0) *cosf(_trim(4)), 0.5f * _trim(1) *cosf(_trim(5)), 0.5f * _trim(2) *cosf(_trim(6)), -0.5f * _trim(3) *cosf(_trim(7)), 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
-		{ 0.25f * sinf(_trim(4)), 0.25f * sinf(_trim(5)), 0.25f * sinf(_trim(6)), 0.25f * sinf(_trim(7)), 0.25f * _trim(0) *cosf(_trim(4)), 0.25f * _trim(1) *cosf(_trim(5)), 0.25f * _trim(2) *cosf(_trim(6)), 0.25f * _trim(3) *cosf(_trim(7)), 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
+		{-0.5f * cosf(trim(4)),  0.5f * cosf(trim(5)),  0.5f * cosf(trim(6)), -0.5f * cosf(trim(7)), 0.5f * trim(0) *sinf(trim(4)), -0.5f * trim(1) *sinf(trim(5)), -0.5f * trim(2) *sinf(trim(6)), 0.5f * trim(3) *sinf(trim(7)), -0.5f, 0.5f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
+		{ 0.5f * cosf(trim(4)), -0.5f * cosf(trim(5)),  0.5f * cosf(trim(6)), -0.5f * cosf(trim(7)), -0.5f * trim(0) *sinf(trim(4)),  0.5f * trim(1) *sinf(trim(5)), -0.5f * trim(2) *sinf(trim(6)), 0.5f * trim(3) *sinf(trim(7)), 0.f, 0.f, 0.5f, 0.f, 0.f, 0.f, 0.f, 0.f},
+		{-0.5f * sinf(trim(4)),  0.5f * sinf(trim(5)),  0.5f * sinf(trim(6)), -0.5f * sinf(trim(7)), -0.5f * trim(0) *cosf(trim(4)), 0.5f * trim(1) *cosf(trim(5)), 0.5f * trim(2) *cosf(trim(6)), -0.5f * trim(3) *cosf(trim(7)), 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
+		{ 0.25f * sinf(trim(4)), 0.25f * sinf(trim(5)), 0.25f * sinf(trim(6)), 0.25f * sinf(trim(7)), 0.25f * trim(0) *cosf(trim(4)), 0.25f * trim(1) *cosf(trim(5)), 0.25f * trim(2) *cosf(trim(6)), 0.25f * trim(3) *cosf(trim(7)), 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
 		{ 0.f,  0.f,  0.f,  0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
-		{-0.25f * cosf(_trim(4)), -0.25f * cosf(_trim(5)), -0.25f * cosf(_trim(6)), -0.25f * cosf(_trim(7)), 0.25f * _trim(0) *sinf(_trim(4)), 0.25f * _trim(1) *sinf(_trim(5)), 0.25f * _trim(2) *sinf(_trim(6)), 0.25f * _trim(3) *sinf(_trim(7)), 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}
+		{-0.25f * cosf(trim(4)), -0.25f * cosf(trim(5)), -0.25f * cosf(trim(6)), -0.25f * cosf(trim(7)), 0.25f * trim(0) *sinf(trim(4)), 0.25f * trim(1) *sinf(trim(5)), 0.25f * trim(2) *sinf(trim(6)), 0.25f * trim(3) *sinf(trim(7)), 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}
 	};
-	matrix = matrix::Matrix<float, NUM_AXES, NUM_ACTUATORS>(tiltrotor_vtol);
+	EffectivenessMatrix &matrix = configuration.effectiveness_matrices[0];
+	matrix = EffectivenessMatrix(tiltrotor_vtol);
+	configuration.num_actuators[(int)ActuatorType::MOTORS] = 4;
+	configuration.num_actuators[(int)ActuatorType::SERVOS] = 6;
+	configuration.next_actuator_index[0] = 10;
 
 	// Temporarily disable a few controls (WIP)
 	for (size_t j = 4; j < 8; j++) {

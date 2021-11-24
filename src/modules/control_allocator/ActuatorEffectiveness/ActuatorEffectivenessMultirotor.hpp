@@ -73,17 +73,19 @@ public:
 		int num_rotors{0};
 	};
 
+	void getDesiredAllocationMethod(AllocationMethod allocation_method_out[MAX_NUM_MATRICES]) const override
+	{
+		allocation_method_out[0] = AllocationMethod::SEQUENTIAL_DESATURATION;
+	}
+
 	static int computeEffectivenessMatrix(const MultirotorGeometry &geometry,
-					      matrix::Matrix<float, NUM_AXES, NUM_ACTUATORS> &effectiveness);
+					      EffectivenessMatrix &effectiveness, int actuator_start_index = 0, int configuration_index_offset = 0);
 
-	bool getEffectivenessMatrix(matrix::Matrix<float, NUM_AXES, NUM_ACTUATORS> &matrix, bool force) override;
-
-	int numActuators() const override { return _num_actuators; }
+	bool getEffectivenessMatrix(Configuration &configuration, bool force) override;
 
 	const char *name() const override { return "Multirotor"; }
 private:
 	bool _updated{true};
-	int _num_actuators{0};
 
 	DEFINE_PARAMETERS(
 		(ParamFloat<px4::params::CA_MC_R0_PX>) _param_ca_mc_r0_px,

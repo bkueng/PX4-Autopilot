@@ -84,8 +84,9 @@ TEST(ActuatorEffectivenessMultirotorTest, AllZeroCase)
 	geometry.rotors[3].thrust_coef = 1.0f;
 	geometry.rotors[3].moment_ratio = -0.05f;
 
-	matrix::Matrix<float, ActuatorEffectiveness::NUM_AXES, ActuatorEffectiveness::NUM_ACTUATORS> effectiveness =
-		ActuatorEffectivenessMultirotor::computeEffectivenessMatrix(geometry);
+	ActuatorEffectiveness::EffectivenessMatrix effectiveness;
+	effectiveness.setZero();
+	ActuatorEffectivenessMultirotor::computeEffectivenessMatrix(geometry, effectiveness);
 
 	const float expected[ActuatorEffectiveness::NUM_AXES][ActuatorEffectiveness::NUM_ACTUATORS] = {
 		{-1.0f,   1.0f,   1.0f,  -1.0f,  0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
@@ -95,8 +96,7 @@ TEST(ActuatorEffectivenessMultirotorTest, AllZeroCase)
 		{ 0.f,    0.f,    0.f,    0.f,   0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
 		{-1.0f,  -1.0f,  -1.0f,  -1.0f,  0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}
 	};
-	matrix::Matrix<float, ActuatorEffectiveness::NUM_AXES, ActuatorEffectiveness::NUM_ACTUATORS> effectiveness_expected(
-		expected);
+	ActuatorEffectiveness::EffectivenessMatrix effectiveness_expected(expected);
 
 	EXPECT_EQ(effectiveness, effectiveness_expected);
 }

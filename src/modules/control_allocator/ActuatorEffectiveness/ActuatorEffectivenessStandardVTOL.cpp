@@ -47,10 +47,9 @@ ActuatorEffectivenessStandardVTOL::ActuatorEffectivenessStandardVTOL()
 }
 
 bool
-ActuatorEffectivenessStandardVTOL::getEffectivenessMatrix(matrix::Matrix<float, NUM_AXES, NUM_ACTUATORS> &matrix,
-		bool force)
+ActuatorEffectivenessStandardVTOL::getEffectivenessMatrix(Configuration &configuration, bool force)
 {
-	if (!(_updated || force)) {
+	if (!_updated && !force) {
 		return false;
 	}
 
@@ -64,7 +63,10 @@ ActuatorEffectivenessStandardVTOL::getEffectivenessMatrix(matrix::Matrix<float, 
 				{ 0.f,  0.f,  0.f,  0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
 				{-0.25f, -0.25f, -0.25f, -0.25f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}
 			};
-			matrix = matrix::Matrix<float, NUM_AXES, NUM_ACTUATORS>(standard_vtol);
+			configuration.effectiveness_matrices[0] = EffectivenessMatrix(standard_vtol);
+			configuration.num_actuators[(int)ActuatorType::MOTORS] = 4;
+			configuration.num_actuators[(int)ActuatorType::SERVOS] = 3;
+			configuration.next_actuator_index[0] = 7;
 			break;
 		}
 
@@ -77,7 +79,10 @@ ActuatorEffectivenessStandardVTOL::getEffectivenessMatrix(matrix::Matrix<float, 
 				{ 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
 				{ 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}
 			};
-			matrix = matrix::Matrix<float, NUM_AXES, NUM_ACTUATORS>(standard_vtol);
+			configuration.effectiveness_matrices[0] = EffectivenessMatrix(standard_vtol);
+			configuration.num_actuators[(int)ActuatorType::MOTORS] = 4;
+			configuration.num_actuators[(int)ActuatorType::SERVOS] = 3;
+			configuration.next_actuator_index[0] = 7;
 			break;
 		}
 
@@ -91,7 +96,10 @@ ActuatorEffectivenessStandardVTOL::getEffectivenessMatrix(matrix::Matrix<float, 
 				{  0.f,  0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
 				{-0.25f, -0.25f, -0.25f, -0.25f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}
 			};
-			matrix = matrix::Matrix<float, NUM_AXES, NUM_ACTUATORS>(standard_vtol);
+			configuration.effectiveness_matrices[0] = EffectivenessMatrix(standard_vtol);
+			configuration.num_actuators[(int)ActuatorType::MOTORS] = 4;
+			configuration.num_actuators[(int)ActuatorType::SERVOS] = 3;
+			configuration.next_actuator_index[0] = 7;
 			break;
 		}
 	}

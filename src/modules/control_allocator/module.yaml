@@ -22,12 +22,32 @@ parameters:
             description:
                 short: Control allocation method
                 long: |
-                  Selects the algorithm and desaturation method
+                  Selects the algorithm and desaturation method.
+                  If set to Automtic, the selection is based on the airframe (CA_AIRFRAME).
             type: enum
             values:
                 0: Pseudo-inverse with output clipping
                 1: Pseudo-inverse with sequential desaturation technique
-            default: 1
+                2: Automatic
+            default: 2
+
+        # Motor parameters
+        CA_R_REV:
+            description:
+                short: Reversible motors
+                long: |
+                  Configure motors to be reversible. Note that the output driver needs to support this as well.
+            type: bitmask
+            bit:
+                0: Motor 1
+                1: Motor 2
+                2: Motor 3
+                3: Motor 4
+                4: Motor 5
+                5: Motor 6
+                6: Motor 7
+                7: Motor 8
+            default: 0
 
         # MC rotors
         CA_MC_R_COUNT:
@@ -153,6 +173,12 @@ mixer:
                 min: 0
                 max: 1
                 default_is_nan: true
+            per_item_parameters:
+              - name: 'CA_R_REV'
+                label: 'Reversible'
+                show_as: 'bitset'
+                index_offset: 0
+                advanced: true
         servo:
             functions: 'Servo'
             actuator_testing_values:

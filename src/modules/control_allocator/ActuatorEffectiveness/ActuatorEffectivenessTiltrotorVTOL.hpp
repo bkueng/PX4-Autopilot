@@ -49,7 +49,7 @@ public:
 	ActuatorEffectivenessTiltrotorVTOL();
 	virtual ~ActuatorEffectivenessTiltrotorVTOL() = default;
 
-	bool getEffectivenessMatrix(matrix::Matrix<float, NUM_AXES, NUM_ACTUATORS> &matrix, bool force) override;
+	bool getEffectivenessMatrix(Configuration &configuration, bool force) override;
 
 	/**
 	 * Set the current flight phase
@@ -57,8 +57,6 @@ public:
 	 * @param Flight phase
 	 */
 	void setFlightPhase(const FlightPhase &flight_phase) override;
-
-	int numActuators() const override { return 10; }
 
 	const char *name() const override { return "VTOL Tiltrotor"; }
 protected:
