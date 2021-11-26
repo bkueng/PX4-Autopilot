@@ -95,8 +95,6 @@ public:
 
 	/**
 	 * Allocate control setpoint to actuators
-	 *
-	 * @param control_setpoint  Desired control setpoint vector (input)
 	 */
 	virtual void allocate() = 0;
 
@@ -192,6 +190,8 @@ public:
 	 */
 	void clipActuatorSetpoint(matrix::Vector<float, NUM_ACTUATORS> &actuator) const;
 
+	void clipActuatorSetpoint() { clipActuatorSetpoint(_actuator_sp); }
+
 	/**
 	 * Normalize the actuator setpoint between minimum and maximum values.
 	 *
@@ -209,6 +209,8 @@ public:
 	int numConfiguredActuators() const { return _num_actuators; }
 
 protected:
+	friend class ControlAllocator; // for _actuator_sp
+
 	matrix::Matrix<float, NUM_AXES, NUM_ACTUATORS> _effectiveness;  //< Effectiveness matrix
 	matrix::Vector<float, NUM_AXES> _control_allocation_scale;  	//< Scaling applied during allocation
 	matrix::Vector<float, NUM_ACTUATORS> _actuator_trim; 	//< Neutral actuator values

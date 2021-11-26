@@ -47,25 +47,24 @@
 #include <uORB/Subscription.hpp>
 #include <uORB/SubscriptionInterval.hpp>
 
+class ActuatorEffectivenessTilts;
+
 using namespace time_literals;
 
-class ActuatorEffectivenessMultirotor: public ModuleParams, public ActuatorEffectiveness
+class ActuatorEffectivenessMultirotor : public ModuleParams, public ActuatorEffectiveness
 {
 public:
-	ActuatorEffectivenessMultirotor(ModuleParams *parent);
+	ActuatorEffectivenessMultirotor(ModuleParams *parent, bool tilt_support = false, bool yaw_disabled = false);
 	virtual ~ActuatorEffectivenessMultirotor() = default;
 
 	static constexpr int NUM_ROTORS_MAX = 8;
 
 	struct RotorGeometry {
-		float position_x;
-		float position_y;
-		float position_z;
-		float axis_x;
-		float axis_y;
-		float axis_z;
+		matrix::Vector3f position;
+		matrix::Vector3f axis;
 		float thrust_coef;
 		float moment_ratio;
+		int tilt_index;
 	};
 
 	struct MultirotorGeometry {
@@ -84,82 +83,42 @@ public:
 	bool getEffectivenessMatrix(Configuration &configuration, bool force) override;
 
 	const char *name() const override { return "Multirotor"; }
+
+	/**
+	 * Sets the motor axis from tilt configurations and current tilt control.
+	 * @param tilts configured tilt servos
+	 * @param tilt_control current tilt control in [-1, 1] (can be NAN)
+	 */
+	void updateAxisFromTilts(const ActuatorEffectivenessTilts &tilts, float tilt_control);
+
+	const MultirotorGeometry &geometry() const { return _geometry; }
+
+	/**
+	 * Get the tilted axis {0, 0, -1} rotated by -tilt_angle around y, then
+	 * rotated by tilt_direction around z.
+	 */
+	static matrix::Vector3f tiltedAxis(float tilt_angle, float tilt_direction);
+
 private:
+	void updateParams() override;
+
 	bool _updated{true};
+	const bool _tilt_support; ///< if true, tilt servo assignment params are loaded
+	const bool _yaw_disabled; ///< set to true to disable yaw control
 
-	DEFINE_PARAMETERS(
-		(ParamFloat<px4::params::CA_MC_R0_PX>) _param_ca_mc_r0_px,
-		(ParamFloat<px4::params::CA_MC_R0_PY>) _param_ca_mc_r0_py,
-		(ParamFloat<px4::params::CA_MC_R0_PZ>) _param_ca_mc_r0_pz,
-		(ParamFloat<px4::params::CA_MC_R0_AX>) _param_ca_mc_r0_ax,
-		(ParamFloat<px4::params::CA_MC_R0_AY>) _param_ca_mc_r0_ay,
-		(ParamFloat<px4::params::CA_MC_R0_AZ>) _param_ca_mc_r0_az,
-		(ParamFloat<px4::params::CA_MC_R0_CT>) _param_ca_mc_r0_ct,
-		(ParamFloat<px4::params::CA_MC_R0_KM>) _param_ca_mc_r0_km,
+	struct ParamHandles {
+		param_t position_x;
+		param_t position_y;
+		param_t position_z;
+		param_t axis_x;
+		param_t axis_y;
+		param_t axis_z;
+		param_t thrust_coef;
+		param_t moment_ratio;
+		param_t tilt_index;
+	};
+	ParamHandles _param_handles[NUM_ROTORS_MAX];
+	param_t _count_handle;
 
-		(ParamFloat<px4::params::CA_MC_R1_PX>) _param_ca_mc_r1_px,
-		(ParamFloat<px4::params::CA_MC_R1_PY>) _param_ca_mc_r1_py,
-		(ParamFloat<px4::params::CA_MC_R1_PZ>) _param_ca_mc_r1_pz,
-		(ParamFloat<px4::params::CA_MC_R1_AX>) _param_ca_mc_r1_ax,
-		(ParamFloat<px4::params::CA_MC_R1_AY>) _param_ca_mc_r1_ay,
-		(ParamFloat<px4::params::CA_MC_R1_AZ>) _param_ca_mc_r1_az,
-		(ParamFloat<px4::params::CA_MC_R1_CT>) _param_ca_mc_r1_ct,
-		(ParamFloat<px4::params::CA_MC_R1_KM>) _param_ca_mc_r1_km,
-
-		(ParamFloat<px4::params::CA_MC_R2_PX>) _param_ca_mc_r2_px,
-		(ParamFloat<px4::params::CA_MC_R2_PY>) _param_ca_mc_r2_py,
-		(ParamFloat<px4::params::CA_MC_R2_PZ>) _param_ca_mc_r2_pz,
-		(ParamFloat<px4::params::CA_MC_R2_AX>) _param_ca_mc_r2_ax,
-		(ParamFloat<px4::params::CA_MC_R2_AY>) _param_ca_mc_r2_ay,
-		(ParamFloat<px4::params::CA_MC_R2_AZ>) _param_ca_mc_r2_az,
-		(ParamFloat<px4::params::CA_MC_R2_CT>) _param_ca_mc_r2_ct,
-		(ParamFloat<px4::params::CA_MC_R2_KM>) _param_ca_mc_r2_km,
-
-		(ParamFloat<px4::params::CA_MC_R3_PX>) _param_ca_mc_r3_px,
-		(ParamFloat<px4::params::CA_MC_R3_PY>) _param_ca_mc_r3_py,
-		(ParamFloat<px4::params::CA_MC_R3_PZ>) _param_ca_mc_r3_pz,
-		(ParamFloat<px4::params::CA_MC_R3_AX>) _param_ca_mc_r3_ax,
-		(ParamFloat<px4::params::CA_MC_R3_AY>) _param_ca_mc_r3_ay,
-		(ParamFloat<px4::params::CA_MC_R3_AZ>) _param_ca_mc_r3_az,
-		(ParamFloat<px4::params::CA_MC_R3_CT>) _param_ca_mc_r3_ct,
-		(ParamFloat<px4::params::CA_MC_R3_KM>) _param_ca_mc_r3_km,
-
-		(ParamFloat<px4::params::CA_MC_R4_PX>) _param_ca_mc_r4_px,
-		(ParamFloat<px4::params::CA_MC_R4_PY>) _param_ca_mc_r4_py,
-		(ParamFloat<px4::params::CA_MC_R4_PZ>) _param_ca_mc_r4_pz,
-		(ParamFloat<px4::params::CA_MC_R4_AX>) _param_ca_mc_r4_ax,
-		(ParamFloat<px4::params::CA_MC_R4_AY>) _param_ca_mc_r4_ay,
-		(ParamFloat<px4::params::CA_MC_R4_AZ>) _param_ca_mc_r4_az,
-		(ParamFloat<px4::params::CA_MC_R4_CT>) _param_ca_mc_r4_ct,
-		(ParamFloat<px4::params::CA_MC_R4_KM>) _param_ca_mc_r4_km,
-
-		(ParamFloat<px4::params::CA_MC_R5_PX>) _param_ca_mc_r5_px,
-		(ParamFloat<px4::params::CA_MC_R5_PY>) _param_ca_mc_r5_py,
-		(ParamFloat<px4::params::CA_MC_R5_PZ>) _param_ca_mc_r5_pz,
-		(ParamFloat<px4::params::CA_MC_R5_AX>) _param_ca_mc_r5_ax,
-		(ParamFloat<px4::params::CA_MC_R5_AY>) _param_ca_mc_r5_ay,
-		(ParamFloat<px4::params::CA_MC_R5_AZ>) _param_ca_mc_r5_az,
-		(ParamFloat<px4::params::CA_MC_R5_CT>) _param_ca_mc_r5_ct,
-		(ParamFloat<px4::params::CA_MC_R5_KM>) _param_ca_mc_r5_km,
-
-		(ParamFloat<px4::params::CA_MC_R6_PX>) _param_ca_mc_r6_px,
-		(ParamFloat<px4::params::CA_MC_R6_PY>) _param_ca_mc_r6_py,
-		(ParamFloat<px4::params::CA_MC_R6_PZ>) _param_ca_mc_r6_pz,
-		(ParamFloat<px4::params::CA_MC_R6_AX>) _param_ca_mc_r6_ax,
-		(ParamFloat<px4::params::CA_MC_R6_AY>) _param_ca_mc_r6_ay,
-		(ParamFloat<px4::params::CA_MC_R6_AZ>) _param_ca_mc_r6_az,
-		(ParamFloat<px4::params::CA_MC_R6_CT>) _param_ca_mc_r6_ct,
-		(ParamFloat<px4::params::CA_MC_R6_KM>) _param_ca_mc_r6_km,
-
-		(ParamFloat<px4::params::CA_MC_R7_PX>) _param_ca_mc_r7_px,
-		(ParamFloat<px4::params::CA_MC_R7_PY>) _param_ca_mc_r7_py,
-		(ParamFloat<px4::params::CA_MC_R7_PZ>) _param_ca_mc_r7_pz,
-		(ParamFloat<px4::params::CA_MC_R7_AX>) _param_ca_mc_r7_ax,
-		(ParamFloat<px4::params::CA_MC_R7_AY>) _param_ca_mc_r7_ay,
-		(ParamFloat<px4::params::CA_MC_R7_AZ>) _param_ca_mc_r7_az,
-		(ParamFloat<px4::params::CA_MC_R7_CT>) _param_ca_mc_r7_ct,
-		(ParamFloat<px4::params::CA_MC_R7_KM>) _param_ca_mc_r7_km,
-
-		(ParamInt<px4::params::CA_MC_R_COUNT>) _param_ca_mc_r_count
-	)
+	MultirotorGeometry _geometry{};
 };

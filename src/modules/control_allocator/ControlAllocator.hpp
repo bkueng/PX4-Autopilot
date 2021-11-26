@@ -116,6 +116,7 @@ private:
 	AllocationMethod _allocation_method_id{AllocationMethod::NONE};
 	ControlAllocation *_control_allocation[ActuatorEffectiveness::MAX_NUM_MATRICES] {}; 	///< class for control allocation calculations
 	int _num_control_allocation{0};
+	hrt_abstime _last_effectiveness_update{0};
 
 	enum class EffectivenessSource {
 		NONE = -1,
@@ -127,7 +128,7 @@ private:
 	EffectivenessSource _effectiveness_source_id{EffectivenessSource::NONE};
 	ActuatorEffectiveness *_actuator_effectiveness{nullptr}; 	///< class providing actuator effectiveness
 
-	int _control_allocation_selection_indexes[NUM_ACTUATORS] {};
+	uint8_t _control_allocation_selection_indexes[NUM_ACTUATORS * ActuatorEffectiveness::MAX_NUM_MATRICES] {};
 	int _num_actuators[(int)ActuatorType::COUNT] {};
 
 	// Inputs

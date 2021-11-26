@@ -42,23 +42,44 @@
 #pragma once
 
 #include "ActuatorEffectiveness.hpp"
+#include "ActuatorEffectivenessMultirotor.hpp"
+#include "ActuatorEffectivenessControlSurfaces.hpp"
+#include "ActuatorEffectivenessTilts.hpp"
 
-class ActuatorEffectivenessTiltrotorVTOL: public ActuatorEffectiveness
+#include <uORB/topics/actuator_controls.h>
+#include <uORB/Subscription.hpp>
+
+class ActuatorEffectivenessTiltrotorVTOL : public ModuleParams, public ActuatorEffectiveness
 {
 public:
-	ActuatorEffectivenessTiltrotorVTOL();
+	ActuatorEffectivenessTiltrotorVTOL(ModuleParams *parent);
 	virtual ~ActuatorEffectivenessTiltrotorVTOL() = default;
 
 	bool getEffectivenessMatrix(Configuration &configuration, bool force) override;
 
-	/**
-	 * Set the current flight phase
-	 *
-	 * @param Flight phase
-	 */
-	void setFlightPhase(const FlightPhase &flight_phase) override;
+	int numMatrices() const override { return 2; }
+
+	void getDesiredAllocationMethod(AllocationMethod allocation_method_out[MAX_NUM_MATRICES]) const override
+	{
+		static_assert(MAX_NUM_MATRICES >= 2, "expecting at least 2 matrices");
+		allocation_method_out[0] = AllocationMethod::SEQUENTIAL_DESATURATION;
+		allocation_method_out[1] = AllocationMethod::PSEUDO_INVERSE;
+	}
+
+	void updateSetpoint(int matrix_index, ActuatorVector &actuator_sp) override;
 
 	const char *name() const override { return "VTOL Tiltrotor"; }
 protected:
 	bool _updated{true};
+	ActuatorEffectivenessMultirotor _mc_rotors;
+	ActuatorEffectivenessControlSurfaces _control_surfaces;
+	ActuatorEffectivenessTilts _tilts;
+
+	int _first_control_surface_idx{0};
+	int _first_tilt_idx{0};
+
+	float _last_tilt_control{NAN};
+
+	uORB::Subscription _actuator_controls_0_sub{ORB_ID(actuator_controls_0)};
+	uORB::Subscription _actuator_controls_1_sub{ORB_ID(actuator_controls_1)};
 };

@@ -184,11 +184,11 @@ ControlAllocator::update_effectiveness_source()
 			break;
 
 		case EffectivenessSource::STANDARD_VTOL:
-			tmp = new ActuatorEffectivenessStandardVTOL();
+			tmp = new ActuatorEffectivenessStandardVTOL(this);
 			break;
 
 		case EffectivenessSource::TILTROTOR_VTOL:
-			tmp = new ActuatorEffectivenessTiltrotorVTOL();
+			tmp = new ActuatorEffectivenessTiltrotorVTOL(this);
 			break;
 
 		default:
@@ -316,6 +316,8 @@ ControlAllocator::Run()
 
 			// Do allocation
 			_control_allocation[i]->allocate();
+			_actuator_effectiveness->updateSetpoint(i, _control_allocation[i]->_actuator_sp);
+			_control_allocation[i]->clipActuatorSetpoint();
 		}
 
 		// Publish actuator setpoint and allocator status
@@ -335,15 +337,21 @@ ControlAllocator::update_effectiveness_matrix_if_needed(bool force)
 {
 	ActuatorEffectiveness::Configuration config{};
 
+	if (!force && hrt_elapsed_time(&_last_effectiveness_update) < 100_ms) { // rate-limit updates
+		return;
+	}
 
 	if (_actuator_effectiveness->getEffectivenessMatrix(config, force)) {
+		_last_effectiveness_update = hrt_absolute_time();
+
 		memcpy(_control_allocation_selection_indexes, config.matrix_selection_indexes,
 		       sizeof(_control_allocation_selection_indexes));
 
 		// Get the minimum and maximum depending on type and configuration
-		ActuatorEffectiveness::ActuatorVector minimum;
-		ActuatorEffectiveness::ActuatorVector maximum;
+		ActuatorEffectiveness::ActuatorVector minimum[ActuatorEffectiveness::MAX_NUM_MATRICES];
+		ActuatorEffectiveness::ActuatorVector maximum[ActuatorEffectiveness::MAX_NUM_MATRICES];
 		int actuator_idx = 0;
+		int actuator_idx_matrix[ActuatorEffectiveness::MAX_NUM_MATRICES] {};
 
 		for (int actuator_type = 0; actuator_type < (int)ActuatorType::COUNT; ++actuator_type) {
 			_num_actuators[actuator_type] = config.num_actuators[actuator_type];
@@ -354,30 +362,33 @@ ControlAllocator::update_effectiveness_matrix_if_needed(bool force)
 					break;
 				}
 
+				int selected_matrix = _control_allocation_selection_indexes[actuator_idx];
+
 				if ((ActuatorType)actuator_type == ActuatorType::MOTORS) {
 					if (_param_r_rev.get() & (1u << actuator_type_idx)) {
-						minimum(actuator_idx) = -1.f;
+						minimum[selected_matrix](actuator_idx_matrix[selected_matrix]) = -1.f;
 
 					} else {
-						minimum(actuator_idx) = 0.f;
+						minimum[selected_matrix](actuator_idx_matrix[selected_matrix]) = 0.f;
 					}
 
 				} else {
-					minimum(actuator_idx) = -1.f;
+					minimum[selected_matrix](actuator_idx_matrix[selected_matrix]) = -1.f;
 				}
 
-				maximum(actuator_idx) = 1.f;
+				maximum[selected_matrix](actuator_idx_matrix[selected_matrix]) = 1.f;
+				++actuator_idx_matrix[selected_matrix];
 				++actuator_idx;
 			}
 		}
 
 		for (int i = 0; i < _num_control_allocation; ++i) {
-			_control_allocation[i]->setActuatorMin(minimum);
-			_control_allocation[i]->setActuatorMax(maximum);
+			_control_allocation[i]->setActuatorMin(minimum[i]);
+			_control_allocation[i]->setActuatorMax(maximum[i]);
 
 			// Assign control effectiveness matrix
-			int total_num_actuators = config.next_actuator_index[i];
-			_control_allocation[i]->setEffectivenessMatrix(config.effectiveness_matrices[i], config.trim, total_num_actuators);
+			int total_num_actuators = config.num_actuators_matrix[i];
+			_control_allocation[i]->setEffectivenessMatrix(config.effectiveness_matrices[i], config.trim[i], total_num_actuators);
 		}
 	}
 }
@@ -443,14 +454,16 @@ ControlAllocator::publish_actuator_controls()
 	actuator_motors.reversible_flags = _param_r_rev.get();
 
 	int actuator_idx = 0;
+	int actuator_idx_matrix[ActuatorEffectiveness::MAX_NUM_MATRICES] {};
 
 	// motors
 	int motors_idx;
 
-	for (motors_idx = 0; motors_idx < _num_actuators[0]; motors_idx++) {
-		const ControlAllocation *allocation = _control_allocation[_control_allocation_selection_indexes[actuator_idx]];
-		float actuator_sp = allocation->getActuatorSetpoint()(actuator_idx);
+	for (motors_idx = 0; motors_idx < _num_actuators[0] && motors_idx < actuator_motors_s::NUM_CONTROLS; motors_idx++) {
+		int selected_matrix = _control_allocation_selection_indexes[actuator_idx];
+		float actuator_sp = _control_allocation[selected_matrix]->getActuatorSetpoint()(actuator_idx_matrix[selected_matrix]);
 		actuator_motors.control[motors_idx] = PX4_ISFINITE(actuator_sp) ? actuator_sp : NAN;
+		++actuator_idx_matrix[selected_matrix];
 		++actuator_idx;
 	}
 
@@ -464,10 +477,11 @@ ControlAllocator::publish_actuator_controls()
 	if (_num_actuators[1] > 0) {
 		int servos_idx;
 
-		for (servos_idx = 0; servos_idx < _num_actuators[1]; servos_idx++) {
-			const ControlAllocation *allocation = _control_allocation[_control_allocation_selection_indexes[actuator_idx]];
-			float actuator_sp = allocation->getActuatorSetpoint()(actuator_idx);
+		for (servos_idx = 0; servos_idx < _num_actuators[1] && servos_idx < actuator_servos_s::NUM_CONTROLS; servos_idx++) {
+			int selected_matrix = _control_allocation_selection_indexes[actuator_idx];
+			float actuator_sp = _control_allocation[selected_matrix]->getActuatorSetpoint()(actuator_idx_matrix[selected_matrix]);
 			actuator_servos.control[servos_idx] = PX4_ISFINITE(actuator_sp) ? actuator_sp : NAN;
+			++actuator_idx_matrix[selected_matrix];
 			++actuator_idx;
 		}
 

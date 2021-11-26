@@ -80,15 +80,26 @@ public:
 	};
 
 	struct Configuration {
+		/**
+		 * Add an actuator to the selected matrix, returning the index, or -1 on error
+		 */
+		int addActuator(ActuatorType type, const matrix::Vector3f &torque, const matrix::Vector3f &thrust);
+
+		/**
+		 * Call this after manually adding N actuators to the selected matrix
+		 */
+		void actuatorsAdded(ActuatorType type, int count);
+
 		/// Configured effectiveness matrix. Actuators are expected to be filled in order, motors first, then servos
 		EffectivenessMatrix effectiveness_matrices[MAX_NUM_MATRICES];
 
-		int matrix_selection_indexes[NUM_ACTUATORS];
+		int num_actuators_matrix[MAX_NUM_MATRICES]; ///< current amount, and next actuator index to fill in to effectiveness_matrices
+		ActuatorVector trim[MAX_NUM_MATRICES];
+
+		int selected_matrix;
+
+		uint8_t matrix_selection_indexes[NUM_ACTUATORS * MAX_NUM_MATRICES];
 		int num_actuators[(int)ActuatorType::COUNT];
-
-		ActuatorVector trim;
-
-		int next_actuator_index[(int)ActuatorType::COUNT]; ///< next actuator index to fill in to effectiveness_matrices
 	};
 
 	/**
@@ -138,6 +149,15 @@ public:
 	 * Display name
 	 */
 	virtual const char *name() const = 0;
+
+
+	/**
+	 * Callback from the control allocation, allowing to manipulate the setpoint.
+	 * This can be used to e.g. add non-linear or external terms.
+	 * It is called after the matrix multiplication and before final desaturation.
+	 * @param actuator_sp input & output setpoint
+	 */
+	virtual void updateSetpoint(int matrix_index, ActuatorVector &actuator_sp) {}
 
 protected:
 	FlightPhase _flight_phase{FlightPhase::HOVER_FLIGHT};		///< Current flight phase

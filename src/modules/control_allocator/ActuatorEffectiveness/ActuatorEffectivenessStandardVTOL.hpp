@@ -42,23 +42,29 @@
 #pragma once
 
 #include "ActuatorEffectiveness.hpp"
+#include "ActuatorEffectivenessMultirotor.hpp"
+#include "ActuatorEffectivenessControlSurfaces.hpp"
 
-class ActuatorEffectivenessStandardVTOL: public ActuatorEffectiveness
+class ActuatorEffectivenessStandardVTOL : public ModuleParams, public ActuatorEffectiveness
 {
 public:
-	ActuatorEffectivenessStandardVTOL();
+	ActuatorEffectivenessStandardVTOL(ModuleParams *parent);
 	virtual ~ActuatorEffectivenessStandardVTOL() = default;
 
 	bool getEffectivenessMatrix(Configuration &configuration, bool force) override;
 
-	/**
-	 * Set the current flight phase
-	 *
-	 * @param Flight phase
-	 */
-	void setFlightPhase(const FlightPhase &flight_phase) override;
-
 	const char *name() const override { return "Standard VTOL"; }
-protected:
-	bool _updated{true};
+
+	int numMatrices() const override { return 2; }
+
+	void getDesiredAllocationMethod(AllocationMethod allocation_method_out[MAX_NUM_MATRICES]) const override
+	{
+		static_assert(MAX_NUM_MATRICES >= 2, "expecting at least 2 matrices");
+		allocation_method_out[0] = AllocationMethod::SEQUENTIAL_DESATURATION;
+		allocation_method_out[1] = AllocationMethod::PSEUDO_INVERSE;
+	}
+
+private:
+	ActuatorEffectivenessMultirotor _mc_rotors;
+	ActuatorEffectivenessControlSurfaces _control_surfaces;
 };
