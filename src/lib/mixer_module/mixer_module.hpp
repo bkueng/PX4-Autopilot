@@ -340,6 +340,7 @@ private:
 	bool _has_backup_schedule{false};
 	const char *const _param_prefix;
 	ParamHandles _param_handles[MAX_ACTUATORS];
+	param_t _param_handle_rev_range{PARAM_INVALID};
 	hrt_abstime _lowrate_schedule_interval{300_ms};
 	ActuatorTest _actuator_test{_function_assignment};
 
