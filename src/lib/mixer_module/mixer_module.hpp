@@ -338,8 +338,6 @@ private:
 	bool _need_function_update{true};
 	bool _use_dynamic_mixing{false}; ///< set to _param_sys_ctrl_alloc on init (avoid changing after startup)
 	bool _has_backup_schedule{false};
-	bool _reversible_motors =
-		false; ///< whether or not the output module supports reversible motors (range [-1, 0] for motors)
 	const char *const _param_prefix;
 	ParamHandles _param_handles[MAX_ACTUATORS];
 	hrt_abstime _lowrate_schedule_interval{300_ms};
