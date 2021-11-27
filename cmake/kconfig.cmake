@@ -289,6 +289,10 @@ if(EXISTS ${BOARD_DEFCONFIG})
 		add_definitions(-DCONSTRAINED_MEMORY)
 	endif()
 
+	if(CONFIG_BOARD_IO)
+		add_definitions(-DBOARD_WITH_IO)
+	endif()
+
 	if(TESTING)
 		set(PX4_TESTING "1" CACHE INTERNAL "testing enabled" FORCE)
 	endif()
