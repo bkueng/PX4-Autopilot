@@ -135,6 +135,7 @@ private:
 	bool _vtol{false};
 	bool _vtol_tailsitter{false};
 	bool _vtol_in_transition_mode{false};
+	float _angle{0.f};
 
 	uint8_t _quat_reset_counter{0};
 

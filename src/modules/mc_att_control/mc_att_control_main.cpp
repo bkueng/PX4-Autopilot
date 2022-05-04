@@ -215,6 +215,36 @@ MulticopterAttitudeControl::generate_attitude_setpoint(const Quatf &q, float dt,
 					   1.0f));
 	attitude_setpoint.timestamp = hrt_absolute_time();
 
+	if (_landed) {
+		_angle = 0.f;
+
+	} else {
+		_angle += dt * _manual_control_setpoint.aux1 * 2.f * M_PI_F;
+	}
+
+	Quatf q_sp2 = Eulerf(_angle, 0.f, attitude_setpoint.yaw_body);
+	q_sp2.copyTo(attitude_setpoint.q_d);
+	const float scaling = 1.f;
+	Vector3f thrust_sp_body{_manual_control_setpoint.x * scaling, _manual_control_setpoint.y * scaling,
+				-throttle_curve(math::constrain(_manual_control_setpoint.z, 0.0f, 1.0f))};
+	// rotate thrust with negative attitude sp
+	Quatf q_sp_tilt = Eulerf(_angle, 0.f, 0.f);
+	Dcmf att_sp_dcm{q_sp_tilt};
+	thrust_sp_body = att_sp_dcm.transpose() * thrust_sp_body;
+
+	static int counter = 0;
+
+	if (++counter == 40) {
+		Eulerf euler_sp2{q_sp2};
+		printf("a=%.1f, att sp: %.1f %.1f %.1f thrust: %.3f %.3f %.3f\n", (double)(_angle * 180.f / M_PI_F),
+		       (double)(euler_sp2(0) * 180.f / M_PI_F), (double)(euler_sp2(1) * 180.f / M_PI_F),
+		       (double)(euler_sp2(2) * 180.f / M_PI_F),
+		       (double)thrust_sp_body(0), (double)thrust_sp_body(1), (double)thrust_sp_body(2));
+		counter = 0;
+	}
+
+	thrust_sp_body.copyTo(attitude_setpoint.thrust_body);
+
 	_vehicle_attitude_setpoint_pub.publish(attitude_setpoint);
 }
 
