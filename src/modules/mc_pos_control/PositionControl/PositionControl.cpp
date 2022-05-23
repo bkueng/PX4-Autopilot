@@ -117,6 +117,7 @@ bool PositionControl::update(const float dt)
 	// There has to be a valid output accleration and thrust setpoint otherwise something went wrong
 	valid = valid && PX4_ISFINITE(_acc_sp(0)) && PX4_ISFINITE(_acc_sp(1)) && PX4_ISFINITE(_acc_sp(2));
 	valid = valid && PX4_ISFINITE(_thr_sp(0)) && PX4_ISFINITE(_thr_sp(1)) && PX4_ISFINITE(_thr_sp(2));
+	_dt = dt;
 
 	return valid;
 }
@@ -249,8 +250,40 @@ void PositionControl::getLocalPositionSetpoint(vehicle_local_position_setpoint_s
 	_thr_sp.copyTo(local_position_setpoint.thrust);
 }
 
-void PositionControl::getAttitudeSetpoint(vehicle_attitude_setpoint_s &attitude_setpoint) const
+void PositionControl::getAttitudeSetpoint(vehicle_attitude_setpoint_s &attitude_setpoint, bool landed)
 {
-	ControlMath::thrustToAttitude(_thr_sp, _yaw_sp, attitude_setpoint);
+	// ControlMath::thrustToAttitude(_thr_sp, _yaw_sp, attitude_setpoint);
+
+
+	manual_control_setpoint_s manual_control_setpoint;
+	_manual_control_setpoint_sub.copy(&manual_control_setpoint);
+
+	if (landed) {
+		_roll_angle = 0.f;
+		_pitch_angle = 0.f;
+
+	} else {
+		_roll_angle += _dt * manual_control_setpoint.aux1 * 2.f * M_PI_F / 2.f;
+		// _pitch_angle += _dt * powf(manual_control_setpoint.aux1, 2.f) * 2.f * M_PI_F / 2.f; // TODO: aux2
+	}
+
+	Quatf q_sp = Eulerf(_roll_angle, _pitch_angle, _yaw_sp);
+	q_sp.copyTo(attitude_setpoint.q_d);
 	attitude_setpoint.yaw_sp_move_rate = _yawspeed_sp;
+
+	// Rotate thrust by negative attitude
+	Dcmf att_sp_dcm{q_sp};
+	Vector3f thrust_sp_body = att_sp_dcm.transpose() * _thr_sp;
+	thrust_sp_body.copyTo(attitude_setpoint.thrust_body);
+
+	// static int counter = 0;
+
+	// if (++counter == 40) {
+	// 	Eulerf euler_sp2{q_sp};
+	// 	printf("a=%.1f, att sp: %.1f %.1f %.1f thrust: %.3f %.3f %.3f\n", (double)(_roll_angle * 180.f / M_PI_F),
+	// 	       (double)(euler_sp2(0) * 180.f / M_PI_F), (double)(euler_sp2(1) * 180.f / M_PI_F),
+	// 	       (double)(euler_sp2(2) * 180.f / M_PI_F),
+	// 	       (double)thrust_sp_body(0), (double)thrust_sp_body(1), (double)thrust_sp_body(2));
+	// 	counter = 0;
+	// }
 }
