@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2020 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2022 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,46 +31,28 @@
  *
  ****************************************************************************/
 
-#include "../PreFlightCheck.hpp"
+#pragma once
 
-#include <drivers/drv_hrt.h>
-#include <systemlib/mavlink_log.h>
-#include <lib/parameters/param.h>
+#include "../Common.hpp"
+
 #include <uORB/Subscription.hpp>
-#include <uORB/topics/cpuload.h>
+#include <uORB/topics/airspeed_validated.h>
 
-using namespace time_literals;
-
-bool PreFlightCheck::cpuResourceCheck(orb_advert_t *mavlink_log_pub, const bool report_fail)
+class AirspeedChecks : public HealthAndArmingCheckBase
 {
-	bool success = true;
+public:
+	AirspeedChecks();
+	~AirspeedChecks() = default;
 
-	uORB::SubscriptionData<cpuload_s> cpuload_sub{ORB_ID(cpuload)};
-	cpuload_sub.update();
+	void checkAndReport(const Context &context, Report &reporter) override;
 
-	float cpuload_percent_max;
-	param_get(param_find("COM_CPU_MAX"), &cpuload_percent_max);
+private:
+	uORB::Subscription _airspeed_validated_sub{ORB_ID(airspeed_validated)};
 
-	if (cpuload_percent_max > 0.f) {
+	const param_t _param_fw_arsp_mode_handle;
+	const param_t _param_fw_airspd_trim_handle;
 
-		if (hrt_elapsed_time(&cpuload_sub.get().timestamp) > 2_s) {
-			success = false;
-
-			if (report_fail) {
-				mavlink_log_critical(mavlink_log_pub, "Fail: No CPU load information");
-			}
-		}
-
-		const float cpuload_percent = cpuload_sub.get().load * 100.f;
-
-		if (cpuload_percent > cpuload_percent_max) {
-			success = false;
-
-			if (report_fail) {
-				mavlink_log_critical(mavlink_log_pub, "Fail: CPU load too high: %3.1f%%", (double)cpuload_percent);
-			}
-		}
-	}
-
-	return success;
-}
+	DEFINE_PARAMETERS_CUSTOM_PARENT(HealthAndArmingCheckBase,
+					(ParamBool<px4::params::COM_ARM_ARSP_EN>) _param_com_arm_arsp_en
+				       )
+};

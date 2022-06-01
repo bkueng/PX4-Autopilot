@@ -31,41 +31,14 @@
  *
  ****************************************************************************/
 
-#include "../PreFlightCheck.hpp"
+#pragma once
 
-#include <drivers/drv_hrt.h>
-#include <px4_defines.h>
-#include <systemlib/mavlink_log.h>
-#include <uORB/uORB.h>
-#include <uORB/Subscription.hpp>
-#include <uORB/topics/distance_sensor.h>
+#include <uORB/topics/vehicle_status_flags.h>
 
-using namespace time_literals;
+/**
+ * Get per-mode requirements
+ * @param vehicle_type one of vehicle_status_s::VEHICLE_TYPE_*
+ * @param flags output flags, all mode_req_* entries are set
+ */
+void getModeRequirements(uint8_t vehicle_type, vehicle_status_flags_s &flags);
 
-bool PreFlightCheck::distSensCheck(orb_advert_t *mavlink_log_pub, vehicle_status_s &status, const uint8_t instance,
-				   const bool is_mandatory, bool &report_fail)
-{
-	const bool exists = (orb_exists(ORB_ID(distance_sensor), instance) == PX4_OK);
-	bool valid = false;
-
-	if (exists) {
-		uORB::SubscriptionData<distance_sensor_s> dist_sens_sub{ORB_ID(distance_sensor), instance};
-		dist_sens_sub.update();
-		const distance_sensor_s &dist_sens_data = dist_sens_sub.get();
-
-		valid = (hrt_elapsed_time(&dist_sens_data.timestamp) < 1_s);
-	}
-
-	if (report_fail && is_mandatory) {
-		if (!exists) {
-			mavlink_log_critical(mavlink_log_pub, "Preflight Fail: distance sensor %u missing", instance);
-			report_fail = false;
-
-		} else if (!valid) {
-			mavlink_log_critical(mavlink_log_pub, "Preflight Fail: no valid data from distance sensor %u", instance);
-			report_fail = false;
-		}
-	}
-
-	return valid || !is_mandatory;
-}

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2021 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2022 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,44 +31,27 @@
  *
  ****************************************************************************/
 
-#include "../PreFlightCheck.hpp"
-#include <lib/parameters/param.h>
-#include <systemlib/mavlink_log.h>
+#pragma once
 
-#ifdef __PX4_DARWIN
-#include <sys/param.h>
-#include <sys/mount.h>
-#else
-#include <sys/statfs.h>
-#endif
+#include "../Common.hpp"
 
-bool PreFlightCheck::sdcardCheck(orb_advert_t *mavlink_log_pub, bool &sd_card_detected_once,
-				 const bool report_fail)
+#include <uORB/Subscription.hpp>
+#include <uORB/SubscriptionMultiArray.hpp>
+#include <uORB/topics/estimator_status.h>
+#include <uORB/topics/sensor_accel.h>
+#include <lib/sensor_calibration/Accelerometer.hpp>
+
+class AccelerometerChecks : public HealthAndArmingCheckBase
 {
-	bool success = true;
+public:
+	AccelerometerChecks() = default;
+	~AccelerometerChecks() = default;
 
-	int32_t param_com_arm_sdcard{0};
-	param_get(param_find("COM_ARM_SDCARD"), &param_com_arm_sdcard);
+	void checkAndReport(const Context &context, Report &reporter) override;
 
-	if (param_com_arm_sdcard > 0) {
-		struct statfs statfs_buf;
+private:
+	bool isAccelRequired(int instance);
 
-		if (!sd_card_detected_once && statfs(PX4_STORAGEDIR, &statfs_buf) == 0) {
-			// on NuttX we get a data block count f_blocks and byte count per block f_bsize if an SD card is inserted
-			sd_card_detected_once = (statfs_buf.f_blocks > 0) && (statfs_buf.f_bsize > 0);
-		}
-
-		if (!sd_card_detected_once) {
-			if (report_fail) {
-				mavlink_log_critical(mavlink_log_pub, "Warning! Missing FMU SD Card.");
-			}
-
-			if (param_com_arm_sdcard == 2) {
-				// disallow arming without sd card
-				success = false;
-			}
-		}
-	}
-
-	return success;
-}
+	uORB::SubscriptionMultiArray<sensor_accel_s, calibration::Accelerometer::MAX_SENSOR_COUNT> _sensor_accel_sub{ORB_ID::sensor_accel};
+	uORB::SubscriptionMultiArray<estimator_status_s> _estimator_status_sub{ORB_ID::estimator_status};
+};

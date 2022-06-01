@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2022 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2019-2020 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,39 +31,24 @@
  *
  ****************************************************************************/
 
-#include "../PreFlightCheck.hpp"
-
-#include <systemlib/mavlink_log.h>
+#include "batteryCheck.hpp"
 
 using namespace time_literals;
 
-bool PreFlightCheck::modeCheck(orb_advert_t *mavlink_log_pub, const bool report_fail,
-			       const vehicle_status_s &vehicle_status)
+void BatteryChecks::checkAndReport(const Context &context, Report &reporter)
 {
-	bool success = true;
+	if (!context.status().battery_healthy) {
 
-	switch (vehicle_status.nav_state) {
-	case vehicle_status_s::NAVIGATION_STATE_MANUAL:
-	case vehicle_status_s::NAVIGATION_STATE_ALTCTL:
-	case vehicle_status_s::NAVIGATION_STATE_POSCTL:
-	case vehicle_status_s::NAVIGATION_STATE_AUTO_MISSION:
-	case vehicle_status_s::NAVIGATION_STATE_AUTO_LOITER:
-	case vehicle_status_s::NAVIGATION_STATE_ACRO:
-	case vehicle_status_s::NAVIGATION_STATE_OFFBOARD:
-	case vehicle_status_s::NAVIGATION_STATE_STAB:
-	case vehicle_status_s::NAVIGATION_STATE_AUTO_TAKEOFF:
-	case vehicle_status_s::NAVIGATION_STATE_AUTO_VTOL_TAKEOFF:
-		break;
+		/* EVENT
+		 */
+		reporter.healthFailure(NavModes::All, health_component_t::battery, events::ID("check_battery_unhealthy"),
+				       events::Log::Error, "Battery unhealthy");
 
-	default:
-		success = false;
-
-		if (report_fail) {
-			mavlink_log_critical(mavlink_log_pub, "Mode not suitable for takeoff");
+		if (reporter.mavlink_log_pub()) {
+			mavlink_log_critical(reporter.mavlink_log_pub(), "Preflight Fail: Battery unhealthy");
 		}
-
-		break;
 	}
 
-	return success;
+	reporter.setIsPresent(health_component_t::battery); // assume it's present
+
 }

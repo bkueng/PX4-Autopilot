@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2020 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2022 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,28 +31,21 @@
  *
  ****************************************************************************/
 
-#include "../PreFlightCheck.hpp"
+#pragma once
 
-#include <drivers/drv_hrt.h>
-#include <systemlib/mavlink_log.h>
+#include "../Common.hpp"
+
 #include <uORB/Subscription.hpp>
+#include <uORB/topics/manual_control_switches.h>
 
-using namespace time_literals;
-
-bool PreFlightCheck::airframeCheck(orb_advert_t *mavlink_log_pub, const vehicle_status_s &status)
+class ManualControlChecks : public HealthAndArmingCheckBase
 {
-	bool success = true;
+public:
+	ManualControlChecks() = default;
+	~ManualControlChecks() = default;
 
-#ifdef CONFIG_ARCH_BOARD_PX4_FMU_V2
+	void checkAndReport(const Context &context, Report &reporter) override;
 
-	// We no longer support VTOL on fmu-v2, so we need to warn existing users.
-	if (status.is_vtol) {
-		mavlink_log_critical(mavlink_log_pub,
-				     "VTOL is not supported with fmu-v2, see docs.px4.io/main/en/config/firmware.html#bootloader");
-		success = false;
-	}
-
-#endif
-
-	return success;
-}
+private:
+	uORB::Subscription _manual_control_switches_sub{ORB_ID(manual_control_switches)};
+};
