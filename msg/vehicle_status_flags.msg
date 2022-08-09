@@ -30,12 +30,6 @@ bool home_position_valid		# indicates a valid home position (a valid home positi
 bool escs_error		      		# set to true if one or more ESCs reporting esc_status are offline
 bool escs_failure		      	# set to true if one or more ESCs reporting esc_status has a failure
 
-bool position_reliant_on_gps
-bool position_reliant_on_optical_flow
-bool position_reliant_on_vision_position
-
-bool dead_reckoning
-
 bool offboard_control_signal_lost
 
 bool rc_signal_found_once

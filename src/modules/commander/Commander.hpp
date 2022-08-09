@@ -70,9 +70,6 @@
 #include <uORB/topics/cpuload.h>
 #include <uORB/topics/distance_sensor.h>
 #include <uORB/topics/esc_status.h>
-#include <uORB/topics/estimator_selector_status.h>
-#include <uORB/topics/estimator_status.h>
-#include <uORB/topics/estimator_status_flags.h>
 #include <uORB/topics/geofence_result.h>
 #include <uORB/topics/iridiumsbd_status.h>
 #include <uORB/topics/manual_control_setpoint.h>
@@ -210,8 +207,6 @@ private:
 		(ParamFloat<px4::params::COM_VEL_FS_EVH>) _param_com_vel_fs_evh,
 		(ParamInt<px4::params::COM_POSCTL_NAVL>) _param_com_posctl_navl,	/* failsafe response to loss of navigation accuracy */
 
-		(ParamInt<px4::params::COM_POS_FS_DELAY>) _param_com_pos_fs_delay,
-
 		(ParamInt<px4::params::COM_LOW_BAT_ACT>) _param_com_low_bat_act,
 		(ParamFloat<px4::params::COM_BAT_ACT_T>) _param_com_bat_act_t,
 		(ParamInt<px4::params::COM_IMB_PROP_ACT>) _param_com_imb_prop_act,
@@ -292,20 +287,6 @@ private:
 	static constexpr uint64_t INAIR_RESTART_HOLDOFF_INTERVAL{500_ms};
 
 	ArmStateMachine _arm_state_machine{};
-
-	hrt_abstime	_last_gpos_fail_time_us{0};	/**< Last time that the global position validity recovery check failed (usec) */
-	hrt_abstime	_last_lpos_fail_time_us{0};	/**< Last time that the local position validity recovery check failed (usec) */
-	hrt_abstime	_last_lvel_fail_time_us{0};	/**< Last time that the local velocity validity recovery check failed (usec) */
-
-	/* class variables used to check for navigation failure after takeoff */
-	hrt_abstime	_time_last_innov_pass{0};	/**< last time velocity and position innovations passed */
-	hrt_abstime	_time_last_innov_fail{0};	/**< last time velocity and position innovations failed */
-	bool		_nav_test_passed{false};	/**< true if the post takeoff navigation test has passed */
-	bool		_nav_test_failed{false};	/**< true if the post takeoff navigation test has failed */
-
-	static constexpr hrt_abstime GPS_VALID_TIME{3_s};
-	Hysteresis _vehicle_gps_position_valid{false};
-	hrt_abstime _vehicle_gps_position_timestamp_last{0};
 
 	bool		_geofence_loiter_on{false};
 	bool		_geofence_rtl_on{false};
@@ -392,8 +373,6 @@ private:
 	uORB::Subscription					_action_request_sub {ORB_ID(action_request)};
 	uORB::Subscription					_cpuload_sub{ORB_ID(cpuload)};
 	uORB::Subscription					_esc_status_sub{ORB_ID(esc_status)};
-	uORB::Subscription					_estimator_selector_status_sub{ORB_ID(estimator_selector_status)};
-	uORB::Subscription					_estimator_status_sub{ORB_ID(estimator_status)};
 	uORB::Subscription					_geofence_result_sub{ORB_ID(geofence_result)};
 	uORB::Subscription					_iridiumsbd_status_sub{ORB_ID(iridiumsbd_status)};
 	uORB::Subscription					_vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
@@ -414,7 +393,6 @@ private:
 	uORB::Subscription					_power_button_state_sub {ORB_ID(power_button_state)};
 #endif // BOARD_HAS_POWER_CONTROL
 
-	uORB::SubscriptionData<estimator_status_flags_s>	_estimator_status_flags_sub{ORB_ID(estimator_status_flags)};
 	uORB::SubscriptionData<mission_result_s>		_mission_result_sub{ORB_ID(mission_result)};
 	uORB::SubscriptionData<offboard_control_mode_s>		_offboard_control_mode_sub{ORB_ID(offboard_control_mode)};
 	uORB::SubscriptionData<vehicle_global_position_s>	_global_position_sub{ORB_ID(vehicle_global_position)};

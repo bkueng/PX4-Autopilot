@@ -39,13 +39,15 @@
 #include <uORB/topics/estimator_selector_status.h>
 #include <uORB/topics/estimator_sensor_bias.h>
 #include <uORB/topics/estimator_status.h>
+#include <uORB/topics/estimator_status_flags.h>
 #include <uORB/topics/estimator_sensor_bias.h>
 
+#include <lib/hysteresis/hysteresis.h>
 
 class EstimatorChecks : public HealthAndArmingCheckBase
 {
 public:
-	EstimatorChecks() = default;
+	EstimatorChecks();
 	~EstimatorChecks() = default;
 
 	void checkAndReport(const Context &context, Report &reporter) override;
@@ -55,9 +57,30 @@ private:
 				  NavModes required_groups);
 	void checkSensorBias(const Context &context, Report &reporter, NavModes required_groups);
 
+	void checkEstimatorStatusFlags(const Context &context, Report &reporter, const estimator_status_s &estimator_status);
+	bool check_posvel_validity(const bool data_valid, const float data_accuracy, const float required_accuracy,
+				   const hrt_abstime &data_timestamp_us, hrt_abstime &last_fail_time_us,
+				   const bool was_valid);
+
 	uORB::Subscription _estimator_selector_status_sub{ORB_ID(estimator_selector_status)};
 	uORB::Subscription _estimator_status_sub{ORB_ID(estimator_status)};
+	uORB::Subscription _estimator_status_flags_sub{ORB_ID(estimator_status_flags)};
 	uORB::Subscription _estimator_sensor_bias_sub{ORB_ID(estimator_sensor_bias)};
+
+	hrt_abstime	_last_gpos_fail_time_us{0};	/**< Last time that the global position validity recovery check failed (usec) */
+	hrt_abstime	_last_lpos_fail_time_us{0};	/**< Last time that the local position validity recovery check failed (usec) */
+	hrt_abstime	_last_lvel_fail_time_us{0};	/**< Last time that the local velocity validity recovery check failed (usec) */
+
+	/* class variables used to check for navigation failure after takeoff */
+	hrt_abstime	_time_last_innov_pass{0};	/**< last time velocity and position innovations passed */
+	hrt_abstime	_time_last_innov_fail{0};	/**< last time velocity and position innovations failed */
+	bool		_nav_test_passed{false};	/**< true if the post takeoff navigation test has passed */
+	bool		_nav_test_failed{false};	/**< true if the post takeoff navigation test has failed */
+
+	static constexpr hrt_abstime GPS_VALID_TIME{3_s};
+	systemlib::Hysteresis _vehicle_gps_position_valid{false};
+	hrt_abstime _vehicle_gps_position_timestamp_last{0};
+
 
 	DEFINE_PARAMETERS_CUSTOM_PARENT(HealthAndArmingCheckBase,
 					(ParamInt<px4::params::SYS_MC_EST_GROUP>) _param_sys_mc_est_group,
@@ -68,6 +91,10 @@ private:
 					(ParamFloat<px4::params::COM_ARM_EKF_POS>) _param_com_arm_ekf_pos,
 					(ParamFloat<px4::params::COM_ARM_EKF_YAW>) _param_com_arm_ekf_yaw,
 					(ParamBool<px4::params::COM_ARM_WO_GPS>) _param_com_arm_wo_gps,
-					(ParamBool<px4::params::SYS_HAS_GPS>) _param_sys_has_gps
+					(ParamBool<px4::params::SYS_HAS_GPS>) _param_sys_has_gps,
+					(ParamFloat<px4::params::COM_POS_FS_EPH>) _param_com_pos_fs_eph,
+					(ParamFloat<px4::params::COM_POS_FS_EPV>) _param_com_pos_fs_epv, 	/*Not realy used for now*/
+					(ParamFloat<px4::params::COM_VEL_FS_EVH>) _param_com_vel_fs_evh,
+					(ParamInt<px4::params::COM_POS_FS_DELAY>) _param_com_pos_fs_delay
 				       )
 };
