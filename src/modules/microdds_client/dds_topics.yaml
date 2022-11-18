@@ -56,6 +56,12 @@ publications:
   - topic: /fmu/out/vehicle_trajectory_waypoint_desired
     type: px4_msgs::msg::VehicleTrajectoryWaypoint
 
+  - topic: /fmu/out/manual_control_setpoint
+    type: px4_msgs::msg::ManualControlSetpoint
+
+  - topic: /fmu/out/vehicle_land_detected
+    type: px4_msgs::msg::VehicleLandDetected
+
 subscriptions:
   - topic: /fmu/in/register_ext_component_request
     type: px4_msgs::msg::RegisterExtComponentRequest
