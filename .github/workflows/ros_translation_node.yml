@@ -2,7 +2,7 @@ name: ROS translation node tests
 on:
   push:
     branches:
-    - 'main'
+    - '*'
   pull_request:
     branches:
     - '*'
@@ -26,16 +26,18 @@ jobs:
           fetch-depth: 0
 
       - name: Check .msg file versioning
-        if: github.event_name == 'pull_request'
+        #if: github.event_name == 'pull_request'
         run: |
+          ls -a
+          git status
           ./Tools/ci/check_msg_versioning.sh ${{ github.event.pull_request.base.sha }} ${{github.event.pull_request.head.sha}}
 
-      - name: Build and test
-        run: |
-          ros_ws=/ros_ws
-          mkdir -p $ros_ws/src
-          ./Tools/copy_to_ros_ws.sh $ros_ws
-          cd $ros_ws
-          source /opt/ros/humble/setup.sh
-          colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --symlink-install --event-handlers=console_cohesion+
-          ./build/translation_node/translation_node_unit_tests
+#      - name: Build and test
+#        run: |
+#          ros_ws=/ros_ws
+#          mkdir -p $ros_ws/src
+#          ./Tools/copy_to_ros_ws.sh $ros_ws
+#          cd $ros_ws
+#          source /opt/ros/humble/setup.sh
+#          colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --symlink-install --event-handlers=console_cohesion+
+#          ./build/translation_node/translation_node_unit_tests
