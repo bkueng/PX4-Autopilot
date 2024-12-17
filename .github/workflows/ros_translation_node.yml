@@ -25,6 +25,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Workaround for https://github.com/actions/runner/issues/2033
+      - name: ownership workaround
+        run: git config --system --add safe.directory '*'
+
       - name: Check .msg file versioning
         #if: github.event_name == 'pull_request'
         run: |
